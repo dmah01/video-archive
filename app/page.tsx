@@ -105,6 +105,7 @@ export default function Home() {
     loadSeries();
   }, []);
 
+
   // =============================
   // 필터 변경
   // =============================
@@ -128,8 +129,8 @@ export default function Home() {
   async function loadVideos() {
     setLoading(true);
 
-    // Supabase 기본 1000개 제한을 피하기 위해
-    // 1000개씩 나누어 모든 영상을 불러옵니다.
+    // Supabase에 저장된 영상 전체를 가져옵니다.
+    // 1000개씩 나누어 가져오기 때문에 2019년 영상도 계속 웹사이트에 남습니다.
     const allVideos: Video[] = [];
     const pageSize = 1000;
     let from = 0;
@@ -144,7 +145,10 @@ export default function Home() {
         .order("published_at", {
           ascending: false,
         })
-        .range(from, from + pageSize - 1);
+        .range(
+          from,
+          from + pageSize - 1
+        );
 
       if (pageError) {
         console.error(
@@ -169,17 +173,6 @@ export default function Home() {
 
     const data = allVideos;
 
-    console.log(
-      "Supabase 전체 영상:",
-      data.length
-    );
-
-    console.log(
-      "Supabase 가장 오래된 영상:",
-      data[data.length - 1]?.published_at ??
-        "없음"
-    );
-
     const videoIds = data.map(
       (video) => video.id
     );
@@ -190,10 +183,7 @@ export default function Home() {
       return;
     }
 
-    // =============================
     // 영상 ↔ 장르
-    // =============================
-
     const {
       data: genreRelations,
       error: genreError,
@@ -209,10 +199,7 @@ export default function Home() {
       );
     }
 
-    // =============================
     // 영상 ↔ 등장인물
-    // =============================
-
     const {
       data: peopleRelations,
       error: peopleError,
@@ -227,10 +214,6 @@ export default function Home() {
         peopleError
       );
     }
-
-    // =============================
-    // 영상 데이터 정리
-    // =============================
 
     const videosWithRelations: Video[] =
       data.map((video) => ({
@@ -266,18 +249,6 @@ export default function Home() {
         seriesId:
           video.series_id ?? null,
       }));
-
-    console.log(
-      "최종 videos 개수:",
-      videosWithRelations.length
-    );
-
-    console.log(
-      "최종 가장 오래된 영상:",
-      videosWithRelations[
-        videosWithRelations.length - 1
-      ]?.published_at ?? "없음"
-    );
 
     setVideos(videosWithRelations);
     setLoading(false);
@@ -907,8 +878,10 @@ export default function Home() {
               </div>
 
               {totalPages > 1 && (
-                <div className="mt-8 flex flex-col items-center gap-3">
-                  <div className="flex items-center gap-2">
+                  <nav
+                    aria-label="영상 페이지 이동"
+                    className="mt-8 flex w-full items-center justify-center gap-2"
+                  >
                     <button
                       type="button"
                       onClick={() =>
@@ -941,18 +914,18 @@ export default function Home() {
                             pages.push("...");
                           }
 
-                          const start = Math.max(
+                          const startPage = Math.max(
                             2,
                             currentPage - 1
                           );
-                          const end = Math.min(
+                          const endPage = Math.min(
                             totalPages - 1,
                             currentPage + 1
                           );
 
                           for (
-                            let page = start;
-                            page <= end;
+                            let page = startPage;
+                            page <= endPage;
                             page++
                           ) {
                             pages.push(page);
@@ -1016,13 +989,9 @@ export default function Home() {
                     >
                       다음
                     </button>
-                  </div>
+                  </nav>
+                )}
 
-                  <p className="text-xs text-zinc-600">
-                    {currentPage} / {totalPages} 페이지
-                  </p>
-                </div>
-              )}
             </>
           )}
       </div>
@@ -1030,6 +999,17 @@ export default function Home() {
       {/* ========================= */}
       {/* 영상 편집 */}
       {/* ========================= */}
+
+      <footer className="border-t border-zinc-900 bg-zinc-950">
+        <div className="mx-auto max-w-7xl px-5 py-8 text-center sm:px-6">
+          <p className="text-xs text-zinc-600">
+            SLEEPGROUND TV ARCHIVE
+          </p>
+          <p className="mt-2 text-xs text-zinc-700">
+            잠뜰TV Archive
+          </p>
+        </div>
+      </footer>
 
       <VideoEditor
         video={editingVideo}
