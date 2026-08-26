@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import Pagination from "./components/Pagination";
 import VideoCard from "./components/VideoCard";
 import VideoFilters from "./components/VideoFilters";
 import VideoEditor from "./components/VideoEditor";
@@ -129,27 +128,59 @@ export default function Home() {
   async function loadVideos() {
     setLoading(true);
 
-    const {
-      data,
-      error,
-    } = await supabase
-      .from("videos")
-      .select("*")
-      .order("published_at", {
-        ascending: false,
-      });
+    // Supabase 기본 1000개 제한을 피하기 위해
+    // 1000개씩 나누어 모든 영상을 불러옵니다.
+    const allVideos: Video[] = [];
+    const pageSize = 1000;
+    let from = 0;
 
-    if (error) {
-      console.error(
-        "영상 불러오기 오류:",
-        error
-      );
+    while (true) {
+      const {
+        data: pageData,
+        error: pageError,
+      } = await supabase
+        .from("videos")
+        .select("*")
+        .order("published_at", {
+          ascending: false,
+        })
+        .range(from, from + pageSize - 1);
 
-      setLoading(false);
-      return;
+      if (pageError) {
+        console.error(
+          "영상 불러오기 오류:",
+          pageError
+        );
+        setLoading(false);
+        return;
+      }
+
+      const currentVideos =
+        (pageData ?? []) as Video[];
+
+      allVideos.push(...currentVideos);
+
+      if (currentVideos.length < pageSize) {
+        break;
+      }
+
+      from += pageSize;
     }
 
-    const videoIds = (data ?? []).map(
+    const data = allVideos;
+
+    console.log(
+      "Supabase 전체 영상:",
+      data.length
+    );
+
+    console.log(
+      "Supabase 가장 오래된 영상:",
+      data[data.length - 1]?.published_at ??
+        "없음"
+    );
+
+    const videoIds = data.map(
       (video) => video.id
     );
 
@@ -202,7 +233,7 @@ export default function Home() {
     // =============================
 
     const videosWithRelations: Video[] =
-      (data ?? []).map((video) => ({
+      data.map((video) => ({
         ...video,
 
         peopleIds: (
@@ -235,6 +266,18 @@ export default function Home() {
         seriesId:
           video.series_id ?? null,
       }));
+
+    console.log(
+      "최종 videos 개수:",
+      videosWithRelations.length
+    );
+
+    console.log(
+      "최종 가장 오래된 영상:",
+      videosWithRelations[
+        videosWithRelations.length - 1
+      ]?.published_at ?? "없음"
+    );
 
     setVideos(videosWithRelations);
     setLoading(false);
@@ -864,18 +907,120 @@ export default function Home() {
               </div>
 
               {totalPages > 1 && (
-                <div className="mt-8">
-                  <Pagination
-                    currentPage={
-                      currentPage
-                    }
-                    totalPages={
-                      totalPages
-                    }
-                    setCurrentPage={
-                      setCurrentPage
-                    }
-                  />
+                <div className="mt-8 flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCurrentPage((page) =>
+                          Math.max(1, page - 1)
+                        )
+                      }
+                      disabled={currentPage === 1}
+                      className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      이전
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      {(() => {
+                        const pages: (number | string)[] = [];
+
+                        if (totalPages <= 7) {
+                          for (
+                            let page = 1;
+                            page <= totalPages;
+                            page++
+                          ) {
+                            pages.push(page);
+                          }
+                        } else {
+                          pages.push(1);
+
+                          if (currentPage > 4) {
+                            pages.push("...");
+                          }
+
+                          const start = Math.max(
+                            2,
+                            currentPage - 1
+                          );
+                          const end = Math.min(
+                            totalPages - 1,
+                            currentPage + 1
+                          );
+
+                          for (
+                            let page = start;
+                            page <= end;
+                            page++
+                          ) {
+                            pages.push(page);
+                          }
+
+                          if (
+                            currentPage <
+                            totalPages - 3
+                          ) {
+                            pages.push("...");
+                          }
+
+                          pages.push(totalPages);
+                        }
+
+                        return pages.map(
+                          (page, index) =>
+                            page === "..." ? (
+                              <span
+                                key={`ellipsis-${index}`}
+                                className="px-2 text-sm text-zinc-600"
+                              >
+                                ...
+                              </span>
+                            ) : (
+                              <button
+                                key={page}
+                                type="button"
+                                onClick={() =>
+                                  setCurrentPage(
+                                    page as number
+                                  )
+                                }
+                                className={`min-w-10 rounded-xl px-3 py-2 text-sm font-medium transition ${
+                                  currentPage === page
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            )
+                        );
+                      })()}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCurrentPage((page) =>
+                          Math.min(
+                            totalPages,
+                            page + 1
+                          )
+                        )
+                      }
+                      disabled={
+                        currentPage === totalPages
+                      }
+                      className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      다음
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-zinc-600">
+                    {currentPage} / {totalPages} 페이지
+                  </p>
                 </div>
               )}
             </>

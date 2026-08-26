@@ -48,7 +48,7 @@ export async function GET() {
       channelData.items[0].contentDetails.relatedPlaylists
         .uploads;
 
-    // 2. 2019-06-01까지 모든 영상 가져오기
+    // 2. 2019-06-01까지 영상 가져오기
     const allVideos: any[] = [];
 
     let pageToken: string | undefined = undefined;
@@ -66,6 +66,11 @@ export async function GET() {
         params.set("pageToken", pageToken);
       }
 
+      console.log(
+        "YouTube 페이지:",
+        pageToken ?? "첫 페이지"
+      );
+
       const videosResponse = await fetch(
         `https://www.googleapis.com/youtube/v3/playlistItems?${params.toString()}`
       );
@@ -73,6 +78,11 @@ export async function GET() {
       const videosData = await videosResponse.json();
 
       if (!videosResponse.ok) {
+        console.error(
+          "YouTube API 오류:",
+          videosData
+        );
+
         return NextResponse.json(
           {
             error:
@@ -84,8 +94,34 @@ export async function GET() {
       }
 
       if (!videosData.items?.length) {
+        console.log("더 이상 영상이 없습니다.");
         break;
       }
+
+      const firstDate =
+        videosData.items[0]?.contentDetails
+          ?.videoPublishedAt;
+
+      const lastDate =
+        videosData.items[
+          videosData.items.length - 1
+        ]?.contentDetails?.videoPublishedAt;
+
+      console.log(
+        "이번 페이지:",
+        videosData.items.length,
+        "개"
+      );
+
+      console.log(
+        "첫 번째 영상 날짜:",
+        firstDate
+      );
+
+      console.log(
+        "마지막 영상 날짜:",
+        lastDate
+      );
 
       for (const item of videosData.items) {
         const videoPublishedAt =
@@ -99,7 +135,6 @@ export async function GET() {
           videoPublishedAt
         );
 
-        // 2019-06-01 이전이면 더 이상 가져오지 않음
         if (publishedDate < startDate) {
           reachedStartDate = true;
           break;
@@ -109,17 +144,28 @@ export async function GET() {
       }
 
       if (reachedStartDate) {
+        console.log(
+          "2019-06-01에 도달했습니다."
+        );
         break;
       }
 
       if (!videosData.nextPageToken) {
+        console.log(
+          "다음 페이지가 없습니다."
+        );
         break;
       }
 
       pageToken = videosData.nextPageToken;
     }
 
-    // 3. Supabase에 저장할 데이터 만들기
+    console.log(
+      "최종 가져온 영상 수:",
+      allVideos.length
+    );
+
+    // 3. Supabase 저장용 데이터
     const videos = allVideos.map((item) => ({
       youtube_video_id:
         item.contentDetails.videoId,
@@ -134,7 +180,6 @@ export async function GET() {
         item.snippet.thumbnails.medium?.url ??
         item.snippet.thumbnails.default?.url,
 
-      // 실제 영상 업로드 날짜
       published_at:
         item.contentDetails.videoPublishedAt,
 
@@ -169,8 +214,8 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       count: videos.length,
-      videos,
     });
+
   } catch (error) {
     console.error(
       "YouTube 가져오기 오류:",
