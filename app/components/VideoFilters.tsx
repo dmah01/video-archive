@@ -63,7 +63,7 @@ const genreColors = [
 ];
 
 const popupClass =
-  "fixed inset-x-2 bottom-2 z-[60] max-h-[58dvh] overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950 p-2 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[60vh] sm:w-[280px] sm:rounded-2xl sm:p-3";
+  "fixed inset-x-2 bottom-2 z-[70] max-h-[58dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-2 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[60vh] sm:w-[280px] sm:rounded-2xl sm:p-3";
 
 export default function VideoFilters({
   search,
@@ -194,13 +194,13 @@ export default function VideoFilters({
             setDraftSeries(selectedSeries);
             setOpenFilter(null);
           }}
-          className="fixed inset-0 z-50 bg-black/30 sm:hidden"
+          className="fixed inset-0 z-30 bg-black/40 sm:hidden"
         />
       )}
 
       <section
         ref={wrapperRef}
-        className="relative z-20 mb-8 rounded-2xl border border-zinc-800/80 bg-zinc-900/60 shadow-lg shadow-black/10"
+        className="relative z-40 mb-8 rounded-2xl border border-zinc-800/80 bg-zinc-900/60 shadow-lg shadow-black/10"
       >
       {/* 상단 검색 */}
       <div className="flex flex-col gap-2 p-2.5 sm:gap-3 sm:p-4 lg:flex-row">
@@ -604,7 +604,6 @@ export default function VideoFilters({
                   value={date}
                   onChange={(e) => {
                     setDate(e.target.value);
-                    setOpenFilter(null);
                   }}
                   className="block h-11 w-full min-w-0 appearance-none rounded-xl border border-zinc-800 bg-zinc-900 px-3 text-sm text-zinc-200 outline-none focus:border-zinc-600 sm:h-10 sm:text-xs"
                 />
