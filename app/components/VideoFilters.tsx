@@ -63,7 +63,7 @@ const genreColors = [
 ];
 
 const popupClass =
-  "absolute z-50 max-h-[52vh] w-[min(260px,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950 p-2 shadow-2xl shadow-black/40 sm:w-[280px] sm:rounded-2xl sm:p-3";
+  "fixed inset-x-2 bottom-2 z-[60] max-h-[58dvh] overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950 p-2 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[60vh] sm:w-[280px] sm:rounded-2xl sm:p-3";
 
 export default function VideoFilters({
   search,
@@ -182,10 +182,26 @@ export default function VideoFilters({
   };
 
   return (
-    <section
-      ref={wrapperRef}
-      className="relative z-20 mb-8 rounded-2xl border border-zinc-800/80 bg-zinc-900/60 shadow-lg shadow-black/10"
-    >
+    <>
+      {openFilter && (
+        <button
+          type="button"
+          aria-label="필터 닫기"
+          onClick={() => {
+            setDraftPeople(selectedPeople);
+            setDraftGenres(selectedGenres);
+            setDraftTypes(selectedTypes);
+            setDraftSeries(selectedSeries);
+            setOpenFilter(null);
+          }}
+          className="fixed inset-0 z-50 bg-black/30 sm:hidden"
+        />
+      )}
+
+      <section
+        ref={wrapperRef}
+        className="relative z-20 mb-8 rounded-2xl border border-zinc-800/80 bg-zinc-900/60 shadow-lg shadow-black/10"
+      >
       {/* 상단 검색 */}
       <div className="flex flex-col gap-2 p-2.5 sm:gap-3 sm:p-4 lg:flex-row">
         <div className="relative flex-1">
@@ -259,7 +275,7 @@ export default function VideoFilters({
             </button>
 
             {openFilter === "people" && (
-              <div className={`${popupClass} left-0 top-[calc(100%+8px)]`}>
+              <div className={`${popupClass} sm:left-0 sm:top-[calc(100%+8px)]`}>
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     등장인물 선택
@@ -293,7 +309,7 @@ export default function VideoFilters({
                             setDraftPeople
                           )
                         }
-                        className={`rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
+                        className={`min-h-9 rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
                           selected
                             ? color
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -338,7 +354,7 @@ export default function VideoFilters({
             </button>
 
             {openFilter === "genres" && (
-              <div className={`${popupClass} left-0 top-[calc(100%+8px)]`}>
+              <div className={`${popupClass} sm:left-0 sm:top-[calc(100%+8px)]`}>
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     장르 선택
@@ -371,7 +387,7 @@ export default function VideoFilters({
                             setDraftGenres
                           )
                         }
-                        className={`rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
+                        className={`min-h-9 rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
                           selected
                             ? color
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -416,7 +432,7 @@ export default function VideoFilters({
             </button>
 
             {openFilter === "types" && (
-              <div className={`${popupClass} left-0 top-[calc(100%+8px)]`}>
+              <div className={`${popupClass} sm:left-0 sm:top-[calc(100%+8px)]`}>
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     콘텐츠 타입 선택
@@ -447,7 +463,7 @@ export default function VideoFilters({
                             setDraftTypes
                           )
                         }
-                        className={`rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
+                        className={`min-h-9 rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
                           selected
                             ? "border-indigo-400/30 bg-indigo-400/10 text-indigo-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -492,7 +508,7 @@ export default function VideoFilters({
             </button>
 
             {openFilter === "series" && (
-              <div className={`${popupClass} right-0 top-[calc(100%+8px)]`}>
+              <div className={`${popupClass} sm:right-0 sm:top-[calc(100%+8px)] sm:max-w-[280px]`}>
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     시리즈 선택
@@ -523,7 +539,7 @@ export default function VideoFilters({
                             setDraftSeries
                           )
                         }
-                        className={`rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
+                        className={`min-h-9 rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
                           selected
                             ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -565,7 +581,7 @@ export default function VideoFilters({
 
             {openFilter === "date" && (
               <div
-                className={`${popupClass} right-0 top-[calc(100%+8px)]`}
+                className={`${popupClass} sm:right-0 sm:top-[calc(100%+8px)] sm:max-w-[280px]`}
               >
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
@@ -586,14 +602,26 @@ export default function VideoFilters({
                   autoFocus
                   type="date"
                   value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-xs text-zinc-200 outline-none focus:border-zinc-600"
+                  onChange={(e) => {
+                    setDate(e.target.value);
+                    setOpenFilter(null);
+                  }}
+                  className="block h-11 w-full min-w-0 appearance-none rounded-xl border border-zinc-800 bg-zinc-900 px-3 text-sm text-zinc-200 outline-none focus:border-zinc-600 sm:h-10 sm:text-xs"
                 />
+
+                <button
+                  type="button"
+                  onClick={() => setOpenFilter(null)}
+                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black sm:hidden"
+                >
+                  적용
+                </button>
               </div>
             )}
           </div>
         </div>
       </div>
-    </section>
+      </section>
+    </>
   );
 }
