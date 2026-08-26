@@ -15,11 +15,11 @@ type Category = {
 type VideoFiltersProps = {
   search: string;
   date: string;
-  selectedPerson: string;
 
+  selectedPeople: number[];
   selectedGenres: number[];
-  selectedType: string;
-  selectedSeries: string;
+  selectedTypes: number[];
+  selectedSeries: number[];
 
   sort: string;
 
@@ -30,12 +30,13 @@ type VideoFiltersProps = {
 
   setSearch: (value: string) => void;
   setDate: (value: string) => void;
-  setSelectedPerson: (value: string) => void;
-  setSelectedGenres: (value: number[]) => void;
-  setSelectedType: (value: string) => void;
-  setSelectedSeries: (value: string) => void;
-  setSort: (value: string) => void;
 
+  setSelectedPeople: (value: number[]) => void;
+  setSelectedGenres: (value: number[]) => void;
+  setSelectedTypes: (value: number[]) => void;
+  setSelectedSeries: (value: number[]) => void;
+
+  setSort: (value: string) => void;
   onReset: () => void;
 };
 
@@ -61,12 +62,15 @@ const genreColors = [
   "border-amber-400/30 bg-amber-400/10 text-amber-300",
 ];
 
+const popupClass =
+  "absolute z-50 max-h-[60vh] w-[min(320px,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-950 p-3 shadow-2xl shadow-black/40";
+
 export default function VideoFilters({
   search,
   date,
-  selectedPerson,
+  selectedPeople,
   selectedGenres,
-  selectedType,
+  selectedTypes,
   selectedSeries,
   sort,
   people,
@@ -75,81 +79,107 @@ export default function VideoFilters({
   series,
   setSearch,
   setDate,
-  setSelectedPerson,
+  setSelectedPeople,
   setSelectedGenres,
-  setSelectedType,
+  setSelectedTypes,
   setSelectedSeries,
   setSort,
   onReset,
 }: VideoFiltersProps) {
-  const [openFilter, setOpenFilter] =
-    useState<string | null>(null);
+  const [openFilter, setOpenFilter] = useState<string | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const wrapperRef =
-    useRef<HTMLDivElement>(null);
+  // 팝업 안에서 고른 값을 "적용"을 누를 때만 실제 필터에 반영한다.
+  const [draftPeople, setDraftPeople] = useState<number[]>(selectedPeople);
+  const [draftGenres, setDraftGenres] = useState<number[]>(selectedGenres);
+  const [draftTypes, setDraftTypes] = useState<number[]>(selectedTypes);
+  const [draftSeries, setDraftSeries] = useState<number[]>(selectedSeries);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
         wrapperRef.current &&
-        !wrapperRef.current.contains(
-          event.target as Node
-        )
+        !wrapperRef.current.contains(event.target as Node)
       ) {
+        // 적용하지 않은 임시 선택은 버린다.
+        setDraftPeople(selectedPeople);
+        setDraftGenres(selectedGenres);
+        setDraftTypes(selectedTypes);
+        setDraftSeries(selectedSeries);
         setOpenFilter(null);
       }
     }
 
-    document.addEventListener(
-      "mousedown",
-      handleClickOutside
-    );
-
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside
-      );
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [
+    selectedPeople,
+    selectedGenres,
+    selectedTypes,
+    selectedSeries,
+  ]);
 
-  const selectedPersonData = people.find(
-    (person) =>
-      String(person.id) === selectedPerson
-  );
-
-  const selectedTypeData = types.find(
-    (type) =>
-      String(type.id) === selectedType
-  );
-
-  const selectedSeriesData = series.find(
-    (item) =>
-      String(item.id) === selectedSeries
-  );
-
-  const selectedGenreData = genres.filter(
-    (genre) =>
-      selectedGenres.includes(genre.id)
-  );
-
-  const toggleGenre = (genreId: number) => {
-    if (selectedGenres.includes(genreId)) {
-      setSelectedGenres(
-        selectedGenres.filter(
-          (id) => id !== genreId
-        )
-      );
-    } else {
-      setSelectedGenres([
-        ...selectedGenres,
-        genreId,
-      ]);
+  const openMenu = (menu: string) => {
+    if (openFilter === menu) {
+      setOpenFilter(null);
+      return;
     }
+
+    // 메뉴를 열 때 현재 적용값으로 임시값을 동기화한다.
+    setDraftPeople(selectedPeople);
+    setDraftGenres(selectedGenres);
+    setDraftTypes(selectedTypes);
+    setDraftSeries(selectedSeries);
+    setOpenFilter(menu);
   };
 
+  const applyMenu = () => {
+    setSelectedPeople(draftPeople);
+    setSelectedGenres(draftGenres);
+    setSelectedTypes(draftTypes);
+    setSelectedSeries(draftSeries);
+    setOpenFilter(null);
+  };
+
+  const toggle = (
+    current: number[],
+    id: number,
+    setter: (value: number[]) => void
+  ) => {
+    setter(
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id]
+    );
+  };
+
+  const selectedPersonData = people.filter((item) =>
+    selectedPeople.includes(item.id)
+  );
+  const selectedGenreData = genres.filter((item) =>
+    selectedGenres.includes(item.id)
+  );
+  const selectedTypeData = types.filter((item) =>
+    selectedTypes.includes(item.id)
+  );
+  const selectedSeriesData = series.filter((item) =>
+    selectedSeries.includes(item.id)
+  );
+
   const filterButtonClass =
-    "flex min-w-0 items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-950/70 px-3.5 py-2.5 text-left transition hover:border-zinc-700 hover:bg-zinc-900";
+    "flex min-w-0 min-h-11 items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-950/70 px-3.5 py-2.5 text-left transition hover:border-zinc-700 hover:bg-zinc-900";
+
+  const selectionText = (
+    values: Category[] | Person[],
+    count: number,
+    allText: string
+  ) => {
+    if (count === 0) return allText;
+    if (count === 1) return values[0]?.name ?? allText;
+    return `${count}개 선택`;
+  };
 
   return (
     <section
@@ -162,9 +192,7 @@ export default function VideoFilters({
           <input
             type="text"
             value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="영상 제목 검색..."
             className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 px-4 py-3 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
           />
@@ -172,49 +200,35 @@ export default function VideoFilters({
           {search && (
             <button
               type="button"
-              onClick={() =>
-                setSearch("")
-              }
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 transition hover:text-zinc-300"
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 px-1 text-zinc-600 transition hover:text-zinc-300"
             >
               ×
             </button>
           )}
         </div>
 
-        <div className="flex gap-2">
-          {/* 정렬 - 클릭 즉시 변경 */}
+        <div className="grid grid-cols-2 gap-2 sm:flex">
           <button
             type="button"
             onClick={() =>
-              setSort(
-                sort === "최신순"
-                  ? "오래된순"
-                  : "최신순"
-              )
+              setSort(sort === "최신순" ? "오래된순" : "최신순")
             }
-            className={`${filterButtonClass} min-w-[130px]`}
+            className={`${filterButtonClass} min-w-0 sm:min-w-[130px]`}
           >
-            <div>
-              <p className="text-[10px] text-zinc-600">
-                정렬
-              </p>
-
+            <div className="min-w-0">
+              <p className="text-[10px] text-zinc-600">정렬</p>
               <p className="mt-0.5 truncate text-xs text-zinc-300">
                 {sort}
               </p>
             </div>
-
-            <span className="text-zinc-600">
-              ⇅
-            </span>
+            <span className="text-zinc-600">⇅</span>
           </button>
 
-          {/* 초기화 */}
           <button
             type="button"
             onClick={onReset}
-            className="rounded-xl border border-zinc-800 px-3.5 text-xs text-zinc-500 transition hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-200"
+            className="min-h-11 rounded-xl border border-zinc-800 px-3.5 text-xs text-zinc-500 transition hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-200"
           >
             초기화
           </button>
@@ -223,140 +237,37 @@ export default function VideoFilters({
 
       {/* 필터 버튼 */}
       <div className="border-t border-zinc-800/70 px-3 py-3 sm:px-4">
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
           {/* 등장인물 */}
           <div className="relative">
             <button
               type="button"
-              onClick={() =>
-                setOpenFilter(
-                  openFilter === "person"
-                    ? null
-                    : "person"
-                )
-              }
+              onClick={() => openMenu("people")}
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[10px] text-zinc-600">
-                  등장인물
-                </p>
-
+                <p className="text-[10px] text-zinc-600">등장인물</p>
                 <p className="mt-0.5 truncate text-xs text-zinc-300">
-                  {selectedPersonData?.name ??
-                    "전체"}
+                  {selectionText(
+                    selectedPersonData,
+                    selectedPeople.length,
+                    "전체"
+                  )}
                 </p>
               </div>
-
-              <span className="text-zinc-600">
-                ⌄
-              </span>
+              <span className="text-zinc-600">⌄</span>
             </button>
 
-            {openFilter === "person" && (
-              <div className="absolute left-0 top-[calc(100%+8px)] z-50 w-full min-w-[220px] rounded-2xl border border-zinc-800 bg-zinc-950 p-2 shadow-2xl shadow-black/40">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedPerson("");
-                    setOpenFilter(null);
-                  }}
-                  className={`mb-1 w-full rounded-xl px-3 py-2.5 text-left text-xs ${
-                    selectedPerson === ""
-                      ? "bg-zinc-800 text-white"
-                      : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
-                  }`}
-                >
-                  전체 등장인물
-                </button>
-
-                <div className="grid grid-cols-2 gap-1.5">
-                  {people.map((person) => {
-                    const selected =
-                      selectedPerson ===
-                      String(person.id);
-
-                    const color =
-                      personColors[
-                        person.name
-                      ] ??
-                      "border-zinc-700 bg-zinc-900 text-zinc-400";
-
-                    return (
-                      <button
-                        key={person.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedPerson(
-                            selected
-                              ? ""
-                              : String(person.id)
-                          );
-                          setOpenFilter(null);
-                        }}
-                        className={`rounded-xl border px-2.5 py-2 text-xs transition ${
-                          selected
-                            ? color
-                            : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
-                        }`}
-                      >
-                        {person.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* 장르 */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() =>
-                setOpenFilter(
-                  openFilter === "genre"
-                    ? null
-                    : "genre"
-                )
-              }
-              className={`${filterButtonClass} w-full`}
-            >
-              <div className="min-w-0">
-                <p className="text-[10px] text-zinc-600">
-                  장르
-                </p>
-
-                <p className="mt-0.5 truncate text-xs text-zinc-300">
-                  {selectedGenres.length ===
-                  0
-                    ? "전체"
-                    : selectedGenres.length ===
-                      1
-                    ? selectedGenreData[0]?.name
-                    : `${selectedGenres.length}개 선택`}
-                </p>
-              </div>
-
-              <span className="text-zinc-600">
-                ⌄
-              </span>
-            </button>
-
-            {openFilter === "genre" && (
-              <div className="absolute left-0 top-[calc(100%+8px)] z-50 w-[280px] rounded-2xl border border-zinc-800 bg-zinc-950 p-3 shadow-2xl shadow-black/40">
+            {openFilter === "people" && (
+              <div className={`${popupClass} left-0 top-[calc(100%+8px)]`}>
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-xs font-medium text-zinc-300">
-                    장르 선택
+                    등장인물 선택
                   </span>
-
-                  {selectedGenres.length >
-                    0 && (
+                  {draftPeople.length > 0 && (
                     <button
                       type="button"
-                      onClick={() =>
-                        setSelectedGenres([])
-                      }
+                      onClick={() => setDraftPeople([])}
                       className="text-[10px] text-zinc-600 hover:text-zinc-300"
                     >
                       전체 해제
@@ -365,47 +276,40 @@ export default function VideoFilters({
                 </div>
 
                 <div className="grid grid-cols-2 gap-1.5">
-                  {genres.map(
-                    (genre, index) => {
-                      const selected =
-                        selectedGenres.includes(
-                          genre.id
-                        );
+                  {people.map((person) => {
+                    const selected = draftPeople.includes(person.id);
+                    const color =
+                      personColors[person.name] ??
+                      "border-zinc-700 bg-zinc-900 text-zinc-400";
 
-                      const color =
-                        genreColors[
-                          index %
-                            genreColors.length
-                        ];
-
-                      return (
-                        <button
-                          key={genre.id}
-                          type="button"
-                          onClick={() =>
-                            toggleGenre(
-                              genre.id
-                            )
-                          }
-                          className={`rounded-xl border px-2.5 py-2 text-xs transition ${
-                            selected
-                              ? color
-                              : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
-                          }`}
-                        >
-                          {genre.name}
-                        </button>
-                      );
-                    }
-                  )}
+                    return (
+                      <button
+                        key={person.id}
+                        type="button"
+                        onClick={() =>
+                          toggle(
+                            draftPeople,
+                            person.id,
+                            setDraftPeople
+                          )
+                        }
+                        className={`rounded-xl border px-2.5 py-2 text-xs transition ${
+                          selected
+                            ? color
+                            : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
+                        }`}
+                      >
+                        {selected ? "✓ " : ""}
+                        {person.name}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setOpenFilter(null)
-                  }
-                  className="mt-3 w-full rounded-xl bg-white py-2 text-xs font-semibold text-black hover:bg-zinc-200"
+                  onClick={applyMenu}
+                  className="mt-3 w-full rounded-xl bg-white py-2.5 text-xs font-semibold text-black hover:bg-zinc-200"
                 >
                   적용
                 </button>
@@ -413,79 +317,156 @@ export default function VideoFilters({
             )}
           </div>
 
-          {/* 타입 */}
+          {/* 장르 */}
           <div className="relative">
             <button
               type="button"
-              onClick={() =>
-                setOpenFilter(
-                  openFilter === "type"
-                    ? null
-                    : "type"
-                )
-              }
+              onClick={() => openMenu("genres")}
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[10px] text-zinc-600">
-                  콘텐츠 타입
-                </p>
-
+                <p className="text-[10px] text-zinc-600">장르</p>
                 <p className="mt-0.5 truncate text-xs text-zinc-300">
-                  {selectedTypeData?.name ??
-                    "전체"}
+                  {selectionText(
+                    selectedGenreData,
+                    selectedGenres.length,
+                    "전체"
+                  )}
                 </p>
               </div>
-
-              <span className="text-zinc-600">
-                ⌄
-              </span>
+              <span className="text-zinc-600">⌄</span>
             </button>
 
-            {openFilter === "type" && (
-              <div className="absolute left-0 top-[calc(100%+8px)] z-50 w-[220px] rounded-2xl border border-zinc-800 bg-zinc-950 p-2 shadow-2xl shadow-black/40">
+            {openFilter === "genres" && (
+              <div className={`${popupClass} left-0 top-[calc(100%+8px)]`}>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-medium text-zinc-300">
+                    장르 선택
+                  </span>
+                  {draftGenres.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setDraftGenres([])}
+                      className="text-[10px] text-zinc-600 hover:text-zinc-300"
+                    >
+                      전체 해제
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-1.5">
+                  {genres.map((genre, index) => {
+                    const selected = draftGenres.includes(genre.id);
+                    const color =
+                      genreColors[index % genreColors.length];
+
+                    return (
+                      <button
+                        key={genre.id}
+                        type="button"
+                        onClick={() =>
+                          toggle(
+                            draftGenres,
+                            genre.id,
+                            setDraftGenres
+                          )
+                        }
+                        className={`rounded-xl border px-2.5 py-2 text-xs transition ${
+                          selected
+                            ? color
+                            : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
+                        }`}
+                      >
+                        {selected ? "✓ " : ""}
+                        {genre.name}
+                      </button>
+                    );
+                  })}
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedType("");
-                    setOpenFilter(null);
-                  }}
-                  className={`w-full rounded-xl px-3 py-2.5 text-left text-xs ${
-                    selectedType === ""
-                      ? "bg-zinc-800 text-white"
-                      : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
-                  }`}
+                  onClick={applyMenu}
+                  className="mt-3 w-full rounded-xl bg-white py-2.5 text-xs font-semibold text-black hover:bg-zinc-200"
                 >
-                  전체 타입
+                  적용
                 </button>
+              </div>
+            )}
+          </div>
 
-                {types.map((type) => {
-                  const selected =
-                    selectedType ===
-                    String(type.id);
+          {/* 콘텐츠 타입 */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => openMenu("types")}
+              className={`${filterButtonClass} w-full`}
+            >
+              <div className="min-w-0">
+                <p className="text-[10px] text-zinc-600">콘텐츠 타입</p>
+                <p className="mt-0.5 truncate text-xs text-zinc-300">
+                  {selectionText(
+                    selectedTypeData,
+                    selectedTypes.length,
+                    "전체"
+                  )}
+                </p>
+              </div>
+              <span className="text-zinc-600">⌄</span>
+            </button>
 
-                  return (
+            {openFilter === "types" && (
+              <div className={`${popupClass} left-0 top-[calc(100%+8px)]`}>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-medium text-zinc-300">
+                    콘텐츠 타입 선택
+                  </span>
+                  {draftTypes.length > 0 && (
                     <button
-                      key={type.id}
                       type="button"
-                      onClick={() => {
-                        setSelectedType(
-                          selected
-                            ? ""
-                            : String(type.id)
-                        );
-                        setOpenFilter(null);
-                      }}
-                      className={`mt-1 w-full rounded-xl px-3 py-2.5 text-left text-xs ${
-                        selected
-                          ? "bg-blue-400/10 text-blue-300"
-                          : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
-                      }`}
+                      onClick={() => setDraftTypes([])}
+                      className="text-[10px] text-zinc-600 hover:text-zinc-300"
                     >
-                      {type.name}
+                      전체 해제
                     </button>
-                  );
-                })}
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-1.5">
+                  {types.map((type) => {
+                    const selected = draftTypes.includes(type.id);
+
+                    return (
+                      <button
+                        key={type.id}
+                        type="button"
+                        onClick={() =>
+                          toggle(
+                            draftTypes,
+                            type.id,
+                            setDraftTypes
+                          )
+                        }
+                        className={`rounded-xl border px-2.5 py-2 text-xs transition ${
+                          selected
+                            ? "border-indigo-400/30 bg-indigo-400/10 text-indigo-300"
+                            : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
+                        }`}
+                      >
+                        {selected ? "✓ " : ""}
+                        {type.name}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={applyMenu}
+                  className="mt-3 w-full rounded-xl bg-white py-2.5 text-xs font-semibold text-black hover:bg-zinc-200"
+                >
+                  적용
+                </button>
               </div>
             )}
           </div>
@@ -494,75 +475,74 @@ export default function VideoFilters({
           <div className="relative">
             <button
               type="button"
-              onClick={() =>
-                setOpenFilter(
-                  openFilter === "series"
-                    ? null
-                    : "series"
-                )
-              }
+              onClick={() => openMenu("series")}
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[10px] text-zinc-600">
-                  시리즈
-                </p>
-
+                <p className="text-[10px] text-zinc-600">시리즈</p>
                 <p className="mt-0.5 truncate text-xs text-zinc-300">
-                  {selectedSeriesData?.name ??
-                    "전체"}
+                  {selectionText(
+                    selectedSeriesData,
+                    selectedSeries.length,
+                    "전체"
+                  )}
                 </p>
               </div>
-
-              <span className="text-zinc-600">
-                ⌄
-              </span>
+              <span className="text-zinc-600">⌄</span>
             </button>
 
             {openFilter === "series" && (
-              <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[240px] rounded-2xl border border-zinc-800 bg-zinc-950 p-2 shadow-2xl shadow-black/40">
+              <div className={`${popupClass} right-0 top-[calc(100%+8px)]`}>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-medium text-zinc-300">
+                    시리즈 선택
+                  </span>
+                  {draftSeries.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setDraftSeries([])}
+                      className="text-[10px] text-zinc-600 hover:text-zinc-300"
+                    >
+                      전체 해제
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-1.5">
+                  {series.map((item) => {
+                    const selected = draftSeries.includes(item.id);
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() =>
+                          toggle(
+                            draftSeries,
+                            item.id,
+                            setDraftSeries
+                          )
+                        }
+                        className={`rounded-xl border px-2.5 py-2 text-xs transition ${
+                          selected
+                            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                            : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
+                        }`}
+                      >
+                        {selected ? "✓ " : ""}
+                        {item.name}
+                      </button>
+                    );
+                  })}
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedSeries("");
-                    setOpenFilter(null);
-                  }}
-                  className={`w-full rounded-xl px-3 py-2.5 text-left text-xs ${
-                    selectedSeries === ""
-                      ? "bg-zinc-800 text-white"
-                      : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
-                  }`}
+                  onClick={applyMenu}
+                  className="mt-3 w-full rounded-xl bg-white py-2.5 text-xs font-semibold text-black hover:bg-zinc-200"
                 >
-                  전체 시리즈
+                  적용
                 </button>
-
-                {series.map((item) => {
-                  const selected =
-                    selectedSeries ===
-                    String(item.id);
-
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedSeries(
-                          selected
-                            ? ""
-                            : String(item.id)
-                        );
-                        setOpenFilter(null);
-                      }}
-                      className={`mt-1 w-full rounded-xl px-3 py-2.5 text-left text-xs ${
-                        selected
-                          ? "bg-emerald-400/10 text-emerald-300"
-                          : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
-                      }`}
-                    >
-                      {item.name}
-                    </button>
-                  );
-                })}
               </div>
             )}
           </div>
@@ -571,44 +551,30 @@ export default function VideoFilters({
           <div className="relative">
             <button
               type="button"
-              onClick={() =>
-                setOpenFilter(
-                  openFilter === "date"
-                    ? null
-                    : "date"
-                )
-              }
+              onClick={() => openMenu("date")}
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[10px] text-zinc-600">
-                  날짜
-                </p>
-
+                <p className="text-[10px] text-zinc-600">날짜</p>
                 <p className="mt-0.5 truncate text-xs text-zinc-300">
                   {date || "전체 날짜"}
                 </p>
               </div>
-
-              <span className="text-zinc-600">
-                ⌄
-              </span>
+              <span className="text-zinc-600">⌄</span>
             </button>
 
-            {/* 날짜 팝업 */}
             {openFilter === "date" && (
-              <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[240px] rounded-2xl border border-zinc-800 bg-zinc-950 p-3 shadow-2xl shadow-black/40">
+              <div
+                className={`${popupClass} right-0 top-[calc(100%+8px)]`}
+              >
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-xs font-medium text-zinc-300">
                     업로드 날짜
                   </span>
-
                   {date && (
                     <button
                       type="button"
-                      onClick={() =>
-                        setDate("")
-                      }
+                      onClick={() => setDate("")}
                       className="text-[10px] text-zinc-600 hover:text-zinc-300"
                     >
                       초기화
@@ -620,12 +586,7 @@ export default function VideoFilters({
                   autoFocus
                   type="date"
                   value={date}
-                  onChange={(e) => {
-                    setDate(
-                      e.target.value
-                    );
-                    setOpenFilter(null);
-                  }}
+                  onChange={(e) => setDate(e.target.value)}
                   className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-xs text-zinc-200 outline-none focus:border-zinc-600"
                 />
               </div>

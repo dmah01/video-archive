@@ -57,17 +57,11 @@ export default function VideoCard({
     (video.genreIds ?? []).includes(genre.id)
   );
 
-  const type = types.find(
-    (item) => item.id === video.typeId
-  );
-
-  const videoSeries = series.find(
-    (item) => item.id === video.seriesId
-  );
+  const type = types.find((item) => item.id === video.typeId);
+  const videoSeries = series.find((item) => item.id === video.seriesId);
 
   return (
-    <article className="group overflow-hidden rounded-3xl border border-zinc-800/80 bg-zinc-900/70 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-zinc-700 hover:bg-zinc-900">
-      {/* 썸네일 */}
+    <article className="group min-w-0 overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/70 shadow-lg shadow-black/10 transition duration-300 sm:rounded-3xl sm:hover:-translate-y-1 sm:hover:border-zinc-700 sm:hover:bg-zinc-900">
       <a
         href={video.youtube_url}
         target="_blank"
@@ -78,65 +72,51 @@ export default function VideoCard({
           <img
             src={video.thumbnail_url}
             alt={video.title}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            loading="lazy"
+            className="h-full w-full object-cover transition duration-500 sm:group-hover:scale-105"
           />
-
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
-
-          <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs text-white backdrop-blur">
+          <div className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2.5 py-1 text-[10px] text-white backdrop-blur sm:bottom-3 sm:right-3 sm:px-3 sm:text-xs">
             YouTube
           </div>
         </div>
       </a>
 
-      {/* 정보 */}
-      <div className="p-5">
-        <a
-          href={video.youtube_url}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <h3 className="line-clamp-2 min-h-12 text-[15px] font-semibold leading-6 text-zinc-100 transition group-hover:text-white">
+      <div className="p-4 sm:p-5">
+        <a href={video.youtube_url} target="_blank" rel="noreferrer">
+          <h3 className="line-clamp-2 min-h-11 text-[14px] font-semibold leading-5 text-zinc-100 transition sm:min-h-12 sm:text-[15px] sm:leading-6 sm:group-hover:text-white">
             {video.title}
           </h3>
         </a>
 
-        <p className="mt-2 text-xs text-zinc-500">
+        <p className="mt-2 text-[11px] text-zinc-500 sm:text-xs">
           {video.published_at.slice(0, 10)}
         </p>
 
-        {/* 태그 */}
-        <div className="mt-4 flex min-h-8 flex-wrap gap-1.5">
-          {/* 모든 장르 표시 */}
+        <div className="mt-3 flex min-h-7 flex-wrap gap-1.5 sm:mt-4 sm:min-h-8">
           {selectedGenres.map((genre) => (
             <span
               key={`genre-${genre.id}`}
-              className="rounded-full border border-purple-400/20 bg-purple-400/10 px-2.5 py-1 text-[11px] font-medium text-purple-300"
+              className="max-w-full truncate rounded-full border border-purple-400/20 bg-purple-400/10 px-2 py-1 text-[10px] font-medium text-purple-300 sm:px-2.5 sm:text-[11px]"
             >
               {genre.name}
             </span>
           ))}
 
-          {/* 콘텐츠 타입 */}
           {type && (
-            <span className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-medium text-indigo-300">
+            <span className="max-w-full truncate rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2 py-1 text-[10px] font-medium text-indigo-300 sm:px-2.5 sm:text-[11px]">
               {type.name}
             </span>
           )}
 
-          {/* 시리즈 */}
           {videoSeries && (
-            <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300">
+            <span className="max-w-full truncate rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2 py-1 text-[10px] font-medium text-emerald-300 sm:px-2.5 sm:text-[11px]">
               {videoSeries.name}
             </span>
           )}
 
-          {/* 등장인물 */}
           {(video.peopleIds ?? []).map((personId) => {
-            const person = people.find(
-              (item) => item.id === personId
-            );
-
+            const person = people.find((item) => item.id === personId);
             if (!person) return null;
 
             const colorClass =
@@ -146,7 +126,7 @@ export default function VideoCard({
             return (
               <span
                 key={`person-${personId}`}
-                className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${colorClass}`}
+                className={`max-w-full truncate rounded-full border px-2 py-1 text-[10px] font-medium sm:px-2.5 sm:py-1 sm:text-[11px] ${colorClass}`}
               >
                 {person.name}
               </span>
@@ -154,11 +134,10 @@ export default function VideoCard({
           })}
         </div>
 
-        {/* 관리 버튼 */}
         <button
           type="button"
           onClick={() => onEdit(video)}
-          className="mt-5 flex w-full items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-800/70 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-600 hover:bg-zinc-700 hover:text-white"
+          className="mt-4 flex min-h-11 w-full items-center justify-center rounded-xl border border-zinc-700 bg-zinc-800/70 px-4 py-2.5 text-sm font-medium text-zinc-200 transition active:bg-zinc-700 sm:mt-5 sm:rounded-2xl sm:hover:border-zinc-600 sm:hover:bg-zinc-700 sm:hover:text-white"
         >
           영상 관리
         </button>

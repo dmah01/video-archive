@@ -28,6 +28,10 @@ type Video = {
 
   typeId?: number | null;
   seriesId?: number | null;
+
+  // Supabase 실제 컬럼명
+  type_id?: number | null;
+  series_id?: number | null;
 };
 
 const VIDEOS_PER_PAGE = 12;
@@ -49,15 +53,14 @@ export default function Home() {
 
   const [search, setSearch] = useState("");
   const [date, setDate] = useState("");
-  const [selectedPerson, setSelectedPerson] = useState("");
+  const [selectedPeople, setSelectedPeople] = useState<number[]>([]);
 
   // 장르 복수 선택
   const [selectedGenres, setSelectedGenres] =
     useState<number[]>([]);
 
-  const [selectedType, setSelectedType] = useState("");
-  const [selectedSeries, setSelectedSeries] =
-    useState("");
+  const [selectedTypes, setSelectedTypes] = useState<number[]>([]);
+  const [selectedSeries, setSelectedSeries] = useState<number[]>([]);
 
   const [sort, setSort] = useState("최신순");
 
@@ -115,9 +118,9 @@ export default function Home() {
   }, [
     search,
     date,
-    selectedPerson,
+    selectedPeople,
     selectedGenres,
-    selectedType,
+    selectedTypes,
     selectedSeries,
     sort,
   ]);
@@ -244,10 +247,10 @@ export default function Home() {
           ),
 
         typeId:
-          video.typeId ?? null,
+          video.typeId ?? video.type_id ?? null,
 
         seriesId:
-          video.seriesId ?? null,
+          video.seriesId ?? video.series_id ?? null,
       }));
 
     setVideos(videosWithRelations);
@@ -601,11 +604,9 @@ export default function Home() {
 
         // 등장인물
         const matchesPerson =
-          selectedPerson === "" ||
-          (
-            video.peopleIds ?? []
-          ).includes(
-            Number(selectedPerson)
+          selectedPeople.length === 0 ||
+          (video.peopleIds ?? []).some((personId) =>
+            selectedPeople.includes(personId)
           );
 
         // 장르
@@ -627,15 +628,15 @@ export default function Home() {
 
         // 타입
         const matchesType =
-          selectedType === "" ||
-          video.typeId ===
-            Number(selectedType);
+          selectedTypes.length === 0 ||
+          (video.typeId != null &&
+            selectedTypes.includes(video.typeId));
 
         // 시리즈
         const matchesSeries =
-          selectedSeries === "" ||
-          video.seriesId ===
-            Number(selectedSeries);
+          selectedSeries.length === 0 ||
+          (video.seriesId != null &&
+            selectedSeries.includes(video.seriesId));
 
         return (
           matchesSearch &&
@@ -671,9 +672,9 @@ export default function Home() {
     videos,
     search,
     date,
-    selectedPerson,
+    selectedPeople,
     selectedGenres,
-    selectedType,
+    selectedTypes,
     selectedSeries,
     sort,
   ]);
@@ -705,10 +706,10 @@ export default function Home() {
   function resetFilters() {
     setSearch("");
     setDate("");
-    setSelectedPerson("");
+    setSelectedPeople([]);
     setSelectedGenres([]);
-    setSelectedType("");
-    setSelectedSeries("");
+    setSelectedTypes([]);
+    setSelectedSeries([]);
     setSort("최신순");
   }
 
@@ -717,9 +718,9 @@ export default function Home() {
   // =============================
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
+    <main className="min-h-screen w-full overflow-x-hidden bg-zinc-950 text-white">
 
-      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-10">
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
 
         {/* ========================= */}
         {/* 헤더 */}
@@ -748,7 +749,7 @@ export default function Home() {
                 importYouTubeVideos
               }
               disabled={importing}
-              className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
               {importing
                 ? "영상 가져오는 중..."
@@ -770,9 +771,9 @@ export default function Home() {
         <VideoFilters
   search={search}
   date={date}
-  selectedPerson={selectedPerson}
+  selectedPeople={selectedPeople}
   selectedGenres={selectedGenres}
-  selectedType={selectedType}
+  selectedTypes={selectedTypes}
   selectedSeries={selectedSeries}
   sort={sort}
   people={people}
@@ -781,9 +782,9 @@ export default function Home() {
   series={series}
   setSearch={setSearch}
   setDate={setDate}
-  setSelectedPerson={setSelectedPerson}
+  setSelectedPeople={setSelectedPeople}
   setSelectedGenres={setSelectedGenres}
-  setSelectedType={setSelectedType}
+  setSelectedTypes={setSelectedTypes}
   setSelectedSeries={setSelectedSeries}
   setSort={setSort}
   onReset={resetFilters}
@@ -793,7 +794,7 @@ export default function Home() {
         {/* 결과 헤더 */}
         {/* ========================= */}
 
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="font-semibold text-zinc-200">
               영상
@@ -880,7 +881,7 @@ export default function Home() {
               {totalPages > 1 && (
                   <nav
                     aria-label="영상 페이지 이동"
-                    className="mt-8 flex w-full items-center justify-center gap-2"
+                    className="mt-8 flex w-full flex-wrap items-center justify-center gap-2 px-1"
                   >
                     <button
                       type="button"
