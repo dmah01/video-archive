@@ -63,7 +63,7 @@ const genreColors = [
 ];
 
 const popupClass =
-  "fixed inset-x-2 bottom-2 z-[70] max-h-[58dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-2 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[60vh] sm:w-[280px] sm:rounded-2xl sm:p-3";
+  "fixed inset-x-2 bottom-2 z-[70] max-h-[60dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-2 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[60vh] sm:w-[280px] sm:rounded-2xl sm:p-3";
 
 export default function VideoFilters({
   search,
@@ -203,14 +203,14 @@ export default function VideoFilters({
         className="relative z-40 mb-8 rounded-2xl border border-zinc-800/80 bg-zinc-900/60 shadow-lg shadow-black/10"
       >
       {/* 상단 검색 */}
-      <div className="flex flex-col gap-2 p-2.5 sm:gap-3 sm:p-4 lg:flex-row">
+      <div className="flex flex-col gap-2.5 p-2.5 sm:gap-3 sm:p-4 lg:flex-row">
         <div className="relative flex-1">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="영상 제목 검색..."
-            className="w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 py-2.5 text-xs sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
+            className="h-12 w-full rounded-xl border border-zinc-800 bg-zinc-950/80 px-3.5 py-3 text-sm sm:h-auto sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
           />
 
           {search && (
@@ -568,7 +568,7 @@ export default function VideoFilters({
             <button
               type="button"
               onClick={() => openMenu("date")}
-              className={`${filterButtonClass} w-full`}
+              className={`${filterButtonClass} h-12 w-full sm:h-11`}
             >
               <div className="min-w-0">
                 <p className="text-[9px] text-zinc-600 sm:text-[10px]">날짜</p>
@@ -605,13 +605,13 @@ export default function VideoFilters({
                   onChange={(e) => {
                     setDate(e.target.value);
                   }}
-                  className="block h-11 w-full min-w-0 appearance-none rounded-xl border border-zinc-800 bg-zinc-900 px-3 text-sm text-zinc-200 outline-none focus:border-zinc-600 sm:h-10 sm:text-xs"
+                  className="block h-14 w-full min-w-0 appearance-none rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 text-base text-zinc-200 outline-none focus:border-zinc-600 sm:h-11 sm:px-3 sm:text-xs"
                 />
 
                 <button
                   type="button"
                   onClick={() => setOpenFilter(null)}
-                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black sm:hidden"
+                  className="mt-2 min-h-11 w-full rounded-lg bg-white py-2.5 text-xs font-semibold text-black sm:hidden"
                 >
                   적용
                 </button>
