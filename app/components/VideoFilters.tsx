@@ -63,7 +63,7 @@ const genreColors = [
 ];
 
 const popupClass =
-  "fixed inset-x-2 bottom-2 z-[70] max-h-[60dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-2 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[60vh] sm:w-[280px] sm:rounded-2xl sm:p-3";
+  "fixed inset-x-2 bottom-2 z-[70] max-h-[52dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[60vh] sm:w-[280px] sm:rounded-2xl sm:p-2.5";
 
 export default function VideoFilters({
   search,
@@ -203,14 +203,14 @@ export default function VideoFilters({
         className="relative z-40 mb-8 rounded-2xl border border-zinc-800/80 bg-zinc-900/60 shadow-lg shadow-black/10"
       >
       {/* 상단 검색 */}
-      <div className="flex flex-col gap-2.5 p-2.5 sm:gap-3 sm:p-4 lg:flex-row">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-1.5 p-2 sm:flex sm:gap-2 sm:p-3 lg:flex-row lg:p-4">
         <div className="relative flex-1">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="영상 제목 검색..."
-            className="h-12 w-full rounded-xl border border-zinc-800 bg-zinc-950/80 px-3.5 py-3 text-sm sm:h-auto sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
+            className="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-2.5 py-2 text-xs sm:h-auto sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
           />
 
           {search && (
@@ -224,13 +224,13 @@ export default function VideoFilters({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:flex">
+        <div className="contents sm:flex sm:gap-2">
           <button
             type="button"
             onClick={() =>
               setSort(sort === "최신순" ? "오래된순" : "최신순")
             }
-            className={`${filterButtonClass} min-w-0 sm:min-w-[130px]`}
+            className={`${filterButtonClass} h-10 min-w-0 px-2 sm:h-11 sm:min-w-[130px]`}
           >
             <div className="min-w-0">
               <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">정렬</p>
@@ -244,7 +244,7 @@ export default function VideoFilters({
           <button
             type="button"
             onClick={onReset}
-            className="min-h-11 rounded-xl border border-zinc-800 px-3.5 text-xs text-zinc-500 transition hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-200"
+            className="h-10 rounded-lg border border-zinc-800 px-2.5 text-[10px] sm:min-h-11 sm:rounded-xl sm:px-3.5 sm:text-xs text-zinc-500 transition hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-200"
           >
             초기화
           </button>
@@ -252,8 +252,8 @@ export default function VideoFilters({
       </div>
 
       {/* 필터 버튼 */}
-      <div className="border-t border-zinc-800/70 px-2.5 py-2 sm:px-4 sm:py-3">
-        <div className="grid grid-cols-5 gap-1 sm:gap-2">
+      <div className="border-t border-zinc-800/70 px-2 py-1.5 sm:px-4 sm:py-2.5">
+        <div className="grid grid-cols-5 gap-1 sm:gap-1.5 lg:gap-2">
           {/* 등장인물 */}
           <div className="relative">
             <button
@@ -291,7 +291,7 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 sm:gap-1.5">
                   {people.map((person) => {
                     const selected = draftPeople.includes(person.id);
                     const color =
@@ -309,7 +309,7 @@ export default function VideoFilters({
                             setDraftPeople
                           )
                         }
-                        className={`min-h-9 rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
+                        className={`min-h-8 rounded-lg border px-1.5 py-1 text-[9px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
                           selected
                             ? color
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -325,7 +325,7 @@ export default function VideoFilters({
                 <button
                   type="button"
                   onClick={applyMenu}
-                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-3 sm:rounded-xl sm:py-2.5 sm:text-xs"
+                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-2 sm:rounded-xl sm:py-2 sm:text-xs"
                 >
                   적용
                 </button>
@@ -370,7 +370,7 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 sm:gap-1.5">
                   {genres.map((genre, index) => {
                     const selected = draftGenres.includes(genre.id);
                     const color =
@@ -387,7 +387,7 @@ export default function VideoFilters({
                             setDraftGenres
                           )
                         }
-                        className={`min-h-9 rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
+                        className={`min-h-8 rounded-lg border px-1.5 py-1 text-[9px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
                           selected
                             ? color
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -403,7 +403,7 @@ export default function VideoFilters({
                 <button
                   type="button"
                   onClick={applyMenu}
-                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-3 sm:rounded-xl sm:py-2.5 sm:text-xs"
+                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-2 sm:rounded-xl sm:py-2 sm:text-xs"
                 >
                   적용
                 </button>
@@ -448,7 +448,7 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 sm:gap-1.5">
                   {types.map((type) => {
                     const selected = draftTypes.includes(type.id);
 
@@ -463,7 +463,7 @@ export default function VideoFilters({
                             setDraftTypes
                           )
                         }
-                        className={`min-h-9 rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
+                        className={`min-h-8 rounded-lg border px-1.5 py-1 text-[9px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
                           selected
                             ? "border-indigo-400/30 bg-indigo-400/10 text-indigo-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -479,7 +479,7 @@ export default function VideoFilters({
                 <button
                   type="button"
                   onClick={applyMenu}
-                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-3 sm:rounded-xl sm:py-2.5 sm:text-xs"
+                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-2 sm:rounded-xl sm:py-2 sm:text-xs"
                 >
                   적용
                 </button>
@@ -524,7 +524,7 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 sm:gap-1.5">
                   {series.map((item) => {
                     const selected = draftSeries.includes(item.id);
 
@@ -539,7 +539,7 @@ export default function VideoFilters({
                             setDraftSeries
                           )
                         }
-                        className={`min-h-9 rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
+                        className={`min-h-8 rounded-lg border px-1.5 py-1 text-[9px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
                           selected
                             ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -555,7 +555,7 @@ export default function VideoFilters({
                 <button
                   type="button"
                   onClick={applyMenu}
-                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-3 sm:rounded-xl sm:py-2.5 sm:text-xs"
+                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-2 sm:rounded-xl sm:py-2 sm:text-xs"
                 >
                   적용
                 </button>
@@ -611,7 +611,7 @@ export default function VideoFilters({
                 <button
                   type="button"
                   onClick={() => setOpenFilter(null)}
-                  className="mt-2 min-h-11 w-full rounded-lg bg-white py-2.5 text-xs font-semibold text-black sm:hidden"
+                  className="mt-1.5 min-h-9 w-full rounded-lg bg-white py-2 text-[10px] font-semibold text-black sm:hidden"
                 >
                   적용
                 </button>
