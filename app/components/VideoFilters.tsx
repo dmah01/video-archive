@@ -63,7 +63,7 @@ const genreColors = [
 ];
 
 const popupClass =
-  "absolute z-50 max-h-[60vh] w-[min(320px,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-950 p-3 shadow-2xl shadow-black/40";
+  "absolute z-50 max-h-[52vh] w-[min(260px,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950 p-2 shadow-2xl shadow-black/40 sm:w-[280px] sm:rounded-2xl sm:p-3";
 
 export default function VideoFilters({
   search,
@@ -169,7 +169,7 @@ export default function VideoFilters({
   );
 
   const filterButtonClass =
-    "flex min-w-0 min-h-11 items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-950/70 px-3.5 py-2.5 text-left transition hover:border-zinc-700 hover:bg-zinc-900";
+    "flex min-w-0 min-h-10 items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950/70 px-2.5 py-2 text-left transition hover:border-zinc-700 hover:bg-zinc-900 sm:min-h-11 sm:gap-3 sm:rounded-xl sm:px-3.5 sm:py-2.5";
 
   const selectionText = (
     values: Category[] | Person[],
@@ -187,14 +187,14 @@ export default function VideoFilters({
       className="relative z-20 mb-8 rounded-2xl border border-zinc-800/80 bg-zinc-900/60 shadow-lg shadow-black/10"
     >
       {/* 상단 검색 */}
-      <div className="flex flex-col gap-3 p-3 sm:p-4 lg:flex-row">
+      <div className="flex flex-col gap-2 p-2.5 sm:gap-3 sm:p-4 lg:flex-row">
         <div className="relative flex-1">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="영상 제목 검색..."
-            className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 px-4 py-3 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
+            className="w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 py-2.5 text-xs sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
           />
 
           {search && (
@@ -217,8 +217,8 @@ export default function VideoFilters({
             className={`${filterButtonClass} min-w-0 sm:min-w-[130px]`}
           >
             <div className="min-w-0">
-              <p className="text-[10px] text-zinc-600">정렬</p>
-              <p className="mt-0.5 truncate text-xs text-zinc-300">
+              <p className="text-[9px] text-zinc-600 sm:text-[10px]">정렬</p>
+              <p className="mt-0.5 truncate text-[11px] text-zinc-300 sm:text-xs">
                 {sort}
               </p>
             </div>
@@ -236,8 +236,8 @@ export default function VideoFilters({
       </div>
 
       {/* 필터 버튼 */}
-      <div className="border-t border-zinc-800/70 px-3 py-3 sm:px-4">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="border-t border-zinc-800/70 px-2.5 py-2 sm:px-4 sm:py-3">
+        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 lg:grid-cols-5">
           {/* 등장인물 */}
           <div className="relative">
             <button
@@ -246,8 +246,8 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[10px] text-zinc-600">등장인물</p>
-                <p className="mt-0.5 truncate text-xs text-zinc-300">
+                <p className="text-[9px] text-zinc-600 sm:text-[10px]">등장인물</p>
+                <p className="mt-0.5 truncate text-[11px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedPersonData,
                     selectedPeople.length,
@@ -260,8 +260,8 @@ export default function VideoFilters({
 
             {openFilter === "people" && (
               <div className={`${popupClass} left-0 top-[calc(100%+8px)]`}>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-zinc-300">
+                <div className="mb-1.5 flex items-center justify-between sm:mb-2">
+                  <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     등장인물 선택
                   </span>
                   {draftPeople.length > 0 && (
@@ -293,7 +293,7 @@ export default function VideoFilters({
                             setDraftPeople
                           )
                         }
-                        className={`rounded-xl border px-2.5 py-2 text-xs transition ${
+                        className={`rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
                           selected
                             ? color
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -309,7 +309,7 @@ export default function VideoFilters({
                 <button
                   type="button"
                   onClick={applyMenu}
-                  className="mt-3 w-full rounded-xl bg-white py-2.5 text-xs font-semibold text-black hover:bg-zinc-200"
+                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-3 sm:rounded-xl sm:py-2.5 sm:text-xs"
                 >
                   적용
                 </button>
@@ -325,8 +325,8 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[10px] text-zinc-600">장르</p>
-                <p className="mt-0.5 truncate text-xs text-zinc-300">
+                <p className="text-[9px] text-zinc-600 sm:text-[10px]">장르</p>
+                <p className="mt-0.5 truncate text-[11px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedGenreData,
                     selectedGenres.length,
@@ -339,8 +339,8 @@ export default function VideoFilters({
 
             {openFilter === "genres" && (
               <div className={`${popupClass} left-0 top-[calc(100%+8px)]`}>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-zinc-300">
+                <div className="mb-1.5 flex items-center justify-between sm:mb-2">
+                  <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     장르 선택
                   </span>
                   {draftGenres.length > 0 && (
@@ -371,7 +371,7 @@ export default function VideoFilters({
                             setDraftGenres
                           )
                         }
-                        className={`rounded-xl border px-2.5 py-2 text-xs transition ${
+                        className={`rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
                           selected
                             ? color
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -387,7 +387,7 @@ export default function VideoFilters({
                 <button
                   type="button"
                   onClick={applyMenu}
-                  className="mt-3 w-full rounded-xl bg-white py-2.5 text-xs font-semibold text-black hover:bg-zinc-200"
+                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-3 sm:rounded-xl sm:py-2.5 sm:text-xs"
                 >
                   적용
                 </button>
@@ -403,8 +403,8 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[10px] text-zinc-600">콘텐츠 타입</p>
-                <p className="mt-0.5 truncate text-xs text-zinc-300">
+                <p className="text-[9px] text-zinc-600 sm:text-[10px]">콘텐츠 타입</p>
+                <p className="mt-0.5 truncate text-[11px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedTypeData,
                     selectedTypes.length,
@@ -417,8 +417,8 @@ export default function VideoFilters({
 
             {openFilter === "types" && (
               <div className={`${popupClass} left-0 top-[calc(100%+8px)]`}>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-zinc-300">
+                <div className="mb-1.5 flex items-center justify-between sm:mb-2">
+                  <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     콘텐츠 타입 선택
                   </span>
                   {draftTypes.length > 0 && (
@@ -447,7 +447,7 @@ export default function VideoFilters({
                             setDraftTypes
                           )
                         }
-                        className={`rounded-xl border px-2.5 py-2 text-xs transition ${
+                        className={`rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
                           selected
                             ? "border-indigo-400/30 bg-indigo-400/10 text-indigo-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -463,7 +463,7 @@ export default function VideoFilters({
                 <button
                   type="button"
                   onClick={applyMenu}
-                  className="mt-3 w-full rounded-xl bg-white py-2.5 text-xs font-semibold text-black hover:bg-zinc-200"
+                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-3 sm:rounded-xl sm:py-2.5 sm:text-xs"
                 >
                   적용
                 </button>
@@ -479,8 +479,8 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[10px] text-zinc-600">시리즈</p>
-                <p className="mt-0.5 truncate text-xs text-zinc-300">
+                <p className="text-[9px] text-zinc-600 sm:text-[10px]">시리즈</p>
+                <p className="mt-0.5 truncate text-[11px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedSeriesData,
                     selectedSeries.length,
@@ -493,8 +493,8 @@ export default function VideoFilters({
 
             {openFilter === "series" && (
               <div className={`${popupClass} right-0 top-[calc(100%+8px)]`}>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-zinc-300">
+                <div className="mb-1.5 flex items-center justify-between sm:mb-2">
+                  <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     시리즈 선택
                   </span>
                   {draftSeries.length > 0 && (
@@ -523,7 +523,7 @@ export default function VideoFilters({
                             setDraftSeries
                           )
                         }
-                        className={`rounded-xl border px-2.5 py-2 text-xs transition ${
+                        className={`rounded-lg border px-2 py-1.5 text-[10px] leading-4 transition sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
                           selected
                             ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -539,7 +539,7 @@ export default function VideoFilters({
                 <button
                   type="button"
                   onClick={applyMenu}
-                  className="mt-3 w-full rounded-xl bg-white py-2.5 text-xs font-semibold text-black hover:bg-zinc-200"
+                  className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-3 sm:rounded-xl sm:py-2.5 sm:text-xs"
                 >
                   적용
                 </button>
@@ -555,8 +555,8 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[10px] text-zinc-600">날짜</p>
-                <p className="mt-0.5 truncate text-xs text-zinc-300">
+                <p className="text-[9px] text-zinc-600 sm:text-[10px]">날짜</p>
+                <p className="mt-0.5 truncate text-[11px] text-zinc-300 sm:text-xs">
                   {date || "전체 날짜"}
                 </p>
               </div>
@@ -567,8 +567,8 @@ export default function VideoFilters({
               <div
                 className={`${popupClass} right-0 top-[calc(100%+8px)]`}
               >
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-zinc-300">
+                <div className="mb-1.5 flex items-center justify-between sm:mb-2">
+                  <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     업로드 날짜
                   </span>
                   {date && (
