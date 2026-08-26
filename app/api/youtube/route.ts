@@ -24,6 +24,16 @@ export async function GET() {
 
     const channelData = await channelResponse.json();
 
+    if (!channelResponse.ok) {
+      return NextResponse.json(
+        {
+          error: "YouTube 채널 정보를 가져오지 못했습니다.",
+          details: channelData,
+        },
+        { status: 500 }
+      );
+    }
+
     if (!channelData.items?.length) {
       return NextResponse.json(
         {
@@ -38,61 +48,71 @@ export async function GET() {
       channelData.items[0].contentDetails.relatedPlaylists
         .uploads;
 
-    // 2. 모든 영상 가져오기
+    // 2. 2019-06-01까지 모든 영상 가져오기
     const allVideos: any[] = [];
-    let pageToken = "";
 
-    while (true) {
-      const url =
-        `https://www.googleapis.com/youtube/v3/playlistItems` +
-        `?part=snippet&maxResults=50` +
-        `&playlistId=${uploadsPlaylistId}` +
-        `&key=${apiKey}` +
-        (pageToken
-          ? `&pageToken=${pageToken}`
-          : "");
+    let pageToken: string | undefined = undefined;
+    let reachedStartDate = false;
 
-      const videosResponse = await fetch(url);
+    while (!reachedStartDate) {
+      const params = new URLSearchParams({
+        part: "snippet,contentDetails",
+        maxResults: "50",
+        playlistId: uploadsPlaylistId,
+        key: apiKey,
+      });
+
+      if (pageToken) {
+        params.set("pageToken", pageToken);
+      }
+
+      const videosResponse = await fetch(
+        `https://www.googleapis.com/youtube/v3/playlistItems?${params.toString()}`
+      );
+
       const videosData = await videosResponse.json();
 
       if (!videosResponse.ok) {
         return NextResponse.json(
           {
-            error: "YouTube 영상 목록을 가져오지 못했습니다.",
+            error:
+              "YouTube 영상 목록을 가져오지 못했습니다.",
             details: videosData,
           },
           { status: 500 }
         );
       }
 
-      if (!videosData.items) {
+      if (!videosData.items?.length) {
         break;
       }
 
       for (const item of videosData.items) {
-        const publishedAt = new Date(
-          item.snippet.publishedAt
+        const videoPublishedAt =
+          item.contentDetails?.videoPublishedAt;
+
+        if (!videoPublishedAt) {
+          continue;
+        }
+
+        const publishedDate = new Date(
+          videoPublishedAt
         );
 
-        // 2019-06-01 이전 영상이면 종료
-        if (publishedAt < startDate) {
+        // 2019-06-01 이전이면 더 이상 가져오지 않음
+        if (publishedDate < startDate) {
+          reachedStartDate = true;
           break;
         }
 
         allVideos.push(item);
       }
 
-      // 이번 페이지에 2019-06-01 이전 영상이 있었는지 확인
-      const reachedStartDate = videosData.items.some(
-        (item: any) =>
-          new Date(item.snippet.publishedAt) <
-          startDate
-      );
+      if (reachedStartDate) {
+        break;
+      }
 
-      if (
-        reachedStartDate ||
-        !videosData.nextPageToken
-      ) {
+      if (!videosData.nextPageToken) {
         break;
       }
 
@@ -102,7 +122,7 @@ export async function GET() {
     // 3. Supabase에 저장할 데이터 만들기
     const videos = allVideos.map((item) => ({
       youtube_video_id:
-        item.snippet.resourceId.videoId,
+        item.contentDetails.videoId,
 
       title: item.snippet.title,
 
@@ -114,11 +134,12 @@ export async function GET() {
         item.snippet.thumbnails.medium?.url ??
         item.snippet.thumbnails.default?.url,
 
+      // 실제 영상 업로드 날짜
       published_at:
-        item.snippet.publishedAt,
+        item.contentDetails.videoPublishedAt,
 
       youtube_url:
-        `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
+        `https://www.youtube.com/watch?v=${item.contentDetails.videoId}`,
     }));
 
     // 4. Supabase 저장
@@ -130,7 +151,10 @@ export async function GET() {
         });
 
       if (error) {
-        console.error(error);
+        console.error(
+          "Supabase 저장 오류:",
+          error
+        );
 
         return NextResponse.json(
           {
@@ -147,9 +171,11 @@ export async function GET() {
       count: videos.length,
       videos,
     });
-
   } catch (error) {
-    console.error(error);
+    console.error(
+      "YouTube 가져오기 오류:",
+      error
+    );
 
     return NextResponse.json(
       {
