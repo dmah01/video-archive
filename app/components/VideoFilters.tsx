@@ -169,7 +169,7 @@ export default function VideoFilters({
   );
 
   const filterButtonClass =
-    "flex min-w-0 min-h-10 items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950/70 px-2.5 py-2 text-left transition hover:border-zinc-700 hover:bg-zinc-900 sm:min-h-11 sm:gap-3 sm:rounded-xl sm:px-3.5 sm:py-2.5";
+    "flex min-w-0 min-h-9 items-center justify-between gap-1 rounded-lg border border-zinc-800 bg-zinc-950/70 px-1.5 py-1.5 text-left transition hover:border-zinc-700 hover:bg-zinc-900 sm:min-h-11 sm:gap-3 sm:rounded-xl sm:px-3.5 sm:py-2.5";
 
   const selectionText = (
     values: Category[] | Person[],
@@ -233,8 +233,8 @@ export default function VideoFilters({
             className={`${filterButtonClass} min-w-0 sm:min-w-[130px]`}
           >
             <div className="min-w-0">
-              <p className="text-[9px] text-zinc-600 sm:text-[10px]">정렬</p>
-              <p className="mt-0.5 truncate text-[11px] text-zinc-300 sm:text-xs">
+              <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">정렬</p>
+              <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                 {sort}
               </p>
             </div>
@@ -253,7 +253,7 @@ export default function VideoFilters({
 
       {/* 필터 버튼 */}
       <div className="border-t border-zinc-800/70 px-2.5 py-2 sm:px-4 sm:py-3">
-        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 lg:grid-cols-5">
+        <div className="grid grid-cols-5 gap-1 sm:gap-2">
           {/* 등장인물 */}
           <div className="relative">
             <button
@@ -262,8 +262,8 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[9px] text-zinc-600 sm:text-[10px]">등장인물</p>
-                <p className="mt-0.5 truncate text-[11px] text-zinc-300 sm:text-xs">
+                <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">등장인물</p>
+                <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedPersonData,
                     selectedPeople.length,
@@ -341,8 +341,8 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[9px] text-zinc-600 sm:text-[10px]">장르</p>
-                <p className="mt-0.5 truncate text-[11px] text-zinc-300 sm:text-xs">
+                <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">장르</p>
+                <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedGenreData,
                     selectedGenres.length,
@@ -419,8 +419,8 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[9px] text-zinc-600 sm:text-[10px]">콘텐츠 타입</p>
-                <p className="mt-0.5 truncate text-[11px] text-zinc-300 sm:text-xs">
+                <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">콘텐츠 타입</p>
+                <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedTypeData,
                     selectedTypes.length,
@@ -495,8 +495,8 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[9px] text-zinc-600 sm:text-[10px]">시리즈</p>
-                <p className="mt-0.5 truncate text-[11px] text-zinc-300 sm:text-xs">
+                <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">시리즈</p>
+                <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedSeriesData,
                     selectedSeries.length,
@@ -568,11 +568,11 @@ export default function VideoFilters({
             <button
               type="button"
               onClick={() => openMenu("date")}
-              className={`${filterButtonClass} h-12 w-full sm:h-11`}
+              className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="text-[9px] text-zinc-600 sm:text-[10px]">날짜</p>
-                <p className="mt-0.5 truncate text-[11px] text-zinc-300 sm:text-xs">
+                <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">날짜</p>
+                <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                   {date || "전체 날짜"}
                 </p>
               </div>
@@ -605,7 +605,7 @@ export default function VideoFilters({
                   onChange={(e) => {
                     setDate(e.target.value);
                   }}
-                  className="block h-14 w-full min-w-0 appearance-none rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 text-base text-zinc-200 outline-none focus:border-zinc-600 sm:h-11 sm:px-3 sm:text-xs"
+                  className="block h-11 w-full min-w-0 appearance-none rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 text-sm text-zinc-200 outline-none focus:border-zinc-600 sm:h-10 sm:rounded-xl sm:px-3 sm:text-xs"
                 />
 
                 <button
