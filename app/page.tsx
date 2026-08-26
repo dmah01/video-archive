@@ -1,0 +1,929 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import Pagination from "./components/Pagination";
+import VideoCard from "./components/VideoCard";
+import VideoFilters from "./components/VideoFilters";
+import VideoEditor from "./components/VideoEditor";
+
+type Person = {
+  id: number;
+  name: string;
+};
+
+type Category = {
+  id: number;
+  name: string;
+};
+
+type Video = {
+  id: number;
+  title: string;
+  thumbnail_url: string;
+  published_at: string;
+  youtube_url: string;
+
+  peopleIds?: number[];
+  genreIds?: number[];
+
+  typeId?: number | null;
+  seriesId?: number | null;
+};
+
+const VIDEOS_PER_PAGE = 12;
+
+export default function Home() {
+  // =============================
+  // 데이터
+  // =============================
+
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [genres, setGenres] = useState<Category[]>([]);
+  const [types, setTypes] = useState<Category[]>([]);
+  const [series, setSeries] = useState<Category[]>([]);
+
+  // =============================
+  // 필터
+  // =============================
+
+  const [search, setSearch] = useState("");
+  const [date, setDate] = useState("");
+  const [selectedPerson, setSelectedPerson] = useState("");
+
+  // 장르 복수 선택
+  const [selectedGenres, setSelectedGenres] =
+    useState<number[]>([]);
+
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedSeries, setSelectedSeries] =
+    useState("");
+
+  const [sort, setSort] = useState("최신순");
+
+  // =============================
+  // 상태
+  // =============================
+
+  const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] =
+    useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // =============================
+  // 영상 편집
+  // =============================
+
+  const [editingVideo, setEditingVideo] =
+    useState<Video | null>(null);
+
+  const [editorPeople, setEditorPeople] =
+    useState<number[]>([]);
+
+  const [editorGenres, setEditorGenres] =
+    useState<number[]>([]);
+
+  const [editorType, setEditorType] =
+    useState<number | null>(null);
+
+  const [editorSeries, setEditorSeries] =
+    useState<number | null>(null);
+
+  const [savingVideo, setSavingVideo] =
+    useState(false);
+
+  // =============================
+  // 최초 로딩
+  // =============================
+
+  useEffect(() => {
+    loadVideos();
+    loadPeople();
+    loadGenres();
+    loadTypes();
+    loadSeries();
+  }, []);
+
+  // =============================
+  // 필터 변경
+  // =============================
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    search,
+    date,
+    selectedPerson,
+    selectedGenres,
+    selectedType,
+    selectedSeries,
+    sort,
+  ]);
+
+  // =============================
+  // 영상 불러오기
+  // =============================
+
+  async function loadVideos() {
+    setLoading(true);
+
+    const {
+      data,
+      error,
+    } = await supabase
+      .from("videos")
+      .select("*")
+      .order("published_at", {
+        ascending: false,
+      });
+
+    if (error) {
+      console.error(
+        "영상 불러오기 오류:",
+        error
+      );
+
+      setLoading(false);
+      return;
+    }
+
+    const videoIds = (data ?? []).map(
+      (video) => video.id
+    );
+
+    if (videoIds.length === 0) {
+      setVideos([]);
+      setLoading(false);
+      return;
+    }
+
+    // =============================
+    // 영상 ↔ 장르
+    // =============================
+
+    const {
+      data: genreRelations,
+      error: genreError,
+    } = await supabase
+      .from("video_genres")
+      .select("video, genre")
+      .in("video", videoIds);
+
+    if (genreError) {
+      console.error(
+        "장르 연결 불러오기 오류:",
+        genreError
+      );
+    }
+
+    // =============================
+    // 영상 ↔ 등장인물
+    // =============================
+
+    const {
+      data: peopleRelations,
+      error: peopleError,
+    } = await supabase
+      .from("video_people")
+      .select("video, person")
+      .in("video", videoIds);
+
+    if (peopleError) {
+      console.error(
+        "등장인물 연결 불러오기 오류:",
+        peopleError
+      );
+    }
+
+    // =============================
+    // 영상 데이터 정리
+    // =============================
+
+    const videosWithRelations: Video[] =
+      (data ?? []).map((video) => ({
+        ...video,
+
+        peopleIds: (
+          peopleRelations ?? []
+        )
+          .filter(
+            (relation) =>
+              relation.video === video.id
+          )
+          .map(
+            (relation) =>
+              relation.person
+          ),
+
+        genreIds: (
+          genreRelations ?? []
+        )
+          .filter(
+            (relation) =>
+              relation.video === video.id
+          )
+          .map(
+            (relation) =>
+              relation.genre
+          ),
+
+        typeId:
+          video.type_id ?? null,
+
+        seriesId:
+          video.series_id ?? null,
+      }));
+
+    setVideos(videosWithRelations);
+    setLoading(false);
+  }
+
+  // =============================
+  // 등장인물
+  // =============================
+
+  async function loadPeople() {
+    const {
+      data,
+      error,
+    } = await supabase
+      .from("people")
+      .select("*")
+      .order("name");
+
+    if (error) {
+      console.error(
+        "등장인물 불러오기 오류:",
+        error
+      );
+      return;
+    }
+
+    setPeople(data ?? []);
+  }
+
+  // =============================
+  // 장르
+  // =============================
+
+  async function loadGenres() {
+    const {
+      data,
+      error,
+    } = await supabase
+      .from("genres")
+      .select("*")
+      .order("name");
+
+    if (error) {
+      console.error(
+        "장르 불러오기 오류:",
+        error
+      );
+      return;
+    }
+
+    setGenres(data ?? []);
+  }
+
+  // =============================
+  // 타입
+  // =============================
+
+  async function loadTypes() {
+    const {
+      data,
+      error,
+    } = await supabase
+      .from("types")
+      .select("*")
+      .order("name");
+
+    if (error) {
+      console.error(
+        "타입 불러오기 오류:",
+        error
+      );
+      return;
+    }
+
+    setTypes(data ?? []);
+  }
+
+  // =============================
+  // 시리즈
+  // =============================
+
+  async function loadSeries() {
+    const {
+      data,
+      error,
+    } = await supabase
+      .from("series")
+      .select("*")
+      .order("name");
+
+    if (error) {
+      console.error(
+        "시리즈 불러오기 오류:",
+        error
+      );
+      return;
+    }
+
+    setSeries(data ?? []);
+  }
+
+  // =============================
+  // YouTube 가져오기
+  // =============================
+
+  async function importYouTubeVideos() {
+    setImporting(true);
+    setImportMessage("");
+
+    try {
+      const response =
+        await fetch("/api/youtube");
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.details ||
+            data.error ||
+            "영상 가져오기에 실패했습니다."
+        );
+      }
+
+      setImportMessage(
+        `${data.count}개의 영상을 가져왔습니다.`
+      );
+
+      await loadVideos();
+    } catch (error) {
+      console.error(
+        "영상 가져오기 오류:",
+        error
+      );
+
+      setImportMessage(
+        error instanceof Error
+          ? error.message
+          : "영상 가져오기에 실패했습니다."
+      );
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  // =============================
+  // 영상 편집 열기
+  // =============================
+
+  function openVideoEditor(video: Video) {
+    setEditingVideo(video);
+
+    setEditorPeople(
+      Array.isArray(video.peopleIds)
+        ? video.peopleIds
+        : []
+    );
+
+    setEditorGenres(
+      Array.isArray(video.genreIds)
+        ? video.genreIds
+        : []
+    );
+
+    setEditorType(
+      video.typeId ?? null
+    );
+
+    setEditorSeries(
+      video.seriesId ?? null
+    );
+  }
+
+  // =============================
+  // 영상 편집 닫기
+  // =============================
+
+  function closeVideoEditor() {
+    setEditingVideo(null);
+    setEditorPeople([]);
+    setEditorGenres([]);
+    setEditorType(null);
+    setEditorSeries(null);
+  }
+
+  // =============================
+  // 영상 저장
+  // =============================
+
+  async function saveVideoRelations() {
+    if (!editingVideo) return;
+
+    setSavingVideo(true);
+
+    try {
+      // =============================
+      // 등장인물 기존 연결 삭제
+      // =============================
+
+      const {
+        error: peopleDeleteError,
+      } = await supabase
+        .from("video_people")
+        .delete()
+        .eq(
+          "video",
+          editingVideo.id
+        );
+
+      if (peopleDeleteError) {
+        throw peopleDeleteError;
+      }
+
+      // =============================
+      // 등장인물 저장
+      // =============================
+
+      if (editorPeople.length > 0) {
+        const {
+          error: peopleInsertError,
+        } = await supabase
+          .from("video_people")
+          .insert(
+            editorPeople.map(
+              (personId) => ({
+                video: editingVideo.id,
+                person: personId,
+              })
+            )
+          );
+
+        if (peopleInsertError) {
+          throw peopleInsertError;
+        }
+      }
+
+      // =============================
+      // 장르 기존 연결 삭제
+      // =============================
+
+      const {
+        error: genreDeleteError,
+      } = await supabase
+        .from("video_genres")
+        .delete()
+        .eq(
+          "video",
+          editingVideo.id
+        );
+
+      if (genreDeleteError) {
+        throw genreDeleteError;
+      }
+
+      // =============================
+      // 장르 저장
+      // =============================
+
+      if (editorGenres.length > 0) {
+        const {
+          error: genreInsertError,
+        } = await supabase
+          .from("video_genres")
+          .insert(
+            editorGenres.map(
+              (genreId) => ({
+                video: editingVideo.id,
+                genre: genreId,
+              })
+            )
+          );
+
+        if (genreInsertError) {
+          throw genreInsertError;
+        }
+      }
+
+      // =============================
+      // 타입 / 시리즈 저장
+      // =============================
+
+      const {
+        error: videoUpdateError,
+      } = await supabase
+        .from("videos")
+        .update({
+          type_id: editorType,
+          series_id: editorSeries,
+        })
+        .eq(
+          "id",
+          editingVideo.id
+        );
+
+      if (videoUpdateError) {
+        throw videoUpdateError;
+      }
+
+      // =============================
+      // 새 데이터 다시 불러오기
+      // =============================
+
+      await loadVideos();
+
+      closeVideoEditor();
+    } catch (error) {
+      console.error(
+        "영상 정보 저장 오류:",
+        error
+      );
+
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert(
+          JSON.stringify(
+            error,
+            null,
+            2
+          )
+        );
+      }
+    } finally {
+      setSavingVideo(false);
+    }
+  }
+
+  // =============================
+  // 필터링
+  // =============================
+
+  const filteredVideos = useMemo(() => {
+    let result = videos.filter(
+      (video) => {
+        // 제목
+        const matchesSearch =
+          video.title
+            .toLowerCase()
+            .includes(
+              search.toLowerCase()
+            );
+
+        // 날짜
+        const matchesDate =
+          date === "" ||
+          video.published_at.slice(
+            0,
+            10
+          ) === date;
+
+        // 등장인물
+        const matchesPerson =
+          selectedPerson === "" ||
+          (
+            video.peopleIds ?? []
+          ).includes(
+            Number(selectedPerson)
+          );
+
+        // 장르
+        const videoGenreIds =
+          Array.isArray(
+            video.genreIds
+          )
+            ? video.genreIds
+            : [];
+
+        const matchesGenre =
+          selectedGenres.length === 0 ||
+          selectedGenres.some(
+            (genreId) =>
+              videoGenreIds.includes(
+                genreId
+              )
+          );
+
+        // 타입
+        const matchesType =
+          selectedType === "" ||
+          video.typeId ===
+            Number(selectedType);
+
+        // 시리즈
+        const matchesSeries =
+          selectedSeries === "" ||
+          video.seriesId ===
+            Number(selectedSeries);
+
+        return (
+          matchesSearch &&
+          matchesDate &&
+          matchesPerson &&
+          matchesGenre &&
+          matchesType &&
+          matchesSeries
+        );
+      }
+    );
+
+    // =============================
+    // 정렬
+    // =============================
+
+    result = [...result].sort(
+      (a, b) => {
+        if (sort === "최신순") {
+          return b.published_at.localeCompare(
+            a.published_at
+          );
+        }
+
+        return a.published_at.localeCompare(
+          b.published_at
+        );
+      }
+    );
+
+    return result;
+  }, [
+    videos,
+    search,
+    date,
+    selectedPerson,
+    selectedGenres,
+    selectedType,
+    selectedSeries,
+    sort,
+  ]);
+
+  // =============================
+  // 페이지네이션
+  // =============================
+
+  const totalPages = Math.ceil(
+    filteredVideos.length /
+      VIDEOS_PER_PAGE
+  );
+
+  const startIndex =
+    (currentPage - 1) *
+    VIDEOS_PER_PAGE;
+
+  const paginatedVideos =
+    filteredVideos.slice(
+      startIndex,
+      startIndex +
+        VIDEOS_PER_PAGE
+    );
+
+  // =============================
+  // 필터 초기화
+  // =============================
+
+  function resetFilters() {
+    setSearch("");
+    setDate("");
+    setSelectedPerson("");
+    setSelectedGenres([]);
+    setSelectedType("");
+    setSelectedSeries("");
+    setSort("최신순");
+  }
+
+  // =============================
+  // 화면
+  // =============================
+
+  return (
+    <main className="min-h-screen bg-zinc-950 text-white">
+
+      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-10">
+
+        {/* ========================= */}
+        {/* 헤더 */}
+        {/* ========================= */}
+
+        <header className="mb-8">
+          <p className="text-xs font-semibold tracking-[0.25em] text-zinc-600">
+            SLEEPGROUND TV ARCHIVE
+          </p>
+
+          <div className="mt-3 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                잠뜰TV Archive
+              </h1>
+
+              <p className="mt-2 text-sm text-zinc-500">
+                잠뜰TV 영상을 검색하고
+                정리해보세요.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={
+                importYouTubeVideos
+              }
+              disabled={importing}
+              className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {importing
+                ? "영상 가져오는 중..."
+                : "YouTube 영상 가져오기"}
+            </button>
+          </div>
+
+          {importMessage && (
+            <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-400">
+              {importMessage}
+            </div>
+          )}
+        </header>
+
+        {/* ========================= */}
+        {/* 필터 */}
+        {/* ========================= */}
+
+        <VideoFilters
+  search={search}
+  date={date}
+  selectedPerson={selectedPerson}
+  selectedGenres={selectedGenres}
+  selectedType={selectedType}
+  selectedSeries={selectedSeries}
+  sort={sort}
+  people={people}
+  genres={genres}
+  types={types}
+  series={series}
+  setSearch={setSearch}
+  setDate={setDate}
+  setSelectedPerson={setSelectedPerson}
+  setSelectedGenres={setSelectedGenres}
+  setSelectedType={setSelectedType}
+  setSelectedSeries={setSelectedSeries}
+  setSort={setSort}
+  onReset={resetFilters}
+/>
+
+        {/* ========================= */}
+        {/* 결과 헤더 */}
+        {/* ========================= */}
+
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <h2 className="font-semibold text-zinc-200">
+              영상
+            </h2>
+
+            {selectedGenres.length >
+              0 && (
+              <p className="mt-1 text-xs text-zinc-600">
+                장르{" "}
+                {selectedGenres.length}개
+                선택됨
+              </p>
+            )}
+          </div>
+
+          <span className="rounded-full bg-zinc-900 px-3 py-1.5 text-xs text-zinc-500">
+            {filteredVideos.length}개
+          </span>
+        </div>
+
+        {/* ========================= */}
+        {/* 로딩 */}
+        {/* ========================= */}
+
+        {loading && (
+          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/50 py-24 text-center">
+            <p className="text-sm text-zinc-500">
+              영상을 불러오는 중...
+            </p>
+          </div>
+        )}
+
+        {/* ========================= */}
+        {/* 영상 없음 */}
+        {/* ========================= */}
+
+        {!loading &&
+          filteredVideos.length ===
+            0 && (
+            <div className="rounded-3xl border border-dashed border-zinc-800 bg-zinc-900/30 py-24 text-center">
+              <p className="text-sm text-zinc-500">
+                해당 조건의 영상이
+                없습니다.
+              </p>
+
+              <button
+                type="button"
+                onClick={
+                  resetFilters
+                }
+                className="mt-4 rounded-xl bg-zinc-800 px-4 py-2 text-sm text-zinc-400 transition hover:bg-zinc-700 hover:text-white"
+              >
+                필터 초기화
+              </button>
+            </div>
+          )}
+
+        {/* ========================= */}
+        {/* 영상 목록 */}
+        {/* ========================= */}
+
+        {!loading &&
+          filteredVideos.length >
+            0 && (
+            <>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {paginatedVideos.map(
+                  (video) => (
+                    <VideoCard
+                      key={video.id}
+                      video={video}
+                      people={people}
+                      genres={genres}
+                      types={types}
+                      series={series}
+                      onEdit={
+                        openVideoEditor
+                      }
+                    />
+                  )
+                )}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="mt-8">
+                  <Pagination
+                    currentPage={
+                      currentPage
+                    }
+                    totalPages={
+                      totalPages
+                    }
+                    setCurrentPage={
+                      setCurrentPage
+                    }
+                  />
+                </div>
+              )}
+            </>
+          )}
+      </div>
+
+      {/* ========================= */}
+      {/* 영상 편집 */}
+      {/* ========================= */}
+
+      <VideoEditor
+        video={editingVideo}
+        people={people}
+        genres={genres}
+        types={types}
+        series={series}
+        selectedPeople={
+          editorPeople
+        }
+        selectedGenres={
+          editorGenres
+        }
+        selectedType={
+          editorType
+        }
+        selectedSeries={
+          editorSeries
+        }
+        saving={savingVideo}
+        setSelectedPeople={
+          setEditorPeople
+        }
+        setSelectedGenres={
+          setEditorGenres
+        }
+        setSelectedType={
+          setEditorType
+        }
+        setSelectedSeries={
+          setEditorSeries
+        }
+        onSave={
+          saveVideoRelations
+        }
+        onClose={
+          closeVideoEditor
+        }
+      />
+    </main>
+  );
+}
