@@ -738,8 +738,7 @@ export default function Home() {
               </h1>
 
               <p className="mt-2 text-sm text-zinc-500">
-                잠뜰TV 영상을 검색하고
-                정리해보세요.
+                youtube.com/@sleepground
               </p>
             </div>
 

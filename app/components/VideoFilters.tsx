@@ -63,7 +63,7 @@ const genreColors = [
 ];
 
 const popupClass =
-  "fixed inset-x-2 bottom-2 z-[70] max-h-[52dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[60vh] sm:w-[280px] sm:rounded-2xl sm:p-2.5";
+  "fixed inset-x-2 bottom-2 z-[70] max-h-[70dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[70vh] sm:w-[280px] sm:rounded-2xl sm:p-2.5";
 
 export default function VideoFilters({
   search,
@@ -210,7 +210,7 @@ export default function VideoFilters({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="영상 제목 검색..."
-            className="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-2.5 py-2 text-xs sm:h-auto sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
+            className="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-2.5 py-2 text-base sm:h-auto sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
           />
 
           {search && (
@@ -291,7 +291,7 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 sm:gap-1.5">
+                <div className="grid grid-cols-4 gap-1 lg:grid-cols-3 lg:gap-1.5">
                   {people.map((person) => {
                     const selected = draftPeople.includes(person.id);
                     const color =
@@ -354,7 +354,7 @@ export default function VideoFilters({
             </button>
 
             {openFilter === "genres" && (
-              <div className={`${popupClass} sm:left-0 sm:top-[calc(100%+8px)]`}>
+              <div className={`${popupClass} sm:w-[520px] lg:w-[520px] sm:left-0 sm:top-[calc(100%+8px)]`}>
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     장르 선택
@@ -370,7 +370,7 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 sm:gap-1.5">
+                <div className="grid grid-cols-4 gap-1 lg:grid-cols-5 lg:gap-1.5">
                   {genres.map((genre, index) => {
                     const selected = draftGenres.includes(genre.id);
                     const color =
@@ -448,7 +448,7 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 sm:gap-1.5">
+                <div className="grid grid-cols-4 gap-1 lg:grid-cols-3 lg:gap-1.5">
                   {types.map((type) => {
                     const selected = draftTypes.includes(type.id);
 
@@ -524,7 +524,7 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 sm:gap-1.5">
+                <div className="grid grid-cols-4 gap-1 lg:grid-cols-3 lg:gap-1.5">
                   {series.map((item) => {
                     const selected = draftSeries.includes(item.id);
 
@@ -605,7 +605,7 @@ export default function VideoFilters({
                   onChange={(e) => {
                     setDate(e.target.value);
                   }}
-                  className="block h-11 w-full min-w-0 appearance-none rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 text-sm text-zinc-200 outline-none focus:border-zinc-600 sm:h-10 sm:rounded-xl sm:px-3 sm:text-xs"
+                  className="block h-11 w-full min-w-0 appearance-none rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 text-base text-zinc-200 outline-none focus:border-zinc-600 sm:h-10 sm:rounded-xl sm:px-3 sm:text-xs"
                 />
 
                 <button
