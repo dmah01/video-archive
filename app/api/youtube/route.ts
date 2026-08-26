@@ -12,10 +12,10 @@ export async function GET() {
       );
     }
 
-    // 잠뜰TV 채널
     const handle = "@sleepground";
+    const startDate = new Date("2019-06-01T00:00:00Z");
 
-    // 1. 채널 ID 및 업로드 재생목록 찾기
+    // 1. 채널 ID 찾기
     const channelResponse = await fetch(
       `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&forHandle=${encodeURIComponent(
         handle
@@ -38,11 +38,11 @@ export async function GET() {
       channelData.items[0].contentDetails.relatedPlaylists
         .uploads;
 
-    // 2. 여러 페이지에서 영상 가져오기
-    let pageToken = "";
+    // 2. 모든 영상 가져오기
     const allVideos: any[] = [];
+    let pageToken = "";
 
-    while (allVideos.length < 100) {
+    while (true) {
       const url =
         `https://www.googleapis.com/youtube/v3/playlistItems` +
         `?part=snippet&maxResults=50` +
@@ -52,33 +52,55 @@ export async function GET() {
           ? `&pageToken=${pageToken}`
           : "");
 
-      const response = await fetch(url);
-      const data = await response.json();
+      const videosResponse = await fetch(url);
+      const videosData = await videosResponse.json();
 
-      if (!data.items) {
+      if (!videosResponse.ok) {
         return NextResponse.json(
           {
-            error: "영상 목록을 가져오지 못했습니다.",
-            details: data,
+            error: "YouTube 영상 목록을 가져오지 못했습니다.",
+            details: videosData,
           },
           { status: 500 }
         );
       }
 
-      allVideos.push(...data.items);
-
-      if (!data.nextPageToken) {
+      if (!videosData.items) {
         break;
       }
 
-      pageToken = data.nextPageToken;
+      for (const item of videosData.items) {
+        const publishedAt = new Date(
+          item.snippet.publishedAt
+        );
+
+        // 2019-06-01 이전 영상이면 종료
+        if (publishedAt < startDate) {
+          break;
+        }
+
+        allVideos.push(item);
+      }
+
+      // 이번 페이지에 2019-06-01 이전 영상이 있었는지 확인
+      const reachedStartDate = videosData.items.some(
+        (item: any) =>
+          new Date(item.snippet.publishedAt) <
+          startDate
+      );
+
+      if (
+        reachedStartDate ||
+        !videosData.nextPageToken
+      ) {
+        break;
+      }
+
+      pageToken = videosData.nextPageToken;
     }
 
-    // 최대 100개
-    const selectedVideos = allVideos.slice(0, 100);
-
     // 3. Supabase에 저장할 데이터 만들기
-    const videos = selectedVideos.map((item: any) => ({
+    const videos = allVideos.map((item) => ({
       youtube_video_id:
         item.snippet.resourceId.videoId,
 
@@ -99,23 +121,25 @@ export async function GET() {
         `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
     }));
 
-    // 4. Supabase에 저장
-    const { error } = await supabase
-      .from("videos")
-      .upsert(videos, {
-        onConflict: "youtube_video_id",
-      });
+    // 4. Supabase 저장
+    if (videos.length > 0) {
+      const { error } = await supabase
+        .from("videos")
+        .upsert(videos, {
+          onConflict: "youtube_video_id",
+        });
 
-    if (error) {
-      console.error(error);
+      if (error) {
+        console.error(error);
 
-      return NextResponse.json(
-        {
-          error: "Supabase 저장 실패",
-          details: error.message,
-        },
-        { status: 500 }
-      );
+        return NextResponse.json(
+          {
+            error: "Supabase 저장 실패",
+            details: error.message,
+          },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({
@@ -123,6 +147,7 @@ export async function GET() {
       count: videos.length,
       videos,
     });
+
   } catch (error) {
     console.error(error);
 
