@@ -2,7 +2,6 @@
 
 import {
   useEffect,
-  useMemo,
   useState,
 } from "react";
 
@@ -75,13 +74,8 @@ const personColors: Record<string, string> = {
   팀샐: "border-lime-400/30 bg-lime-400/10 text-lime-300",
 };
 
-const genreColors = [
-  "border-purple-400/30 bg-purple-400/10 text-purple-300",
-  "border-purple-400/30 bg-purple-400/10 text-purple-300",
-  "border-purple-400/30 bg-purple-400/10 text-purple-300",
-  "border-purple-400/30 bg-purple-400/10 text-purple-300",
-  "border-purple-400/30 bg-purple-400/10 text-purple-300",
-];
+const genreColor =
+  "border-purple-400/40 bg-purple-400/15 text-purple-300";
 
 type Menu = "people" | "genres" | "type" | "series";
 
@@ -106,8 +100,6 @@ export default function VideoEditor({
   const [activeMenu, setActiveMenu] =
     useState<Menu>("people");
 
-  const [personSearch, setPersonSearch] =
-    useState("");
 
   /*
    * 다른 영상을 열 때마다
@@ -116,21 +108,9 @@ export default function VideoEditor({
   useEffect(() => {
     if (video) {
       setActiveMenu("people");
-      setPersonSearch("");
     }
   }, [video]);
 
-  const filteredPeople = useMemo(
-    () =>
-      people.filter((person) =>
-        person.name
-          .toLowerCase()
-          .includes(
-            personSearch.toLowerCase()
-          )
-      ),
-    [people, personSearch]
-  );
 
   if (!video) return null;
 
@@ -155,7 +135,7 @@ export default function VideoEditor({
   };
 
   const menuClass = (menu: Menu) =>
-    `flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-xs font-medium transition ${
+    `flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-[11px] font-medium transition ${
       activeMenu === menu
         ? "bg-zinc-800 text-zinc-100"
         : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
@@ -163,7 +143,7 @@ export default function VideoEditor({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-5">
-      <div className="flex h-[min(680px,90vh)] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-black/50">
+      <div className="flex h-[min(680px,90vh)] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-black/50">
 
         {/* 헤더 */}
         <header className="shrink-0 border-b border-zinc-800/80 px-5 py-4">
@@ -197,7 +177,7 @@ export default function VideoEditor({
         <div className="flex min-h-0 flex-1">
 
           {/* 메뉴 */}
-          <aside className="w-[125px] shrink-0 border-r border-zinc-800/80 bg-zinc-950 p-2 sm:w-[155px] sm:p-3">
+          <aside className="w-[104px] shrink-0 border-r border-zinc-800/80 bg-zinc-950 p-1.5 sm:w-[132px] sm:p-2.5">
             <p className="mb-2 px-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-700">
               Settings
             </p>
@@ -273,60 +253,34 @@ export default function VideoEditor({
                   </p>
                 </div>
 
-                <input
-                  type="text"
-                  value={personSearch}
-                  onChange={(e) =>
-                    setPersonSearch(
-                      e.target.value
-                    )
-                  }
-                  placeholder="등장인물 검색..."
-                  className="mb-4 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-200 outline-none placeholder:text-zinc-600 focus:border-zinc-600"
-                />
+                <div className="flex flex-wrap content-start justify-start gap-2">
+                  {people.map((person) => {
+                    const selected =
+                      selectedPeople.includes(person.id);
 
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {filteredPeople.map(
-                    (person) => {
-                      const selected =
-                        selectedPeople.includes(
-                          person.id
-                        );
+                    const color =
+                      personColors[person.name] ??
+                      "border-zinc-700 bg-zinc-900 text-zinc-400";
 
-                      const color =
-                        personColors[
-                          person.name
-                        ] ??
-                        "border-zinc-700 bg-zinc-900 text-zinc-400";
-
-                      return (
-                        <button
-                          key={person.id}
-                          type="button"
-                          onClick={() =>
-                            togglePerson(
-                              person.id
-                            )
-                          }
-                          className={`rounded-xl border px-3 py-3 text-left text-xs font-medium transition ${
-                            selected
-                              ? color
-                              : "border-zinc-800 bg-zinc-900/60 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
-                          }`}
-                        >
-                          <span className="mr-2">
-                            {selected
-                              ? "✓"
-                              : "○"}
-                          </span>
-
-                          {person.name}
-                        </button>
-                      );
-                    }
-                  )}
+                    return (
+                      <button
+                        key={person.id}
+                        type="button"
+                        onClick={() => togglePerson(person.id)}
+                        className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-[11px] font-medium leading-4 whitespace-nowrap transition ${
+                          selected
+                            ? color
+                            : "border-zinc-800 bg-zinc-900/60 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
+                        }`}
+                      >
+                        <span className="mr-1.5 shrink-0">
+                          {selected ? "✓" : "○"}
+                        </span>
+                        <span>{person.name}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-
                 <div className="mt-6 border-t border-zinc-800/70 pt-5">
                   <p className="mb-2 text-[10px] text-zinc-600">
                     현재 선택
@@ -384,19 +338,14 @@ export default function VideoEditor({
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {genres.map(
-                    (genre, index) => {
+                <div className="flex flex-wrap content-start justify-start gap-2">
+                  {genres.map((genre) => {
                       const selected =
                         selectedGenres.includes(
                           genre.id
                         );
 
-                      const color =
-                        genreColors[
-                          index %
-                            genreColors.length
-                        ];
+                      const color = genreColor;
 
                       return (
                         <button
@@ -407,13 +356,13 @@ export default function VideoEditor({
                               genre.id
                             )
                           }
-                          className={`rounded-xl border px-3 py-3 text-left text-xs font-medium transition ${
+                          className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap transition ${
                             selected
                               ? color
                               : "border-zinc-800 bg-zinc-900/60 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
                           }`}
                         >
-                          <span className="mr-2">
+                          <span className="mr-1.5">
                             {selected
                               ? "✓"
                               : "○"}
@@ -478,15 +427,15 @@ export default function VideoEditor({
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <div className="flex flex-wrap content-start justify-start gap-2">
                   <button
                     type="button"
                     onClick={() =>
                       setSelectedType(null)
                     }
-                    className={`rounded-xl border px-3 py-3 text-left text-xs font-medium ${
+                    className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
                       selectedType === null
-                        ? "border-blue-400/30 bg-blue-400/10 text-blue-300"
+                        ? "border-indigo-400/40 bg-indigo-400/15 text-indigo-300"
                         : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
                     }`}
                   >
@@ -512,9 +461,9 @@ export default function VideoEditor({
                               : type.id
                           )
                         }
-                        className={`rounded-xl border px-3 py-3 text-left text-xs font-medium ${
+                        className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
                           selected
-                            ? "border-blue-400/30 bg-blue-400/10 text-blue-300"
+                            ? "border-indigo-400/40 bg-indigo-400/15 text-indigo-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
                         }`}
                       >
@@ -542,7 +491,7 @@ export default function VideoEditor({
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <div className="flex flex-wrap content-start justify-start gap-2">
                   <button
                     type="button"
                     onClick={() =>
@@ -550,9 +499,9 @@ export default function VideoEditor({
                         null
                       )
                     }
-                    className={`rounded-xl border px-3 py-3 text-left text-xs font-medium ${
+                    className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
                       selectedSeries === null
-                        ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                        ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
                         : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
                     }`}
                   >
@@ -579,9 +528,9 @@ export default function VideoEditor({
                               : item.id
                           )
                         }
-                        className={`rounded-xl border px-3 py-3 text-left text-xs font-medium ${
+                        className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
                           selected
-                            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                            ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
                         }`}
                       >
@@ -610,7 +559,7 @@ export default function VideoEditor({
                 setSelectedType(null);
                 setSelectedSeries(null);
               }}
-              className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-xs font-medium text-zinc-500 transition hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-50"
+              className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-[11px] font-medium text-zinc-500 transition hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-50"
             >
               초기화
             </button>
@@ -619,7 +568,7 @@ export default function VideoEditor({
               type="button"
               disabled={saving}
               onClick={onSave}
-              className="flex-1 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-xl bg-white px-5 py-2.5 text-xs font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving
                 ? "저장 중..."

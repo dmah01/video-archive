@@ -57,17 +57,11 @@ export default function VideoCard({
     (video.genreIds ?? []).includes(genre.id)
   );
 
-  const type = types.find(
-    (item) => item.id === video.typeId
-  );
-
-  const videoSeries = series.find(
-    (item) => item.id === video.seriesId
-  );
+  const type = types.find((item) => item.id === video.typeId);
+  const videoSeries = series.find((item) => item.id === video.seriesId);
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-zinc-800/80 bg-zinc-900/70 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-zinc-700 hover:bg-zinc-900">
-      {/* 썸네일 */}
       <a
         href={video.youtube_url}
         target="_blank"
@@ -89,7 +83,6 @@ export default function VideoCard({
         </div>
       </a>
 
-      {/* 정보 */}
       <div className="p-5">
         <a
           href={video.youtube_url}
@@ -105,9 +98,7 @@ export default function VideoCard({
           {video.published_at.slice(0, 10)}
         </p>
 
-        {/* 태그 */}
         <div className="mt-4 flex min-h-8 flex-wrap gap-1.5">
-          {/* 모든 장르 표시 */}
           {selectedGenres.map((genre) => (
             <span
               key={`genre-${genre.id}`}
@@ -117,25 +108,20 @@ export default function VideoCard({
             </span>
           ))}
 
-          {/* 콘텐츠 타입 */}
           {type && (
             <span className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-medium text-indigo-300">
               {type.name}
             </span>
           )}
 
-          {/* 시리즈 */}
           {videoSeries && (
             <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300">
               {videoSeries.name}
             </span>
           )}
 
-          {/* 등장인물 */}
           {(video.peopleIds ?? []).map((personId) => {
-            const person = people.find(
-              (item) => item.id === personId
-            );
+            const person = people.find((item) => item.id === personId);
 
             if (!person) return null;
 
@@ -154,7 +140,6 @@ export default function VideoCard({
           })}
         </div>
 
-        {/* 관리 버튼 */}
         <button
           type="button"
           onClick={() => onEdit(video)}

@@ -54,16 +54,10 @@ const personColors: Record<string, string> = {
   팀샐: "border-lime-400/30 bg-lime-400/10 text-lime-300",
 };
 
-const genreColors = [
-  "border-purple-400/30 bg-purple-400/10 text-purple-300",
-  "border-cyan-400/30 bg-cyan-400/10 text-cyan-300",
-  "border-indigo-400/30 bg-indigo-400/10 text-indigo-300",
-  "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
-  "border-amber-400/30 bg-amber-400/10 text-amber-300",
-];
+const genreColor = "border-purple-400/40 bg-purple-400/15 text-purple-300";
 
 const popupClass =
-  "fixed inset-x-2 bottom-2 z-[70] max-h-[52dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[60vh] sm:w-[280px] sm:rounded-2xl sm:p-2.5";
+  "fixed inset-x-2 bottom-2 z-[70] max-h-[52dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[60vh] sm:w-[640px] sm:max-w-[calc(100vw-1.5rem)] sm:rounded-2xl sm:p-3";
 
 export default function VideoFilters({
   search,
@@ -291,7 +285,7 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="grid grid-cols-4 gap-1 lg:grid-cols-3 lg:gap-1.5">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   {people.map((person) => {
                     const selected = draftPeople.includes(person.id);
                     const color =
@@ -309,7 +303,7 @@ export default function VideoFilters({
                             setDraftPeople
                           )
                         }
-                        className={`min-h-8 rounded-lg border px-1.5 py-1 text-[9px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
+                        className={`w-fit shrink-0 whitespace-nowrap rounded-lg border px-1.5 py-1 text-[9px] leading-4 transition active:scale-[0.98] sm:px-1.5 sm:py-1 sm:text-[10px] ${
                           selected
                             ? color
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -370,11 +364,10 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="grid grid-cols-4 gap-1 lg:grid-cols-3 lg:gap-1.5">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   {genres.map((genre, index) => {
                     const selected = draftGenres.includes(genre.id);
-                    const color =
-                      genreColors[index % genreColors.length];
+                    const color = genreColor;
 
                     return (
                       <button
@@ -387,7 +380,7 @@ export default function VideoFilters({
                             setDraftGenres
                           )
                         }
-                        className={`min-h-8 rounded-lg border px-1.5 py-1 text-[9px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
+                        className={`min-h-9 w-auto whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-9 sm:rounded-lg sm:px-2.5 sm:py-1.5 sm:text-[11px] ${
                           selected
                             ? color
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -448,7 +441,7 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="grid grid-cols-4 gap-1 lg:grid-cols-3 lg:gap-1.5">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   {types.map((type) => {
                     const selected = draftTypes.includes(type.id);
 
@@ -463,7 +456,7 @@ export default function VideoFilters({
                             setDraftTypes
                           )
                         }
-                        className={`min-h-8 rounded-lg border px-1.5 py-1 text-[9px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
+                        className={`min-h-9 w-auto whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-9 sm:rounded-lg sm:px-2.5 sm:py-1.5 sm:text-[11px] ${
                           selected
                             ? "border-indigo-400/30 bg-indigo-400/10 text-indigo-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -508,7 +501,7 @@ export default function VideoFilters({
             </button>
 
             {openFilter === "series" && (
-              <div className={`filter-popup ${popupClass} sm:right-0 sm:top-[calc(100%+8px)] sm:max-w-[280px]`}>
+              <div className={`filter-popup ${popupClass} sm:right-0 sm:top-[calc(100%+8px)] sm:max-w-[calc(100vw-1.5rem)]`}>
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     시리즈 선택
@@ -524,7 +517,7 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="grid grid-cols-4 gap-1 lg:grid-cols-3 lg:gap-1.5">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   {series.map((item) => {
                     const selected = draftSeries.includes(item.id);
 
@@ -539,7 +532,7 @@ export default function VideoFilters({
                             setDraftSeries
                           )
                         }
-                        className={`min-h-8 rounded-lg border px-1.5 py-1 text-[9px] leading-4 transition active:scale-[0.98] sm:min-h-0 sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-xs ${
+                        className={`min-h-9 w-auto whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-9 sm:rounded-lg sm:px-2.5 sm:py-1.5 sm:text-[11px] ${
                           selected
                             ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -581,7 +574,7 @@ export default function VideoFilters({
 
             {openFilter === "date" && (
               <div
-                className={`filter-popup ${popupClass} sm:right-0 sm:top-[calc(100%+8px)] sm:max-w-[280px]`}
+                className={`filter-popup ${popupClass} sm:right-0 sm:top-[calc(100%+8px)] sm:max-w-[calc(100vw-1.5rem)]`}
               >
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
