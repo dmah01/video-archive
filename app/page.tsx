@@ -28,10 +28,6 @@ type Video = {
 
   typeId?: number | null;
   seriesId?: number | null;
-
-  // Supabase 실제 컬럼명
-  type_id?: number | null;
-  series_id?: number | null;
 };
 
 const VIDEOS_PER_PAGE = 12;
@@ -53,9 +49,9 @@ export default function Home() {
 
   const [search, setSearch] = useState("");
   const [date, setDate] = useState("");
+  // 등장인물 / 장르 / 콘텐츠 타입 / 시리즈 모두 복수 선택
   const [selectedPeople, setSelectedPeople] = useState<number[]>([]);
 
-  // 장르 복수 선택
   const [selectedGenres, setSelectedGenres] =
     useState<number[]>([]);
 
@@ -247,10 +243,10 @@ export default function Home() {
           ),
 
         typeId:
-          video.typeId ?? video.type_id ?? null,
+          video.typeId ?? null,
 
         seriesId:
-          video.seriesId ?? video.series_id ?? null,
+          video.seriesId ?? null,
       }));
 
     setVideos(videosWithRelations);
@@ -626,7 +622,7 @@ export default function Home() {
               )
           );
 
-        // 타입
+        // 콘텐츠 타입
         const matchesType =
           selectedTypes.length === 0 ||
           (video.typeId != null &&
@@ -718,9 +714,10 @@ export default function Home() {
   // =============================
 
   return (
-    <main className="min-h-screen w-full overflow-x-hidden bg-zinc-950 text-white">
+    <>
+      <main className="site-page min-h-screen bg-zinc-950 text-white">
 
-      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
+      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-10">
 
         {/* ========================= */}
         {/* 헤더 */}
@@ -738,7 +735,8 @@ export default function Home() {
               </h1>
 
               <p className="mt-2 text-sm text-zinc-500">
-                youtube.com/@sleepground
+                잠뜰TV 영상을 검색하고
+                정리해보세요.
               </p>
             </div>
 
@@ -748,7 +746,7 @@ export default function Home() {
                 importYouTubeVideos
               }
               disabled={importing}
-              className="w-full rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+              className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {importing
                 ? "영상 가져오는 중..."
@@ -793,7 +791,7 @@ export default function Home() {
         {/* 결과 헤더 */}
         {/* ========================= */}
 
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-4 flex items-center justify-between sm:mb-5">
           <div>
             <h2 className="font-semibold text-zinc-200">
               영상
@@ -880,7 +878,7 @@ export default function Home() {
               {totalPages > 1 && (
                   <nav
                     aria-label="영상 페이지 이동"
-                    className="mt-8 flex w-full flex-wrap items-center justify-center gap-2 px-1"
+                    className="mt-8 flex w-full flex-nowrap items-center justify-center gap-1 overflow-x-auto px-1 sm:gap-2"
                   >
                     <button
                       type="button"
@@ -1000,7 +998,7 @@ export default function Home() {
       {/* 영상 편집 */}
       {/* ========================= */}
 
-      <footer className="border-t border-zinc-900 bg-zinc-950">
+      <footer className="site-footer border-t border-zinc-900 bg-zinc-950">
         <div className="mx-auto max-w-7xl px-5 py-8 text-center sm:px-6">
           <p className="text-xs text-zinc-600">
             SLEEPGROUND TV ARCHIVE
@@ -1049,6 +1047,7 @@ export default function Home() {
           closeVideoEditor
         }
       />
-    </main>
+      </main>
+    </>
   );
 }

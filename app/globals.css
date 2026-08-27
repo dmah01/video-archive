@@ -1,8 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5f5f5;
+  --foreground: #18181b;
+}
+
+:root[data-theme="light"] {
+  --background: #f5f5f5;
+  --foreground: #18181b;
+}
+
+:root[data-theme="dark"] {
+  --background: #09090b;
+  --foreground: #f4f4f5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --background: #09090b;
+    --foreground: #f4f4f5;
+  }
 }
 
 @theme inline {
@@ -12,15 +29,518 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html,
+body {
+  min-height: 100%;
+}
+
+html {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html:not([data-theme]) {
+    color-scheme: dark;
   }
 }
 
 body {
+  margin: 0;
+  min-width: 320px;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ================================================================
+   LIGHT THEME
+   The existing pages use dark zinc Tailwind utilities. These rules
+   intentionally have !important so the selected theme wins over
+   those component classes.
+   ================================================================ */
+
+html[data-theme="light"] body {
+  background: #f5f5f5 !important;
+  color: #18181b !important;
+}
+
+/* Page / sections / cards */
+html[data-theme="light"] [class*="bg-zinc-950"] {
+  background-color: #f5f5f5 !important;
+}
+
+html[data-theme="light"] [class*="bg-zinc-900"] {
+  background-color: #ffffff !important;
+}
+
+html[data-theme="light"] [class*="bg-zinc-800"] {
+  background-color: #f4f4f5 !important;
+}
+
+html[data-theme="light"] [class*="bg-zinc-700"] {
+  background-color: #e4e4e7 !important;
+}
+
+/* Borders */
+html[data-theme="light"] [class*="border-zinc-800"],
+html[data-theme="light"] [class*="border-zinc-700"],
+html[data-theme="light"] [class*="border-zinc-600"] {
+  border-color: #e4e4e7 !important;
+}
+
+/* Text */
+html[data-theme="light"] [class*="text-white"] {
+  color: #18181b !important;
+}
+
+html[data-theme="light"] [class*="text-zinc-100"] {
+  color: #18181b !important;
+}
+
+html[data-theme="light"] [class*="text-zinc-200"] {
+  color: #27272a !important;
+}
+
+html[data-theme="light"] [class*="text-zinc-300"] {
+  color: #3f3f46 !important;
+}
+
+html[data-theme="light"] [class*="text-zinc-400"] {
+  color: #52525b !important;
+}
+
+html[data-theme="light"] [class*="text-zinc-500"] {
+  color: #71717a !important;
+}
+
+html[data-theme="light"] [class*="text-zinc-600"],
+html[data-theme="light"] [class*="text-zinc-700"] {
+  color: #a1a1aa !important;
+}
+
+/* Inputs / selects */
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+  background: #ffffff !important;
+  color: #18181b !important;
+  border-color: #d4d4d8 !important;
+}
+
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder {
+  color: #a1a1aa !important;
+}
+
+/* Cards look like cards instead of a flat white page */
+html[data-theme="light"] article {
+  box-shadow:
+    0 8px 24px rgba(24, 24, 27, 0.07),
+    0 1px 3px rgba(24, 24, 27, 0.05) !important;
+}
+
+html[data-theme="light"] section[class*="border"] {
+  box-shadow:
+    0 4px 18px rgba(24, 24, 27, 0.04) !important;
+}
+
+/* Keep images and media from becoming visually washed out. */
+html[data-theme="light"] img {
+  opacity: 1 !important;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  max-width: 100%;
+}
+
+
+/* ================================================================
+   FINAL LIGHT THEME OVERRIDES
+   ================================================================ */
+
+html[data-theme="light"] main {
+  background-color: #f5f5f5 !important;
+  color: #18181b !important;
+}
+
+html[data-theme="light"] article {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+  border-color: #e4e4e7 !important;
+}
+
+html[data-theme="light"] section {
+  color: #18181b;
+}
+
+html[data-theme="light"] footer {
+  background-color: #ffffff !important;
+  border-color: #e4e4e7 !important;
+}
+
+/* Neutral dark surfaces used by the page */
+html[data-theme="light"] [class~="bg-zinc-950"],
+html[data-theme="light"] [class~="bg-zinc-950/80"] {
+  background-color: #f5f5f5 !important;
+}
+
+html[data-theme="light"] [class~="bg-zinc-900"],
+html[data-theme="light"] [class~="bg-zinc-900/70"],
+html[data-theme="light"] [class~="bg-zinc-900/60"],
+html[data-theme="light"] [class~="bg-zinc-900/50"],
+html[data-theme="light"] [class~="bg-zinc-900/30"] {
+  background-color: #ffffff !important;
+}
+
+html[data-theme="light"] [class~="bg-zinc-800"],
+html[data-theme="light"] [class~="bg-zinc-800/70"] {
+  background-color: #f1f1f3 !important;
+}
+
+html[data-theme="light"] [class~="bg-zinc-700"] {
+  background-color: #e4e4e7 !important;
+}
+
+/* Neutral text */
+html[data-theme="light"] [class~="text-white"],
+html[data-theme="light"] [class~="text-zinc-100"] {
+  color: #18181b !important;
+}
+
+html[data-theme="light"] [class~="text-zinc-200"] {
+  color: #27272a !important;
+}
+
+html[data-theme="light"] [class~="text-zinc-300"] {
+  color: #3f3f46 !important;
+}
+
+html[data-theme="light"] [class~="text-zinc-400"] {
+  color: #52525b !important;
+}
+
+html[data-theme="light"] [class~="text-zinc-500"] {
+  color: #71717a !important;
+}
+
+html[data-theme="light"] [class~="text-zinc-600"],
+html[data-theme="light"] [class~="text-zinc-700"] {
+  color: #a1a1aa !important;
+}
+
+/* Neutral borders */
+html[data-theme="light"] [class~="border-zinc-800"],
+html[data-theme="light"] [class~="border-zinc-800/80"],
+html[data-theme="light"] [class~="border-zinc-700"] {
+  border-color: #e4e4e7 !important;
+}
+
+/* Form controls */
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+  border-color: #d4d4d8 !important;
+}
+
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder {
+  color: #a1a1aa !important;
+}
+
+/* Video cards */
+html[data-theme="light"] article.group {
+  background-color: #ffffff !important;
+  border-color: #e4e4e7 !important;
+  box-shadow:
+    0 8px 24px rgba(24, 24, 27, 0.07),
+    0 1px 3px rgba(24, 24, 27, 0.05) !important;
+}
+
+/* Filter panel */
+html[data-theme="light"] section.relative {
+  background-color: #ffffff !important;
+  border-color: #e4e4e7 !important;
+}
+
+/* Modal overlays keep their dark translucent backdrop; modal surfaces turn white. */
+html[data-theme="light"] [role="dialog"],
+html[data-theme="light"] [class*="fixed"][class*="rounded"] {
+  color: #18181b;
+}
+
+html[data-theme="light"] [role="dialog"] [class~="bg-zinc-900"],
+html[data-theme="light"] [role="dialog"] [class~="bg-zinc-800"] {
+  background-color: #ffffff !important;
+}
+
+/* Keep the theme switcher readable in either mode. */
+html[data-theme="light"] .theme-settings {
+  background-color: #ffffff !important;
+  border-color: #d4d4d8 !important;
+  box-shadow: 0 8px 24px rgba(24, 24, 27, 0.12) !important;
+}
+
+
+/* ================================================================
+   SITE-SPECIFIC LIGHT THEME
+   ================================================================ */
+
+html[data-theme="light"] .site-page {
+  background: #f5f5f7 !important;
+  color: #18181b !important;
+}
+
+html[data-theme="light"] .filter-panel {
+  background: #ffffff !important;
+  border-color: #e4e4e7 !important;
+  box-shadow: 0 8px 28px rgba(24, 24, 27, 0.07) !important;
+}
+
+html[data-theme="light"] .filter-button {
+  background: #f8f8fa !important;
+  color: #27272a !important;
+  border-color: #e4e4e7 !important;
+}
+
+html[data-theme="light"] .filter-button:hover {
+  background: #f0f0f2 !important;
+  border-color: #d4d4d8 !important;
+}
+
+html[data-theme="light"] .search-input {
+  background: #ffffff !important;
+  color: #18181b !important;
+  border-color: #d4d4d8 !important;
+}
+
+html[data-theme="light"] .filter-popup {
+  background: #ffffff !important;
+  color: #18181b !important;
+  border-color: #e4e4e7 !important;
+  box-shadow: 0 14px 40px rgba(24, 24, 27, 0.14) !important;
+}
+
+html[data-theme="light"] .site-page article {
+  background: #ffffff !important;
+  color: #18181b !important;
+  border-color: #e4e4e7 !important;
+  box-shadow: 0 8px 24px rgba(24, 24, 27, 0.07) !important;
+}
+
+html[data-theme="light"] .site-footer {
+  background: #ffffff !important;
+  color: #52525b !important;
+  border-color: #e4e4e7 !important;
+}
+
+html[data-theme="light"] .site-page [class*="text-zinc-"] {
+  /* neutral text is handled below */
+}
+
+html[data-theme="light"] .site-page [class~="text-white"],
+html[data-theme="light"] .site-page [class~="text-zinc-100"],
+html[data-theme="light"] .site-page [class~="text-zinc-200"] {
+  color: #18181b !important;
+}
+
+html[data-theme="light"] .site-page [class~="text-zinc-300"] {
+  color: #3f3f46 !important;
+}
+
+html[data-theme="light"] .site-page [class~="text-zinc-400"] {
+  color: #52525b !important;
+}
+
+html[data-theme="light"] .site-page [class~="text-zinc-500"] {
+  color: #71717a !important;
+}
+
+html[data-theme="light"] .site-page [class~="text-zinc-600"],
+html[data-theme="light"] .site-page [class~="text-zinc-700"] {
+  color: #a1a1aa !important;
+}
+
+/* Neutral buttons inside the site, excluding the blue active page button. */
+html[data-theme="light"] .site-page button[class*="bg-zinc"] {
+  background: #f4f4f5 !important;
+  color: #3f3f46 !important;
+  border-color: #e4e4e7 !important;
+}
+
+html[data-theme="light"] .site-page button[class*="bg-zinc"]:hover {
+  background: #e4e4e7 !important;
+  color: #18181b !important;
+}
+
+html[data-theme="light"] .filter-popup button {
+  color: #27272a !important;
+}
+
+html[data-theme="light"] .filter-popup button[class*="bg-zinc"],
+html[data-theme="light"] .filter-popup button[class*="border-zinc"] {
+  background: #f8f8fa !important;
+  border-color: #e4e4e7 !important;
+}
+
+html[data-theme="light"] .theme-settings {
+  background: #ffffff !important;
+  border-color: #d4d4d8 !important;
+  color: #18181b !important;
+}
+
+
+/* ================================================================
+   FINAL PAGE THEME RULES
+   ================================================================ */
+
+html[data-theme="light"] .site-page {
+  background: #f5f5f7 !important;
+  color: #18181b !important;
+}
+
+html[data-theme="light"] .site-page article {
+  background: #ffffff !important;
+  color: #18181b !important;
+  border-color: #e4e4e7 !important;
+  box-shadow: 0 8px 24px rgba(24,24,27,.07) !important;
+}
+
+html[data-theme="light"] .filter-panel {
+  background: #ffffff !important;
+  border-color: #e4e4e7 !important;
+  box-shadow: 0 8px 28px rgba(24,24,27,.07) !important;
+}
+
+html[data-theme="light"] .filter-button {
+  background: #f8f8fa !important;
+  color: #27272a !important;
+  border-color: #e4e4e7 !important;
+}
+
+html[data-theme="light"] .search-input {
+  background: #ffffff !important;
+  color: #18181b !important;
+  border-color: #d4d4d8 !important;
+}
+
+html[data-theme="light"] .filter-popup {
+  background: #ffffff !important;
+  color: #18181b !important;
+  border-color: #e4e4e7 !important;
+  box-shadow: 0 16px 40px rgba(24,24,27,.14) !important;
+}
+
+html[data-theme="light"] .site-footer {
+  background: #ffffff !important;
+  color: #52525b !important;
+  border-color: #e4e4e7 !important;
+}
+
+html[data-theme="light"] .site-page [class~="text-white"],
+html[data-theme="light"] .site-page [class~="text-zinc-100"],
+html[data-theme="light"] .site-page [class~="text-zinc-200"] {
+  color: #18181b !important;
+}
+
+html[data-theme="light"] .site-page [class~="text-zinc-300"] { color:#3f3f46 !important; }
+html[data-theme="light"] .site-page [class~="text-zinc-400"] { color:#52525b !important; }
+html[data-theme="light"] .site-page [class~="text-zinc-500"] { color:#71717a !important; }
+
+html[data-theme="light"] .site-page input,
+html[data-theme="light"] .site-page select,
+html[data-theme="light"] .site-page textarea {
+  background:#ffffff !important;
+  color:#18181b !important;
+  border-color:#d4d4d8 !important;
+}
+
+
+/* Final explicit theme controls */
+html[data-theme="light"] .theme-settings {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+  border-color: #d4d4d8 !important;
+}
+html[data-theme="dark"] .theme-settings {
+  background-color: #18181b !important;
+  color: #f4f4f5 !important;
+}
+
+
+/* FINAL ACTION BUTTONS — explicit light theme */
+html[data-theme="light"] .youtube-import-button {
+  background: #18181b !important;
+  color: #ffffff !important;
+  border-color: #18181b !important;
+}
+html[data-theme="light"] .youtube-import-button:hover {
+  background: #27272a !important;
+  color: #ffffff !important;
+}
+html[data-theme="light"] .theme-settings {
+  background: #ffffff !important;
+  border-color: #d4d4d8 !important;
+  box-shadow: 0 8px 24px rgba(24,24,27,.14) !important;
+}
+html[data-theme="light"] .theme-settings button:not([aria-pressed="true"]) {
+  color: #52525b !important;
+}
+html[data-theme="light"] .theme-settings button[aria-pressed="true"] {
+  background: #18181b !important;
+  color: #ffffff !important;
+}
+
+
+/* Theme controls and light-mode action buttons */
+html[data-theme="light"] .theme-settings {
+  background: #ffffff !important;
+  border-color: #c4c4cc !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14) !important;
+}
+
+html[data-theme="light"] .youtube-import-button {
+  background: #18181b !important;
+  color: #ffffff !important;
+  border-color: #18181b !important;
+}
+
+html[data-theme="light"] .youtube-import-button:hover {
+  background: #27272a !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .site-page button[class*="border-zinc"] {
+  border-color: #d4d4d8 !important;
+}
+
+html[data-theme="light"] [role="dialog"] button {
+  color: #27272a !important;
+  border-color: #d4d4d8 !important;
+}
+
+html[data-theme="light"] [role="dialog"] button[class*="bg-blue"],
+html[data-theme="light"] [role="dialog"] button[class*="bg-indigo"],
+html[data-theme="light"] [role="dialog"] button[class*="bg-emerald"] {
+  color: #ffffff !important;
 }

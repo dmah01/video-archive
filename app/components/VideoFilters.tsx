@@ -63,7 +63,7 @@ const genreColors = [
 ];
 
 const popupClass =
-  "fixed inset-x-2 bottom-2 z-[70] max-h-[70dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[70vh] sm:w-[280px] sm:rounded-2xl sm:p-2.5";
+  "fixed inset-x-2 bottom-2 z-[70] max-h-[52dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[60vh] sm:w-[280px] sm:rounded-2xl sm:p-2.5";
 
 export default function VideoFilters({
   search,
@@ -200,7 +200,7 @@ export default function VideoFilters({
 
       <section
         ref={wrapperRef}
-        className="relative z-40 mb-8 rounded-2xl border border-zinc-800/80 bg-zinc-900/60 shadow-lg shadow-black/10"
+        className="filter-panel relative z-40 mb-8 rounded-2xl border border-zinc-800/80 bg-zinc-900/60 shadow-lg shadow-black/10"
       >
       {/* 상단 검색 */}
       <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-1.5 p-2 sm:flex sm:gap-2 sm:p-3 lg:flex-row lg:p-4">
@@ -210,7 +210,7 @@ export default function VideoFilters({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="영상 제목 검색..."
-            className="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-2.5 py-2 text-base sm:h-auto sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
+            className="search-input h-10 w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-2.5 py-2 text-base sm:h-auto sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
           />
 
           {search && (
@@ -275,7 +275,7 @@ export default function VideoFilters({
             </button>
 
             {openFilter === "people" && (
-              <div className={`${popupClass} sm:left-0 sm:top-[calc(100%+8px)]`}>
+              <div className={`filter-popup ${popupClass} sm:left-0 sm:top-[calc(100%+8px)]`}>
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     등장인물 선택
@@ -354,7 +354,7 @@ export default function VideoFilters({
             </button>
 
             {openFilter === "genres" && (
-              <div className={`${popupClass} sm:w-[520px] lg:w-[520px] sm:left-0 sm:top-[calc(100%+8px)]`}>
+              <div className={`filter-popup ${popupClass} sm:left-0 sm:top-[calc(100%+8px)]`}>
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     장르 선택
@@ -370,7 +370,7 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="grid grid-cols-4 gap-1 lg:grid-cols-5 lg:gap-1.5">
+                <div className="grid grid-cols-4 gap-1 lg:grid-cols-3 lg:gap-1.5">
                   {genres.map((genre, index) => {
                     const selected = draftGenres.includes(genre.id);
                     const color =
@@ -432,7 +432,7 @@ export default function VideoFilters({
             </button>
 
             {openFilter === "types" && (
-              <div className={`${popupClass} sm:left-0 sm:top-[calc(100%+8px)]`}>
+              <div className={`filter-popup ${popupClass} sm:left-0 sm:top-[calc(100%+8px)]`}>
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     콘텐츠 타입 선택
@@ -508,7 +508,7 @@ export default function VideoFilters({
             </button>
 
             {openFilter === "series" && (
-              <div className={`${popupClass} sm:right-0 sm:top-[calc(100%+8px)] sm:max-w-[280px]`}>
+              <div className={`filter-popup ${popupClass} sm:right-0 sm:top-[calc(100%+8px)] sm:max-w-[280px]`}>
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     시리즈 선택
@@ -581,7 +581,7 @@ export default function VideoFilters({
 
             {openFilter === "date" && (
               <div
-                className={`${popupClass} sm:right-0 sm:top-[calc(100%+8px)] sm:max-w-[280px]`}
+                className={`filter-popup ${popupClass} sm:right-0 sm:top-[calc(100%+8px)] sm:max-w-[280px]`}
               >
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
