@@ -56,6 +56,32 @@ const personColors: Record<string, string> = {
 
 const genreColor = "border-purple-400/40 bg-purple-400/15 text-purple-300";
 
+const PERSON_ORDER = [
+  "라더",
+  "덕개",
+  "각별",
+  "공룡",
+  "잠뜰",
+  "수현",
+  "올멤",
+  "요정",
+  "태쁘",
+  "팀샐",
+  "게스트",
+];
+
+const sortPeople = <T extends { name: string }>(items: T[]) =>
+  [...items].sort((a, b) => {
+    const ai = PERSON_ORDER.indexOf(a.name);
+    const bi = PERSON_ORDER.indexOf(b.name);
+
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+
+    return a.name.localeCompare(b.name, "ko");
+  });
+
 const popupClass =
   "fixed inset-x-2 bottom-2 z-[70] max-h-[52dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[60vh] sm:w-[640px] sm:max-w-[calc(100vw-1.5rem)] sm:rounded-2xl sm:p-3";
 
@@ -269,7 +295,9 @@ export default function VideoFilters({
             </button>
 
             {openFilter === "people" && (
-              <div className={`filter-popup ${popupClass} sm:left-0 sm:top-[calc(100%+8px)]`}>
+              <div
+  className={`filter-popup ${popupClass} sm:left-0 sm:top-[calc(100%+8px)] sm:!w-[400px]`}
+>
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     등장인물 선택
@@ -285,16 +313,23 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  {people.map((person) => {
+                <div className="flex flex-wrap items-start gap-1.5 sm:gap-2">
+                  {sortPeople(people).map((person, index) => {
                     const selected = draftPeople.includes(person.id);
                     const color =
                       personColors[person.name] ??
                       "border-zinc-700 bg-zinc-900 text-zinc-400";
 
                     return (
-                      <button
-                        key={person.id}
+                      <span key={`person-wrap-${person.id}`} className="contents">
+                        {index === 6 && (
+                          <span
+                            aria-hidden="true"
+                            className="basis-full h-0"
+                          />
+                        )}
+                        <button
+                          key={person.id}
                         type="button"
                         onClick={() =>
                           toggle(
@@ -303,17 +338,15 @@ export default function VideoFilters({
                             setDraftPeople
                           )
                         }
-                        className={`w-fit shrink-0 whitespace-nowrap rounded-lg border px-1.5 py-1 text-[9px] leading-4 transition active:scale-[0.98] sm:px-1.5 sm:py-1 sm:text-[10px] ${
+                        className={`min-h-9 w-auto whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-9 sm:rounded-lg sm:px-2.5 sm:py-1.5 sm:text-[11px] ${
                           selected
                             ? color
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
                         }`}
                       >
-                        <span className="mr-0.5 inline-flex w-2.5 shrink-0 justify-center text-center">
-                          {selected ? "✓" : ""}
-                        </span>
-                        <span className="shrink-0">{person.name}</span>
-                      </button>
+                          {person.name}
+                        </button>
+                      </span>
                     );
                   })}
                 </div>

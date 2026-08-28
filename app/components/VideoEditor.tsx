@@ -88,6 +88,7 @@ const PERSON_ORDER = [
   "요정",
   "태쁘",
   "팀샐",
+  "게스트",
 ];
 
 const sortPeople = <T extends { name: string }>(items: T[]) =>
