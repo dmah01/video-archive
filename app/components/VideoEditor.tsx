@@ -439,7 +439,7 @@ export default function VideoEditor({
                               genre.id
                             )
                           }
-                          className={`flex w-fit max-w-[115px] shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 sm:max-w-none text-left text-[11px] font-medium leading-4 whitespace-normal sm:whitespace-nowrap transition ${
+                          className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap transition ${
                             selected
                               ? color
                               : "border-zinc-800 bg-zinc-900/60 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -451,7 +451,26 @@ export default function VideoEditor({
                               : "○"}
                           </span>
 
-                          {genre.name}
+                          {[
+                            "생존 / 야생 / 엔드런",
+                            "마피아 / 머더 / 라이어게임",
+                            "술래잡기 / 숨바꼭질 / 꼬리잡기",
+                            "기지전쟁 / 베드워즈 / 스카이블록",
+                          ].includes(genre.name) ? (
+                            <span className="sm:whitespace-nowrap">
+                              {genre.name.split(" / ").map((part, i, arr) => (
+                                <span key={part}>
+                                  {i > 0 && " / "}
+                                  {part}
+                                  {i < arr.length - 1 && (
+                                    <wbr className="sm:hidden" />
+                                  )}
+                                </span>
+                              ))}
+                            </span>
+                          ) : (
+                            genre.name
+                          )}
                         </button>
                       );
                     }
