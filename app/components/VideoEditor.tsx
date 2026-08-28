@@ -77,6 +77,32 @@ const personColors: Record<string, string> = {
 const genreColor =
   "border-purple-400/40 bg-purple-400/15 text-purple-300";
 
+const PERSON_ORDER = [
+  "라더",
+  "덕개",
+  "각별",
+  "공룡",
+  "잠뜰",
+  "수현",
+  "올멤",
+  "요정",
+  "태쁘",
+  "팀샐",
+];
+
+const sortPeople = <T extends { name: string }>(items: T[]) =>
+  [...items].sort((a, b) => {
+    const ai = PERSON_ORDER.indexOf(a.name);
+    const bi = PERSON_ORDER.indexOf(b.name);
+
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+
+    return a.name.localeCompare(b.name, "ko");
+  });
+
+
 type Menu = "people" | "genres" | "type" | "series";
 
 export default function VideoEditor({
@@ -177,7 +203,7 @@ export default function VideoEditor({
         <div className="flex min-h-0 flex-1">
 
           {/* 메뉴 */}
-          <aside className="w-[104px] shrink-0 border-r border-zinc-800/80 bg-zinc-950 p-1.5 sm:w-[132px] sm:p-2.5">
+          <aside className="w-[112px] shrink-0 border-r border-zinc-800/80 bg-zinc-950 p-1.5 sm:w-[132px] sm:p-2.5">
             <p className="mb-2 px-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-700">
               Settings
             </p>
@@ -215,7 +241,7 @@ export default function VideoEditor({
               }
               className={menuClass("type")}
             >
-              <span>콘텐츠 타입</span>
+              <span className="shrink-0 leading-5">콘텐츠<br />타입</span>
 
               {selectedType !== null && (
                 <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
@@ -254,7 +280,7 @@ export default function VideoEditor({
                 </div>
 
                 <div className="flex flex-wrap content-start justify-start gap-2">
-                  {people.map((person) => {
+                  {sortPeople(people).map((person) => {
                     const selected =
                       selectedPeople.includes(person.id);
 
@@ -267,7 +293,7 @@ export default function VideoEditor({
                         key={person.id}
                         type="button"
                         onClick={() => togglePerson(person.id)}
-                        className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-[11px] font-medium leading-4 whitespace-nowrap transition ${
+                        className={`flex min-w-[84px] w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-[11px] font-medium leading-4 whitespace-nowrap transition ${
                           selected
                             ? color
                             : "border-zinc-800 bg-zinc-900/60 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"

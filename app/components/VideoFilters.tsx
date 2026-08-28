@@ -309,8 +309,10 @@ export default function VideoFilters({
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
                         }`}
                       >
-                        {selected ? "✓ " : ""}
-                        {person.name}
+                        <span className="mr-0.5 inline-flex w-2.5 shrink-0 justify-center text-center">
+                          {selected ? "✓" : ""}
+                        </span>
+                        <span className="shrink-0">{person.name}</span>
                       </button>
                     );
                   })}
@@ -412,7 +414,7 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">콘텐츠 타입</p>
+                <p className="leading-3 text-[8px] text-zinc-600 sm:text-[10px] sm:leading-4">콘텐츠<br className="sm:hidden" /> 타입</p>
                 <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedTypeData,
