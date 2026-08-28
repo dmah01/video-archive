@@ -243,10 +243,10 @@ export default function Home() {
           ),
 
         typeId:
-          video.typeId ?? null,
+          video.typeId ?? video.type_id ?? null,
 
         seriesId:
-          video.seriesId ?? null,
+          video.seriesId ?? video.series_id ?? null,
       }));
 
     setVideos(videosWithRelations);

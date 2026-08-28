@@ -57,18 +57,25 @@ const personColors: Record<string, string> = {
 const genreColor = "border-purple-400/40 bg-purple-400/15 text-purple-300";
 
 const GENRE_ORDER = [
-  "일상",
-  "코미디",
+  "마인크래프트",
+  "종합게임",
   "스토리",
   "추리",
-  "공포",
-  "모험",
-  "게임",
-  "생존",
-  "건축",
-  "미니게임",
   "상황극",
-  "챌린지",
+  "공포 / 스릴",
+  "예능 / 개그",
+  "미니게임",
+  "PVP / 전투",
+  "생존 / 야생 / 엔드런",
+  "마피아 / 머더 / 라이어게임",
+  "술래잡기 / 숨바꼭질 / 꼬리잡기",
+  "탈출 / 추격",
+  "데스런 / 파쿠르",
+  "기지전쟁 / 베드워즈 / 스카이블록",
+  "모드 / 업데이트",
+  "크로스오버",
+  "실사",
+  "토크",
 ];
 
 const sortGenres = <T extends { name: string }>(items: T[]) =>
@@ -410,7 +417,7 @@ export default function VideoFilters({
             </button>
 
             {openFilter === "genres" && (
-              <div className={`filter-popup ${popupClass} sm:left-0 sm:top-[calc(100%+8px)]`}>
+              <div className={`filter-popup ${popupClass} sm:left-0 sm:top-[calc(100%+8px)] sm:!w-[680px]`}>
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     장르 선택

@@ -77,6 +77,40 @@ const personColors: Record<string, string> = {
 const genreColor =
   "border-purple-400/40 bg-purple-400/15 text-purple-300";
 
+const GENRE_ORDER = [
+  "마인크래프트",
+  "종합게임",
+  "스토리",
+  "추리",
+  "상황극",
+  "공포 / 스릴",
+  "예능 / 개그",
+  "미니게임",
+  "PVP / 전투",
+  "생존 / 야생 / 엔드런",
+  "마피아 / 머더 / 라이어게임",
+  "술래잡기 / 숨바꼭질 / 꼬리잡기",
+  "탈출 / 추격",
+  "데스런 / 파쿠르",
+  "기지전쟁 / 베드워즈 / 스카이블록",
+  "모드 / 업데이트",
+  "크로스오버",
+  "실사",
+  "토크",
+];
+
+const sortGenres = <T extends { name: string }>(items: T[]) =>
+  [...items].sort((a, b) => {
+    const ai = GENRE_ORDER.indexOf(a.name);
+    const bi = GENRE_ORDER.indexOf(b.name);
+
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+
+    return a.name.localeCompare(b.name, "ko");
+  });
+
 const PERSON_ORDER = [
   "라더",
   "덕개",
@@ -271,9 +305,20 @@ export default function VideoEditor({
             {activeMenu === "people" && (
               <section>
                 <div className="mb-5">
-                  <h3 className="text-base font-semibold text-zinc-100">
-                    등장인물
-                  </h3>
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-base font-semibold text-zinc-100">
+                      등장인물
+                    </h3>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPeople([])}
+                      disabled={saving || selectedPeople.length === 0}
+                      className="text-[10px] text-zinc-600 transition hover:text-zinc-300 disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      초기화
+                    </button>
+                  </div>
 
                   <p className="mt-1 text-xs text-zinc-600">
                     영상에 등장한 멤버를 선택하세요.
@@ -356,9 +401,20 @@ export default function VideoEditor({
             {activeMenu === "genres" && (
               <section>
                 <div className="mb-5">
-                  <h3 className="text-base font-semibold text-zinc-100">
-                    장르
-                  </h3>
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-base font-semibold text-zinc-100">
+                      장르
+                    </h3>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedGenres([])}
+                      disabled={saving || selectedGenres.length === 0}
+                      className="text-[10px] text-zinc-600 transition hover:text-zinc-300 disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      초기화
+                    </button>
+                  </div>
 
                   <p className="mt-1 text-xs text-zinc-600">
                     영상에 해당하는 장르를 여러 개 선택하세요.
@@ -366,7 +422,7 @@ export default function VideoEditor({
                 </div>
 
                 <div className="flex flex-wrap content-start justify-start gap-2">
-                  {genres.map((genre) => {
+                  {sortGenres(genres).map((genre) => {
                       const selected =
                         selectedGenres.includes(
                           genre.id
@@ -445,9 +501,20 @@ export default function VideoEditor({
             {activeMenu === "type" && (
               <section>
                 <div className="mb-5">
-                  <h3 className="text-base font-semibold text-zinc-100">
-                    콘텐츠 타입
-                  </h3>
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-base font-semibold text-zinc-100">
+                      콘텐츠 타입
+                    </h3>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedType(null)}
+                      disabled={saving || selectedType === null}
+                      className="text-[10px] text-zinc-600 transition hover:text-zinc-300 disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      초기화
+                    </button>
+                  </div>
 
                   <p className="mt-1 text-xs text-zinc-600">
                     영상의 콘텐츠 타입을 하나 선택하세요.
@@ -509,9 +576,20 @@ export default function VideoEditor({
             {activeMenu === "series" && (
               <section>
                 <div className="mb-5">
-                  <h3 className="text-base font-semibold text-zinc-100">
-                    시리즈
-                  </h3>
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-base font-semibold text-zinc-100">
+                      시리즈
+                    </h3>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSeries(null)}
+                      disabled={saving || selectedSeries === null}
+                      className="text-[10px] text-zinc-600 transition hover:text-zinc-300 disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      초기화
+                    </button>
+                  </div>
 
                   <p className="mt-1 text-xs text-zinc-600">
                     영상이 속한 시리즈를 하나 선택하세요.
