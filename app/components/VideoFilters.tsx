@@ -56,6 +56,33 @@ const personColors: Record<string, string> = {
 
 const genreColor = "border-purple-400/40 bg-purple-400/15 text-purple-300";
 
+const GENRE_ORDER = [
+  "일상",
+  "코미디",
+  "스토리",
+  "추리",
+  "공포",
+  "모험",
+  "게임",
+  "생존",
+  "건축",
+  "미니게임",
+  "상황극",
+  "챌린지",
+];
+
+const sortGenres = <T extends { name: string }>(items: T[]) =>
+  [...items].sort((a, b) => {
+    const ai = GENRE_ORDER.indexOf(a.name);
+    const bi = GENRE_ORDER.indexOf(b.name);
+
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+
+    return 0;
+  });
+
 const PERSON_ORDER = [
   "라더",
   "덕개",
@@ -400,7 +427,7 @@ export default function VideoFilters({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  {genres.map((genre, index) => {
+                  {sortGenres(genres).map((genre, index) => {
                     const selected = draftGenres.includes(genre.id);
                     const color = genreColor;
 
@@ -447,7 +474,7 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="leading-3 text-[8px] text-zinc-600 sm:text-[10px] sm:leading-4">콘텐츠<br className="sm:hidden" /> 타입</p>
+                <p className="leading-3 text-[8px] text-zinc-600 sm:text-[10px] sm:leading-4">콘텐츠 타입</p>
                 <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedTypeData,
