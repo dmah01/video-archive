@@ -273,10 +273,10 @@ export default function VideoEditor({
                             : "border-zinc-800 bg-zinc-900/60 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
                         }`}
                       >
-                        <span className="mr-1.5 shrink-0">
+                        <span className="mr-1.5 flex w-3.5 shrink-0 items-center justify-center text-center">
                           {selected ? "✓" : "○"}
                         </span>
-                        <span>{person.name}</span>
+                        <span className="shrink-0">{person.name}</span>
                       </button>
                     );
                   })}
