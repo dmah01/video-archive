@@ -18,6 +18,10 @@ type Video = {
   peopleIds?: number[];
   genreIds?: number[];
 
+  // 콘텐츠 타입 복수 선택
+  typeIds?: number[];
+
+  // 기존 단일 타입 값도 호환
   typeId?: number | null;
   seriesId?: number | null;
 };
@@ -93,8 +97,22 @@ export default function VideoCard({
     )
   );
 
-  const type = types.find((item) => item.id === video.typeId);
-  const videoSeries = series.find((item) => item.id === video.seriesId);
+  // 콘텐츠 타입도 여러 개 표시
+  // typeIds가 없던 기존 데이터는 typeId 하나를 배열로 변환해서 호환
+  const selectedTypes = types.filter((type) => {
+    const typeIds =
+      Array.isArray(video.typeIds)
+        ? video.typeIds
+        : video.typeId != null
+          ? [video.typeId]
+          : [];
+
+    return typeIds.includes(type.id);
+  });
+
+  const videoSeries = series.find(
+    (item) => item.id === video.seriesId
+  );
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-zinc-800/80 bg-zinc-900/70 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-zinc-700 hover:bg-zinc-900">
@@ -144,11 +162,14 @@ export default function VideoCard({
             </span>
           ))}
 
-          {type && (
-            <span className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-medium text-indigo-300">
+          {selectedTypes.map((type) => (
+            <span
+              key={`type-${type.id}`}
+              className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-medium text-indigo-300"
+            >
               {type.name}
             </span>
-          )}
+          ))}
 
           {videoSeries && (
             <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300">
@@ -157,7 +178,9 @@ export default function VideoCard({
           )}
 
           {(video.peopleIds ?? []).map((personId) => {
-            const person = people.find((item) => item.id === personId);
+            const person = people.find(
+              (item) => item.id === personId
+            );
 
             if (!person) return null;
 
