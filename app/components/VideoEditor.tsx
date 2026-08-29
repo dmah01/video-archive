@@ -168,26 +168,6 @@ export default function VideoEditor({
     useState<Menu>("people");
 
   const [seriesSearch, setSeriesSearch] = useState("");
-  const [editorSavedScrollY, setEditorSavedScrollY] = useState(0);
-
-  useEffect(() => {
-    if (video && typeof window !== "undefined") {
-      setEditorSavedScrollY(window.scrollY);
-    }
-  }, [video]);
-
-  const closeAndRestoreScroll = () => {
-    onClose();
-    requestAnimationFrame(() => {
-      if (typeof window !== "undefined") {
-        window.scrollTo({
-          top: editorSavedScrollY,
-          left: 0,
-          behavior: "auto",
-        });
-      }
-    });
-  };
 
 
 
@@ -263,7 +243,7 @@ export default function VideoEditor({
 
             <button
               type="button"
-              onClick={closeAndRestoreScroll}
+              onClick={onClose}
               disabled={saving}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 text-lg text-zinc-500 hover:bg-zinc-800 hover:text-white disabled:opacity-50"
             >
@@ -729,14 +709,7 @@ export default function VideoEditor({
             <button
               type="button"
               disabled={saving}
-              onClick={() => {
-                onSave();
-                requestAnimationFrame(() => {
-                  if (typeof window !== "undefined") {
-                    window.scrollTo({ top: editorSavedScrollY, left: 0, behavior: "auto" });
-                  }
-                });
-              }}
+              onClick={onSave}
               className="flex-1 rounded-xl bg-white px-5 py-2.5 text-xs font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving

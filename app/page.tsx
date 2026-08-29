@@ -28,7 +28,12 @@ type Video = {
 
   // 콘텐츠 타입은 여러 개 선택할 수 있도록 배열로 관리합니다.
   typeIds?: number[];
-  // 기존 단일 타입 값은 이전 데이터 호환을 위해 유지합니다.
+  // Supabase 원본 컬럼(snake_case)도 조회 결과에서 사용합니다.
+  type_ids?: number[] | null;
+  type_id?: number | null;
+  series_id?: number | null;
+
+  // 앱에서 사용하는 camelCase 값
   typeId?: number | null;
   seriesId?: number | null;
 };
@@ -94,8 +99,7 @@ export default function Home() {
 
   const [savingVideo, setSavingVideo] =
     useState(false);
-  const videoEditorScrollYRef =
-    useRef(0);
+  const videoEditorScrollYRef = useRef(0);
 
   // =============================
   // 최초 로딩
@@ -413,6 +417,7 @@ export default function Home() {
   function openVideoEditor(video: Video) {
     if (typeof window !== "undefined") {
       videoEditorScrollYRef.current =
+        document.scrollingElement?.scrollTop ??
         window.scrollY;
     }
 
@@ -582,29 +587,31 @@ export default function Home() {
 
       closeVideoEditor();
 
-      requestAnimationFrame(() => {
-        const y =
-          videoEditorScrollYRef.current;
+      if (typeof window !== "undefined") {
+        const restoreScroll = () => {
+          const y = videoEditorScrollYRef.current;
+          window.scrollTo({
+            top: y,
+            left: 0,
+            behavior: "auto",
+          });
 
-        if (typeof window !== "undefined") {
-          window.scrollTo(0, y);
-
-          const scrollingElement =
-            document.scrollingElement;
-
+          const scrollingElement = document.scrollingElement;
           if (scrollingElement) {
             scrollingElement.scrollTop = y;
           }
+        };
 
+        restoreScroll();
+
+        requestAnimationFrame(() => {
+          restoreScroll();
           requestAnimationFrame(() => {
-            window.scrollTo(0, y);
-
-            if (scrollingElement) {
-              scrollingElement.scrollTop = y;
-            }
+            restoreScroll();
+            window.setTimeout(restoreScroll, 100);
           });
-        }
-      });
+        });
+      }
     } catch (error) {
       console.error(
         "영상 정보 저장 오류:",
