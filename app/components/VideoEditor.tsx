@@ -213,7 +213,7 @@ export default function VideoEditor({
   };
 
   const menuClass = (menu: Menu) =>
-    `flex w-full items-center justify-between rounded-lg px-2 py-2 text-center text-[10px] font-medium transition sm:rounded-xl sm:px-3 sm:py-3 sm:text-left sm:text-[11px] ${
+    `flex min-h-12 w-full items-center justify-center rounded-lg px-1.5 py-2 text-center text-[12px] font-medium leading-4 transition sm:min-h-0 sm:justify-between sm:rounded-xl sm:px-3 sm:py-3 sm:text-left sm:text-[11px] sm:leading-normal ${
       activeMenu === menu
         ? "bg-zinc-800 text-zinc-100"
         : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
@@ -326,8 +326,8 @@ export default function VideoEditor({
         <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
 
           {/* 메뉴 */}
-          <aside className="w-full shrink-0 border-b border-zinc-800/80 bg-zinc-950 p-1.5 sm:w-[132px] sm:border-b-0 sm:border-r sm:p-2.5">
-            <p className="mb-1 px-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-700 sm:mb-2">
+          <aside className="w-full shrink-0 border-b border-zinc-800/80 bg-zinc-950 px-2 py-2 sm:w-[132px] sm:border-b-0 sm:border-r sm:p-2.5">
+            <p className="mb-1 px-1 text-[9px] font-semibold uppercase tracking-wider text-zinc-700 sm:mb-2 sm:px-2">
               Settings
             </p>
 
@@ -365,7 +365,7 @@ export default function VideoEditor({
               }
               className={`${menuClass("type")} min-w-0`}
             >
-              <span className="shrink-0 leading-5">콘텐츠<br />타입</span>
+              <span className="shrink-0 leading-4 sm:leading-5">콘텐츠<br />타입</span>
 
               {safeSelectedTypes.length > 0 && (
                 <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
