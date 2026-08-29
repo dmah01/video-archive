@@ -1,5 +1,3 @@
-"use client";
-
 type Person = {
   id: number;
   name: string;
@@ -20,7 +18,6 @@ type Video = {
   peopleIds?: number[];
   genreIds?: number[];
 
-  typeIds?: number[];
   typeId?: number | null;
   seriesId?: number | null;
 };
@@ -48,6 +45,40 @@ const personColors: Record<string, string> = {
   팀샐: "bg-lime-400/15 text-lime-300 border-lime-400/25",
 };
 
+const GENRE_ORDER = [
+  "마인크래프트",
+  "종합게임",
+  "스토리",
+  "추리",
+  "상황극",
+  "공포 / 스릴",
+  "예능 / 개그",
+  "미니게임",
+  "PVP / 전투",
+  "생존 / 야생 / 엔드런",
+  "마피아 / 머더 / 라이어게임",
+  "술래잡기 / 숨바꼭질 / 꼬리잡기",
+  "탈출 / 추격",
+  "데스런 / 파쿠르",
+  "기지전쟁 / 베드워즈 / 스카이블록",
+  "모드 / 업데이트",
+  "크로스오버",
+  "실사",
+  "토크",
+];
+
+const sortGenres = <T extends { name: string }>(items: T[]) =>
+  [...items].sort((a, b) => {
+    const ai = GENRE_ORDER.indexOf(a.name);
+    const bi = GENRE_ORDER.indexOf(b.name);
+
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+
+    return a.name.localeCompare(b.name, "ko");
+  });
+
 export default function VideoCard({
   video,
   people,
@@ -56,24 +87,14 @@ export default function VideoCard({
   series,
   onEdit,
 }: VideoCardProps) {
-  const selectedGenres = genres.filter((genre) =>
-    (video.genreIds ?? []).includes(genre.id)
+  const selectedGenres = sortGenres(
+    genres.filter((genre) =>
+      (video.genreIds ?? []).includes(genre.id)
+    )
   );
 
-  const selectedTypeIds =
-    Array.isArray(video.typeIds)
-      ? video.typeIds
-      : video.typeId != null
-        ? [video.typeId]
-        : [];
-
-  const selectedTypes = types.filter((item) =>
-    selectedTypeIds.includes(item.id)
-  );
-
-  const videoSeries = series.find(
-    (item) => item.id === video.seriesId
-  );
+  const type = types.find((item) => item.id === video.typeId);
+  const videoSeries = series.find((item) => item.id === video.seriesId);
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-zinc-800/80 bg-zinc-900/70 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-zinc-700 hover:bg-zinc-900">
@@ -123,14 +144,11 @@ export default function VideoCard({
             </span>
           ))}
 
-          {selectedTypes.map((type) => (
-            <span
-              key={`type-${type.id}`}
-              className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-medium text-indigo-300"
-            >
+          {type && (
+            <span className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-medium text-indigo-300">
               {type.name}
             </span>
-          ))}
+          )}
 
           {videoSeries && (
             <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300">

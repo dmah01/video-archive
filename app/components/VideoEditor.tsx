@@ -170,7 +170,6 @@ export default function VideoEditor({
   const [seriesSearch, setSeriesSearch] = useState("");
 
 
-
   /*
    * 다른 영상을 열 때마다
    * 항상 등장인물 메뉴부터 표시
@@ -251,6 +250,77 @@ export default function VideoEditor({
             </button>
           </div>
         </header>
+
+        {/* 현재 선택된 태그 */}
+        <section className="shrink-0 border-b border-zinc-800/80 bg-zinc-950 px-5 py-4 sm:px-6">
+          <div className="flex items-start gap-4">
+            <p className="shrink-0 pt-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
+              현재 선택
+            </p>
+
+            <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+              {safeSelectedPeople.map((id) => {
+                const person = people.find((item) => item.id === id);
+                if (!person) return null;
+
+                return (
+                  <span
+                    key={`selected-person-${id}`}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] ${
+                      personColors[person.name] ??
+                      "border-zinc-700 bg-zinc-900 text-zinc-400"
+                    }`}
+                  >
+                    {person.name}
+                  </span>
+                );
+              })}
+
+              {sortGenres(
+                genres.filter((item) =>
+                  safeSelectedGenres.includes(item.id)
+                )
+              ).map((genre) => (
+                <span
+                  key={`selected-genre-${genre.id}`}
+                  className="rounded-full border border-purple-400/20 bg-purple-400/10 px-2.5 py-1 text-[11px] text-purple-300"
+                >
+                  {genre.name}
+                </span>
+              ))}
+
+              {safeSelectedTypes.map((id) => {
+                const type = types.find((item) => item.id === id);
+                if (!type) return null;
+
+                return (
+                  <span
+                    key={`selected-type-${id}`}
+                    className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[11px] text-indigo-300"
+                  >
+                    {type.name}
+                  </span>
+                );
+              })}
+
+              {safeSelectedSeries !== null && (
+                <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] text-emerald-300">
+                  {series.find((item) => item.id === safeSelectedSeries)?.name ??
+                    "시리즈"}
+                </span>
+              )}
+
+              {safeSelectedPeople.length === 0 &&
+                safeSelectedGenres.length === 0 &&
+                safeSelectedTypes.length === 0 &&
+                safeSelectedSeries === null && (
+                  <span className="text-xs text-zinc-700">
+                    선택된 태그가 없습니다.
+                  </span>
+                )}
+            </div>
+          </div>
+        </section>
 
         {/* 본문 */}
         <div className="flex min-h-0 flex-1">
@@ -340,9 +410,7 @@ export default function VideoEditor({
                     </button>
                   </div>
 
-                  <p className="mt-1 text-xs text-zinc-600">
-                    영상에 등장한 멤버를 선택하세요.
-                  </p>
+                  
                 </div>
 
                 <div className="flex flex-wrap content-start justify-start gap-2">
@@ -373,47 +441,6 @@ export default function VideoEditor({
                     );
                   })}
                 </div>
-                <div className="mt-6 border-t border-zinc-800/70 pt-5">
-                  <p className="mb-2 text-[10px] text-zinc-600">
-                    현재 선택
-                  </p>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    {safeSelectedPeople.length ===
-                    0 ? (
-                      <span className="text-xs text-zinc-700">
-                        선택된 등장인물이 없습니다.
-                      </span>
-                    ) : (
-                      safeSelectedPeople.map(
-                        (id) => {
-                          const person =
-                            people.find(
-                              (item) =>
-                                item.id === id
-                            );
-
-                          if (!person)
-                            return null;
-
-                          return (
-                            <span
-                              key={id}
-                              className={`rounded-full border px-2.5 py-1 text-[11px] ${
-                                personColors[
-                                  person.name
-                                ] ??
-                                "border-zinc-700 bg-zinc-900 text-zinc-400"
-                              }`}
-                            >
-                              {person.name}
-                            </span>
-                          );
-                        }
-                      )
-                    )}
-                  </div>
-                </div>
               </section>
             )}
 
@@ -436,9 +463,7 @@ export default function VideoEditor({
                     </button>
                   </div>
 
-                  <p className="mt-1 text-xs text-zinc-600">
-                    영상에 해당하는 장르를 여러 개 선택하세요.
-                  </p>
+                  
                 </div>
 
                 <div className="flex flex-wrap content-start justify-start gap-2">
@@ -496,43 +521,6 @@ export default function VideoEditor({
                     }
                   )}
                 </div>
-
-                <div className="mt-6 border-t border-zinc-800/70 pt-5">
-                  <p className="mb-2 text-[10px] text-zinc-600">
-                    현재 선택
-                  </p>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    {safeSelectedGenres.length ===
-                    0 ? (
-                      <span className="text-xs text-zinc-700">
-                        선택된 장르가 없습니다.
-                      </span>
-                    ) : (
-                      safeSelectedGenres.map(
-                        (id) => {
-                          const genre =
-                            genres.find(
-                              (item) =>
-                                item.id === id
-                            );
-
-                          if (!genre)
-                            return null;
-
-                          return (
-                            <span
-                              key={id}
-                              className="rounded-full border border-purple-400/20 bg-purple-400/10 px-2.5 py-1 text-[11px] text-purple-300"
-                            >
-                              {genre.name}
-                            </span>
-                          );
-                        }
-                      )
-                    )}
-                  </div>
-                </div>
               </section>
             )}
 
@@ -555,9 +543,7 @@ export default function VideoEditor({
                     </button>
                   </div>
 
-                  <p className="mt-1 text-xs text-zinc-600">
-                    영상의 콘텐츠 타입을 여러 개 선택할 수 있습니다.
-                  </p>
+                  
                 </div>
 
                 <div className="flex flex-wrap content-start justify-start gap-2">
@@ -605,9 +591,7 @@ export default function VideoEditor({
                     </button>
                   </div>
 
-                  <p className="mt-1 text-xs text-zinc-600">
-                    영상이 속한 시리즈를 하나 선택하세요.
-                  </p>
+                 
                 </div>
 
                 <div className="relative mb-3">
