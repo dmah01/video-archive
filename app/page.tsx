@@ -94,6 +94,26 @@ export default function Home() {
 
   const [savingVideo, setSavingVideo] =
     useState(false);
+  const videoEditorScrollYRef = useRef(0);
+
+  useEffect(() => {
+    if (editingVideo !== null) return;
+
+    const y = videoEditorScrollYRef.current;
+
+    if (y <= 0 || typeof window === "undefined") return;
+
+    const restore = () => {
+      window.scrollTo(0, y);
+      document.documentElement.scrollTop = y;
+      document.body.scrollTop = y;
+    };
+
+    requestAnimationFrame(() => {
+      restore();
+      requestAnimationFrame(restore);
+    });
+  }, [editingVideo]);
 
   // =============================
   // 최초 로딩
@@ -410,7 +430,7 @@ export default function Home() {
 
   function openVideoEditor(video: Video) {
     if (typeof window !== "undefined") {
-      saveScrollYRef.current = window.scrollY;
+      videoEditorScrollYRef.current = window.scrollY;
     }
 
     setEditingVideo(video);
@@ -446,14 +466,6 @@ export default function Home() {
 
   function closeVideoEditor() {
     setEditingVideo(null);
-
-    if (typeof window !== "undefined") {
-      const y = saveScrollYRef.current;
-
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: y, left: 0, behavior: "auto" });
-      });
-    }
     setEditorPeople([]);
     setEditorGenres([]);
     setEditorTypes([]);
@@ -468,7 +480,7 @@ export default function Home() {
     if (!editingVideo) return;
 
     if (typeof window !== "undefined") {
-      saveScrollYRef.current = window.scrollY;
+      videoEditorScrollYRef.current = window.scrollY;
     }
 
     setSavingVideo(true);
@@ -585,16 +597,6 @@ export default function Home() {
       await loadVideos();
 
       closeVideoEditor();
-
-      requestAnimationFrame(() => {
-        if (typeof window !== "undefined") {
-          window.scrollTo({
-            top: saveScrollYRef.current,
-            left: 0,
-            behavior: "auto",
-          });
-        }
-      });
     } catch (error) {
       console.error(
         "영상 정보 저장 오류:",
