@@ -20,6 +20,7 @@ type Video = {
   title: string;
   peopleIds?: number[];
   genreIds?: number[];
+  typeIds?: number[];
   typeId?: number | null;
   seriesId?: number | null;
 };
@@ -35,7 +36,7 @@ type VideoEditorProps = {
   selectedPeople: number[];
   selectedGenres: number[];
 
-  selectedType: number | null;
+  selectedTypes: number[];
   selectedSeries: number | null;
 
   saving: boolean;
@@ -48,8 +49,8 @@ type VideoEditorProps = {
     React.SetStateAction<number[]>
   >;
 
-  setSelectedType: React.Dispatch<
-    React.SetStateAction<number | null>
+  setSelectedTypes: React.Dispatch<
+    React.SetStateAction<number[]>
   >;
 
   setSelectedSeries: React.Dispatch<
@@ -148,18 +149,25 @@ export default function VideoEditor({
   series,
   selectedPeople,
   selectedGenres,
-  selectedType,
+  selectedTypes,
   selectedSeries,
   saving,
   setSelectedPeople,
   setSelectedGenres,
-  setSelectedType,
+  setSelectedTypes,
   setSelectedSeries,
   onSave,
   onClose,
 }: VideoEditorProps) {
+  const safeSelectedPeople = selectedPeople ?? [];
+  const safeSelectedGenres = selectedGenres ?? [];
+  const safeSelectedTypes = selectedTypes ?? [];
+  const safeSelectedSeries = selectedSeries ?? null;
+
   const [activeMenu, setActiveMenu] =
     useState<Menu>("people");
+
+  const [seriesSearch, setSeriesSearch] = useState("");
 
 
   /*
@@ -169,6 +177,7 @@ export default function VideoEditor({
   useEffect(() => {
     if (video) {
       setActiveMenu("people");
+      setSeriesSearch("");
     }
   }, [video]);
 
@@ -191,6 +200,14 @@ export default function VideoEditor({
         ? prev.filter(
             (item) => item !== id
           )
+        : [...prev, id]
+    );
+  };
+
+  const toggleType = (id: number) => {
+    setSelectedTypes((prev) =>
+      prev.includes(id)
+        ? prev.filter((item) => item !== id)
         : [...prev, id]
     );
   };
@@ -248,11 +265,11 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("people")
               }
-              className={menuClass("people")}
+              className={`${menuClass("people")} min-w-0`}
             >
               <span>등장인물</span>
-              <span className="text-[10px] text-zinc-600">
-                {selectedPeople.length}
+              <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
+                {safeSelectedPeople.length}
               </span>
             </button>
 
@@ -261,11 +278,11 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("genres")
               }
-              className={menuClass("genres")}
+              className={`${menuClass("genres")} min-w-0`}
             >
               <span>장르</span>
-              <span className="text-[10px] text-zinc-600">
-                {selectedGenres.length}
+              <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
+                {safeSelectedGenres.length}
               </span>
             </button>
 
@@ -274,12 +291,14 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("type")
               }
-              className={menuClass("type")}
+              className={`${menuClass("type")} min-w-0`}
             >
               <span className="shrink-0 leading-5">콘텐츠<br />타입</span>
 
-              {selectedType !== null && (
-                <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+              {safeSelectedTypes.length > 0 && (
+                <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
+                  {safeSelectedTypes.length}
+                </span>
               )}
             </button>
 
@@ -288,12 +307,12 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("series")
               }
-              className={menuClass("series")}
+              className={`${menuClass("series")} min-w-0`}
             >
               <span>시리즈</span>
 
-              {selectedSeries !== null && (
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              {safeSelectedSeries !== null && (
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
               )}
             </button>
           </aside>
@@ -313,7 +332,7 @@ export default function VideoEditor({
                     <button
                       type="button"
                       onClick={() => setSelectedPeople([])}
-                      disabled={saving || selectedPeople.length === 0}
+                      disabled={saving || safeSelectedPeople.length === 0}
                       className="text-[10px] text-zinc-600 transition hover:text-zinc-300 disabled:cursor-not-allowed disabled:opacity-30"
                     >
                       초기화
@@ -328,7 +347,7 @@ export default function VideoEditor({
                 <div className="flex flex-wrap content-start justify-start gap-2">
                   {sortPeople(people).map((person) => {
                     const selected =
-                      selectedPeople.includes(person.id);
+                      safeSelectedPeople.includes(person.id);
 
                     const color =
                       personColors[person.name] ??
@@ -359,13 +378,13 @@ export default function VideoEditor({
                   </p>
 
                   <div className="flex flex-wrap gap-1.5">
-                    {selectedPeople.length ===
+                    {safeSelectedPeople.length ===
                     0 ? (
                       <span className="text-xs text-zinc-700">
                         선택된 등장인물이 없습니다.
                       </span>
                     ) : (
-                      selectedPeople.map(
+                      safeSelectedPeople.map(
                         (id) => {
                           const person =
                             people.find(
@@ -409,7 +428,7 @@ export default function VideoEditor({
                     <button
                       type="button"
                       onClick={() => setSelectedGenres([])}
-                      disabled={saving || selectedGenres.length === 0}
+                      disabled={saving || safeSelectedGenres.length === 0}
                       className="text-[10px] text-zinc-600 transition hover:text-zinc-300 disabled:cursor-not-allowed disabled:opacity-30"
                     >
                       초기화
@@ -424,7 +443,7 @@ export default function VideoEditor({
                 <div className="flex flex-wrap content-start justify-start gap-2">
                   {sortGenres(genres).map((genre) => {
                       const selected =
-                        selectedGenres.includes(
+                        safeSelectedGenres.includes(
                           genre.id
                         );
 
@@ -483,13 +502,13 @@ export default function VideoEditor({
                   </p>
 
                   <div className="flex flex-wrap gap-1.5">
-                    {selectedGenres.length ===
+                    {safeSelectedGenres.length ===
                     0 ? (
                       <span className="text-xs text-zinc-700">
                         선택된 장르가 없습니다.
                       </span>
                     ) : (
-                      selectedGenres.map(
+                      safeSelectedGenres.map(
                         (id) => {
                           const genre =
                             genres.find(
@@ -527,8 +546,8 @@ export default function VideoEditor({
 
                     <button
                       type="button"
-                      onClick={() => setSelectedType(null)}
-                      disabled={saving || selectedType === null}
+                      onClick={() => setSelectedTypes([])}
+                      disabled={saving || safeSelectedTypes.length === 0}
                       className="text-[10px] text-zinc-600 transition hover:text-zinc-300 disabled:cursor-not-allowed disabled:opacity-30"
                     >
                       초기화
@@ -536,54 +555,29 @@ export default function VideoEditor({
                   </div>
 
                   <p className="mt-1 text-xs text-zinc-600">
-                    영상의 콘텐츠 타입을 하나 선택하세요.
+                    영상의 콘텐츠 타입을 여러 개 선택할 수 있습니다.
                   </p>
                 </div>
 
                 <div className="flex flex-wrap content-start justify-start gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSelectedType(null)
-                    }
-                    className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
-                      selectedType === null
-                        ? "border-indigo-400/40 bg-indigo-400/15 text-indigo-300"
-                        : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
-                    }`}
-                  >
-                    {selectedType === null
-                      ? "✓ "
-                      : ""}
-                    없음
-                  </button>
-
                   {types.map((type) => {
-                    const selected =
-                      selectedType ===
-                      type.id;
+                    const selected = safeSelectedTypes.includes(type.id);
 
                     return (
                       <button
                         key={type.id}
                         type="button"
-                        onClick={() =>
-                          setSelectedType(
-                            selected
-                              ? null
-                              : type.id
-                          )
-                        }
-                        className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
+                        onClick={() => toggleType(type.id)}
+                        className={`flex min-w-[84px] shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
                           selected
                             ? "border-indigo-400/40 bg-indigo-400/15 text-indigo-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
                         }`}
                       >
-                        {selected
-                          ? "✓ "
-                          : ""}
-                        {type.name}
+                        <span className="mr-1.5 flex h-4 w-3.5 shrink-0 items-center justify-center text-center">
+                          {selected ? "✓" : "○"}
+                        </span>
+                        <span className="shrink-0">{type.name}</span>
                       </button>
                     );
                   })}
@@ -603,7 +597,7 @@ export default function VideoEditor({
                     <button
                       type="button"
                       onClick={() => setSelectedSeries(null)}
-                      disabled={saving || selectedSeries === null}
+                      disabled={saving || safeSelectedSeries === null}
                       className="text-[10px] text-zinc-600 transition hover:text-zinc-300 disabled:cursor-not-allowed disabled:opacity-30"
                     >
                       초기화
@@ -615,56 +609,79 @@ export default function VideoEditor({
                   </p>
                 </div>
 
+                <div className="relative mb-3">
+                  <input
+                    type="text"
+                    value={seriesSearch}
+                    onChange={(e) => setSeriesSearch(e.target.value)}
+                    placeholder="시리즈 이름 검색..."
+                    className="h-10 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 text-xs text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600"
+                  />
+                  {seriesSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setSeriesSearch("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 px-1 text-zinc-600 hover:text-zinc-300"
+                      aria-label="시리즈 검색어 지우기"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+
                 <div className="flex flex-wrap content-start justify-start gap-2">
                   <button
                     type="button"
-                    onClick={() =>
-                      setSelectedSeries(
-                        null
-                      )
-                    }
-                    className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
-                      selectedSeries === null
+                    onClick={() => setSelectedSeries(null)}
+                    className={`flex min-w-[84px] shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
+                      safeSelectedSeries === null
                         ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
                         : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
                     }`}
                   >
-                    {selectedSeries ===
-                    null
-                      ? "✓ "
-                      : ""}
-                    없음
+                    <span className="mr-1.5 flex h-4 w-3.5 shrink-0 items-center justify-center text-center">
+                      {safeSelectedSeries === null ? "✓" : "○"}
+                    </span>
+                    <span className="shrink-0">없음</span>
                   </button>
 
-                  {series.map((item) => {
-                    const selected =
-                      selectedSeries ===
-                      item.id;
+                  {series
+                    .filter((item) =>
+                      item.name.toLowerCase().includes(seriesSearch.trim().toLowerCase())
+                    )
+                    .map((item) => {
+                      const selected = safeSelectedSeries === item.id;
 
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() =>
-                          setSelectedSeries(
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() =>
+                            setSelectedSeries(
+                              selected ? null : item.id
+                            )
+                          }
+                          className={`flex min-w-[84px] shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
                             selected
-                              ? null
-                              : item.id
-                          )
-                        }
-                        className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
-                          selected
-                            ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
-                            : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
-                        }`}
-                      >
-                        {selected
-                          ? "✓ "
-                          : ""}
-                        {item.name}
-                      </button>
-                    );
-                  })}
+                              ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
+                              : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
+                          }`}
+                        >
+                          <span className="mr-1.5 flex h-4 w-3.5 shrink-0 items-center justify-center text-center">
+                            {selected ? "✓" : "○"}
+                          </span>
+                          <span className="shrink-0">{item.name}</span>
+                        </button>
+                      );
+                    })}
+
+                  {series.filter((item) =>
+                    item.name.toLowerCase().includes(seriesSearch.trim().toLowerCase())
+                  ).length === 0 && (
+                    <p className="w-full py-8 text-center text-xs text-zinc-600">
+                      검색 결과가 없습니다.
+                    </p>
+                  )}
                 </div>
               </section>
             )}
@@ -680,7 +697,7 @@ export default function VideoEditor({
               onClick={() => {
                 setSelectedPeople([]);
                 setSelectedGenres([]);
-                setSelectedType(null);
+                setSelectedTypes([]);
                 setSelectedSeries(null);
               }}
               className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-[11px] font-medium text-zinc-500 transition hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-50"

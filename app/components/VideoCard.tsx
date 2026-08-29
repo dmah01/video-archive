@@ -1,3 +1,5 @@
+"use client";
+
 type Person = {
   id: number;
   name: string;
@@ -18,6 +20,7 @@ type Video = {
   peopleIds?: number[];
   genreIds?: number[];
 
+  typeIds?: number[];
   typeId?: number | null;
   seriesId?: number | null;
 };
@@ -57,8 +60,20 @@ export default function VideoCard({
     (video.genreIds ?? []).includes(genre.id)
   );
 
-  const type = types.find((item) => item.id === video.typeId);
-  const videoSeries = series.find((item) => item.id === video.seriesId);
+  const selectedTypeIds =
+    Array.isArray(video.typeIds)
+      ? video.typeIds
+      : video.typeId != null
+        ? [video.typeId]
+        : [];
+
+  const selectedTypes = types.filter((item) =>
+    selectedTypeIds.includes(item.id)
+  );
+
+  const videoSeries = series.find(
+    (item) => item.id === video.seriesId
+  );
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-zinc-800/80 bg-zinc-900/70 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-zinc-700 hover:bg-zinc-900">
@@ -108,11 +123,14 @@ export default function VideoCard({
             </span>
           ))}
 
-          {type && (
-            <span className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-medium text-indigo-300">
+          {selectedTypes.map((type) => (
+            <span
+              key={`type-${type.id}`}
+              className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-medium text-indigo-300"
+            >
               {type.name}
             </span>
-          )}
+          ))}
 
           {videoSeries && (
             <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300">

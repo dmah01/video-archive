@@ -26,7 +26,13 @@ type Video = {
   peopleIds?: number[];
   genreIds?: number[];
 
+  // 콘텐츠 타입은 여러 개 선택할 수 있도록 배열로 관리합니다.
+  typeIds?: number[];
+  type_id?: number | null;
+  type_ids?: number[];
+  // 기존 단일 타입 값은 이전 데이터 호환을 위해 유지합니다.
   typeId?: number | null;
+  series_id?: number | null;
   seriesId?: number | null;
 };
 
@@ -83,8 +89,8 @@ export default function Home() {
   const [editorGenres, setEditorGenres] =
     useState<number[]>([]);
 
-  const [editorType, setEditorType] =
-    useState<number | null>(null);
+  const [editorTypes, setEditorTypes] =
+    useState<number[]>([]);
 
   const [editorSeries, setEditorSeries] =
     useState<number | null>(null);
@@ -242,11 +248,19 @@ export default function Home() {
               relation.genre
           ),
 
+        typeIds:
+          Array.isArray(video.type_ids)
+            ? video.type_ids
+            : video.type_id != null
+              ? [video.type_id]
+              : [],
+
+        // Supabase의 snake_case 컬럼을 앱의 camelCase로 변환
         typeId:
-          video.typeId ?? video.typeId ?? null,
+          video.type_id ?? null,
 
         seriesId:
-          video.seriesId ?? video.seriesId ?? null,
+          video.series_id ?? null,
       }));
 
     setVideos(videosWithRelations);
@@ -412,8 +426,12 @@ export default function Home() {
         : []
     );
 
-    setEditorType(
-      video.typeId ?? null
+    setEditorTypes(
+      Array.isArray(video.typeIds)
+        ? video.typeIds
+        : video.typeId != null
+          ? [video.typeId]
+          : []
     );
 
     setEditorSeries(
@@ -429,7 +447,7 @@ export default function Home() {
     setEditingVideo(null);
     setEditorPeople([]);
     setEditorGenres([]);
-    setEditorType(null);
+    setEditorTypes([]);
     setEditorSeries(null);
   }
 
@@ -534,7 +552,8 @@ export default function Home() {
       } = await supabase
         .from("videos")
         .update({
-          type_id: editorType,
+          type_ids: editorTypes,
+          type_id: editorTypes[0] ?? null,
           series_id: editorSeries,
         })
         .eq(
@@ -623,10 +642,18 @@ export default function Home() {
           );
 
         // 콘텐츠 타입
+        const videoTypeIds =
+          Array.isArray(video.typeIds)
+            ? video.typeIds
+            : video.typeId != null
+              ? [video.typeId]
+              : [];
+
         const matchesType =
           selectedTypes.length === 0 ||
-          (video.typeId != null &&
-            selectedTypes.includes(video.typeId));
+          selectedTypes.some((typeId) =>
+            videoTypeIds.includes(typeId)
+          );
 
         // 시리즈
         const matchesSeries =
@@ -1021,8 +1048,8 @@ export default function Home() {
         selectedGenres={
           editorGenres
         }
-        selectedType={
-          editorType
+        selectedTypes={
+          editorTypes
         }
         selectedSeries={
           editorSeries
@@ -1034,8 +1061,8 @@ export default function Home() {
         setSelectedGenres={
           setEditorGenres
         }
-        setSelectedType={
-          setEditorType
+        setSelectedTypes={
+          setEditorTypes
         }
         setSelectedSeries={
           setEditorSeries

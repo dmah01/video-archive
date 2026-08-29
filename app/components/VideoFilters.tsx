@@ -16,10 +16,10 @@ type VideoFiltersProps = {
   search: string;
   date: string;
 
-  selectedPeople: number[];
-  selectedGenres: number[];
-  selectedTypes: number[];
-  selectedSeries: number[];
+  selectedPeople: number[] | null;
+  selectedGenres: number[] | null;
+  selectedTypes: number[] | null;
+  selectedSeries: number[] | null;
 
   sort: string;
 
@@ -140,14 +140,20 @@ export default function VideoFilters({
   setSort,
   onReset,
 }: VideoFiltersProps) {
+  const safeSelectedPeople = selectedPeople ?? [];
+  const safeSelectedGenres = selectedGenres ?? [];
+  const safeSelectedTypes = selectedTypes ?? [];
+  const safeSelectedSeries = selectedSeries ?? [];
+
   const [openFilter, setOpenFilter] = useState<string | null>(null);
+  const [seriesSearch, setSeriesSearch] = useState("");
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   // 팝업 안에서 고른 값을 "적용"을 누를 때만 실제 필터에 반영한다.
-  const [draftPeople, setDraftPeople] = useState<number[]>(selectedPeople);
-  const [draftGenres, setDraftGenres] = useState<number[]>(selectedGenres);
-  const [draftTypes, setDraftTypes] = useState<number[]>(selectedTypes);
-  const [draftSeries, setDraftSeries] = useState<number[]>(selectedSeries);
+  const [draftPeople, setDraftPeople] = useState<number[]>(safeSelectedPeople);
+  const [draftGenres, setDraftGenres] = useState<number[]>(safeSelectedGenres);
+  const [draftTypes, setDraftTypes] = useState<number[]>(safeSelectedTypes);
+  const [draftSeries, setDraftSeries] = useState<number[]>(safeSelectedSeries);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -156,10 +162,11 @@ export default function VideoFilters({
         !wrapperRef.current.contains(event.target as Node)
       ) {
         // 적용하지 않은 임시 선택은 버린다.
-        setDraftPeople(selectedPeople);
-        setDraftGenres(selectedGenres);
-        setDraftTypes(selectedTypes);
-        setDraftSeries(selectedSeries);
+        setDraftPeople(safeSelectedPeople);
+        setDraftGenres(safeSelectedGenres);
+        setDraftTypes(safeSelectedTypes);
+        setDraftSeries(safeSelectedSeries);
+        setSeriesSearch("");
         setOpenFilter(null);
       }
     }
@@ -178,14 +185,16 @@ export default function VideoFilters({
   const openMenu = (menu: string) => {
     if (openFilter === menu) {
       setOpenFilter(null);
+      if (menu === "series") setSeriesSearch("");
       return;
     }
 
     // 메뉴를 열 때 현재 적용값으로 임시값을 동기화한다.
-    setDraftPeople(selectedPeople);
-    setDraftGenres(selectedGenres);
-    setDraftTypes(selectedTypes);
-    setDraftSeries(selectedSeries);
+    setDraftPeople(safeSelectedPeople);
+    setDraftGenres(safeSelectedGenres);
+    setDraftTypes(safeSelectedTypes);
+    setDraftSeries(safeSelectedSeries);
+    if (menu === "series") setSeriesSearch("");
     setOpenFilter(menu);
   };
 
@@ -210,16 +219,16 @@ export default function VideoFilters({
   };
 
   const selectedPersonData = people.filter((item) =>
-    selectedPeople.includes(item.id)
+    safeSelectedPeople.includes(item.id)
   );
   const selectedGenreData = genres.filter((item) =>
-    selectedGenres.includes(item.id)
+    safeSelectedGenres.includes(item.id)
   );
   const selectedTypeData = types.filter((item) =>
-    selectedTypes.includes(item.id)
+    safeSelectedTypes.includes(item.id)
   );
   const selectedSeriesData = series.filter((item) =>
-    selectedSeries.includes(item.id)
+    safeSelectedSeries.includes(item.id)
   );
 
   const filterButtonClass =
@@ -242,10 +251,11 @@ export default function VideoFilters({
           type="button"
           aria-label="필터 닫기"
           onClick={() => {
-            setDraftPeople(selectedPeople);
-            setDraftGenres(selectedGenres);
-            setDraftTypes(selectedTypes);
-            setDraftSeries(selectedSeries);
+            setDraftPeople(safeSelectedPeople);
+            setDraftGenres(safeSelectedGenres);
+            setDraftTypes(safeSelectedTypes);
+            setDraftSeries(safeSelectedSeries);
+            setSeriesSearch("");
             setOpenFilter(null);
           }}
           className="fixed inset-0 z-30 bg-black/40 sm:hidden"
@@ -320,7 +330,7 @@ export default function VideoFilters({
                 <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedPersonData,
-                    selectedPeople.length,
+                    safeSelectedPeople.length,
                     "전체"
                   )}
                 </p>
@@ -408,7 +418,7 @@ export default function VideoFilters({
                 <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedGenreData,
-                    selectedGenres.length,
+                    safeSelectedGenres.length,
                     "전체"
                   )}
                 </p>
@@ -485,7 +495,7 @@ export default function VideoFilters({
                 <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedTypeData,
-                    selectedTypes.length,
+                    safeSelectedTypes.length,
                     "전체"
                   )}
                 </p>
@@ -557,61 +567,112 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">시리즈</p>
+                <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">
+                  시리즈
+                </p>
                 <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedSeriesData,
-                    selectedSeries.length,
+                    safeSelectedSeries.length,
                     "전체"
                   )}
                 </p>
               </div>
-              <span className="text-zinc-600">⌄</span>
+              <span className="shrink-0 pl-1 text-zinc-600">⌄</span>
             </button>
 
             {openFilter === "series" && (
-              <div className={`filter-popup ${popupClass} sm:right-0 sm:top-[calc(100%+8px)] sm:max-w-[calc(100vw-1.5rem)]`}>
-                <div className="mb-1.5 flex items-center justify-between sm:mb-2">
+              <div
+                className={`${popupClass} !w-[900px] !max-w-[calc(100vw-1rem)] sm:right-0 sm:top-[calc(100%+8px)]`}
+              >
+                <div className="mb-2 flex items-center justify-between gap-3">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                     시리즈 선택
                   </span>
+
                   {draftSeries.length > 0 && (
                     <button
                       type="button"
                       onClick={() => setDraftSeries([])}
-                      className="text-[10px] text-zinc-600 hover:text-zinc-300"
+                      className="shrink-0 text-[10px] text-zinc-600 hover:text-zinc-300"
                     >
                       전체 해제
                     </button>
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  {series.map((item) => {
-                    const selected = draftSeries.includes(item.id);
+                <div className="relative z-10 mb-2.5">
+                  <input
+                    type="search"
+                    value={seriesSearch}
+                    onChange={(e) => setSeriesSearch(e.target.value)}
+                    placeholder="시리즈 이름을 입력하세요..."
+                    autoComplete="off"
+                    className="h-10 w-full min-w-0 rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-xs text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600"
+                  />
 
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() =>
-                          toggle(
-                            draftSeries,
-                            item.id,
-                            setDraftSeries
-                          )
-                        }
-                        className={`min-h-9 w-auto whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-9 sm:rounded-lg sm:px-2.5 sm:py-1.5 sm:text-[11px] ${
-                          selected
-                            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-                            : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
-                        }`}
-                      >
-                        {selected ? "✓ " : ""}
-                        {item.name}
-                      </button>
-                    );
-                  })}
+                  {seriesSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setSeriesSearch("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 px-1 text-zinc-600 hover:text-zinc-300"
+                      aria-label="시리즈 검색어 지우기"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex max-h-[42vh] flex-wrap items-start gap-1.5 overflow-y-auto sm:max-h-[48vh] sm:gap-2">
+                  {series
+                    .filter((item) =>
+                      item.name
+                        .toLocaleLowerCase("ko-KR")
+                        .includes(
+                          seriesSearch
+                            .trim()
+                            .toLocaleLowerCase("ko-KR")
+                        )
+                    )
+                    .map((item) => {
+                      const selected = draftSeries.includes(item.id);
+
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() =>
+                            toggle(
+                              draftSeries,
+                              item.id,
+                              setDraftSeries
+                            )
+                          }
+                          className={`min-h-9 w-auto whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-9 sm:rounded-lg sm:px-2.5 sm:py-1.5 sm:text-[11px] ${
+                            selected
+                              ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                              : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
+                          }`}
+                        >
+                          {selected ? "✓ " : ""}
+                          {item.name}
+                        </button>
+                      );
+                    })}
+
+                  {series.filter((item) =>
+                    item.name
+                      .toLocaleLowerCase("ko-KR")
+                      .includes(
+                        seriesSearch
+                          .trim()
+                          .toLocaleLowerCase("ko-KR")
+                      )
+                  ).length === 0 && (
+                    <p className="w-full py-6 text-center text-xs text-zinc-600">
+                      검색 결과가 없습니다.
+                    </p>
+                  )}
                 </div>
 
                 <button
