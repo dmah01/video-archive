@@ -102,88 +102,6 @@ export default function Home() {
   const videoEditorScrollYRef = useRef(0);
 
   // =============================
-  // 모바일 Pull to Refresh
-  // =============================
-  const pullStartYRef = useRef<number | null>(null);
-  const pullDistanceRef = useRef(0);
-  const [pullDistance, setPullDistance] = useState(0);
-  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
-
-  const PULL_REFRESH_THRESHOLD = 72;
-
-  function handleTouchStart(e: React.TouchEvent<HTMLElement>) {
-    if (typeof window === "undefined") return;
-    if (window.scrollY > 0 || editingVideo || isPullRefreshing) return;
-
-    pullStartYRef.current = e.touches[0]?.clientY ?? null;
-    pullDistanceRef.current = 0;
-  }
-
-  function handleTouchMove(e: React.TouchEvent<HTMLElement>) {
-    if (typeof window === "undefined") return;
-    if (
-      pullStartYRef.current === null ||
-      window.scrollY > 0 ||
-      editingVideo ||
-      isPullRefreshing
-    ) {
-      return;
-    }
-
-    const currentY = e.touches[0]?.clientY ?? pullStartYRef.current;
-    const distance = Math.max(0, currentY - pullStartYRef.current);
-
-    // 위로 스크롤하려는 경우 무시
-    if (distance <= 0) {
-      pullDistanceRef.current = 0;
-      setPullDistance(0);
-      return;
-    }
-
-    // 너무 크게 당겨지는 것을 제한
-    const resistance = Math.min(
-      PULL_REFRESH_THRESHOLD + 28,
-      distance * 0.45
-    );
-
-    pullDistanceRef.current = resistance;
-    setPullDistance(resistance);
-
-    // 브라우저 기본 pull-to-refresh와 겹치지 않도록 방지
-    if (resistance > 0) {
-      e.preventDefault();
-    }
-  }
-
-  function handleTouchEnd() {
-    if (
-      pullStartYRef.current === null ||
-      isPullRefreshing
-    ) {
-      return;
-    }
-
-    const shouldRefresh =
-      pullDistanceRef.current >=
-      PULL_REFRESH_THRESHOLD;
-
-    pullStartYRef.current = null;
-    pullDistanceRef.current = 0;
-
-    if (!shouldRefresh) {
-      setPullDistance(0);
-      return;
-    }
-
-    setIsPullRefreshing(true);
-    setPullDistance(PULL_REFRESH_THRESHOLD);
-
-    window.setTimeout(() => {
-      window.location.reload();
-    }, 180);
-  }
-
-  // =============================
   // 최초 로딩
   // =============================
 
@@ -864,51 +782,9 @@ export default function Home() {
 
   return (
     <>
-      <main
-        className="site-page min-h-screen bg-zinc-950 text-white overscroll-x-none"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        style={{
-          touchAction: "pan-x pan-y",
-        }}
-      >
+      <main className="site-page min-h-screen bg-zinc-950 text-white">
 
-      <div
-        className="relative mx-auto max-w-7xl px-4 pb-8 pt-20 sm:px-6 sm:py-10 sm:pb-16"
-      >
-        <div
-          className={`pointer-events-none fixed left-1/2 top-2 z-[60] -translate-x-1/2 transition-all duration-150 sm:hidden ${
-            pullDistance > 0 || isPullRefreshing
-              ? "opacity-100"
-              : "opacity-0"
-          }`}
-          style={{
-            transform: `translate(-50%, ${Math.min(
-              pullDistance,
-              PULL_REFRESH_THRESHOLD
-            )}px)`,
-          }}
-        >
-          <div className="flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/95 px-3 py-1.5 text-[10px] text-zinc-400 shadow-lg shadow-black/30 backdrop-blur">
-            <span
-              className={`inline-block transition-transform duration-150 ${
-                isPullRefreshing
-                  ? "animate-spin"
-                  : pullDistance >= PULL_REFRESH_THRESHOLD
-                    ? "rotate-180"
-                    : ""
-              }`}
-            >
-              ↻
-            </span>
-            {isPullRefreshing
-              ? "새로고침 중..."
-              : pullDistance >= PULL_REFRESH_THRESHOLD
-                ? "놓으면 새로고침"
-                : "아래로 당겨 새로고침"}
-          </div>
-        </div>
+      <div className="mx-auto max-w-7xl px-4 pb-8 pt-20 sm:px-6 sm:py-10 sm:pb-16">
 
         {/* ========================= */}
         {/* 헤더 */}
@@ -1069,115 +945,181 @@ export default function Home() {
               {totalPages > 1 && (
                   <nav
                     aria-label="영상 페이지 이동"
-                    className="mt-8 flex w-full min-w-0 flex-wrap items-center justify-center gap-1 px-1 pb-2 sm:flex-nowrap sm:gap-2"
+                    className="mt-8 flex w-full min-w-0 items-center justify-center overflow-hidden px-0 pb-2"
                   >
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setCurrentPage((page) =>
-                          Math.max(1, page - 1)
-                        )
-                      }
-                      disabled={currentPage === 1}
-                      className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
-                    >
-                      이전
-                    </button>
-
-                    <div className="flex min-w-0 flex-wrap items-center justify-center gap-1">
-                      {(() => {
-                        const pages: (number | string)[] = [];
-
-                        if (totalPages <= 7) {
-                          for (
-                            let page = 1;
-                            page <= totalPages;
-                            page++
-                          ) {
-                            pages.push(page);
-                          }
-                        } else {
-                          pages.push(1);
-
-                          if (currentPage > 4) {
-                            pages.push("...");
-                          }
-
-                          const startPage = Math.max(
-                            2,
-                            currentPage - 1
-                          );
-                          const endPage = Math.min(
-                            totalPages - 1,
-                            currentPage + 1
-                          );
-
-                          for (
-                            let page = startPage;
-                            page <= endPage;
-                            page++
-                          ) {
-                            pages.push(page);
-                          }
-
-                          if (
-                            currentPage <
-                            totalPages - 3
-                          ) {
-                            pages.push("...");
-                          }
-
-                          pages.push(totalPages);
+                    {/* 모바일: 다음 버튼까지 항상 한 줄 */}
+                    <div className="flex w-full min-w-0 items-center justify-center gap-1 sm:hidden">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCurrentPage((page) =>
+                            Math.max(1, page - 1)
+                          )
                         }
+                        disabled={currentPage === 1}
+                        className="h-10 shrink-0 rounded-xl border border-zinc-800 bg-zinc-900 px-2.5 text-xs text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        이전
+                      </button>
 
-                        return pages.map(
-                          (page, index) =>
-                            page === "..." ? (
-                              <span
-                                key={`ellipsis-${index}`}
-                                className="px-2 text-sm text-zinc-600"
-                              >
-                                ...
-                              </span>
-                            ) : (
-                              <button
-                                key={page}
-                                type="button"
-                                onClick={() =>
-                                  setCurrentPage(
-                                    page as number
-                                  )
-                                }
-                                className={`min-w-10 shrink-0 rounded-xl px-3 py-2 text-sm font-medium transition ${
-                                  currentPage === page
-                                    ? "bg-blue-600 text-white"
-                                    : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white"
-                                }`}
-                              >
-                                {page}
-                              </button>
+                      <div className="flex min-w-0 shrink items-center justify-center gap-1">
+                        {[
+                          currentPage - 1,
+                          currentPage,
+                          currentPage + 1,
+                        ]
+                          .filter(
+                            (page) =>
+                              page >= 1 &&
+                              page <= totalPages
+                          )
+                          .map((page) => (
+                            <button
+                              key={`mobile-page-${page}`}
+                              type="button"
+                              onClick={() =>
+                                setCurrentPage(page)
+                              }
+                              className={`h-10 min-w-9 shrink-0 rounded-xl px-2 text-sm font-medium transition ${
+                                currentPage === page
+                                  ? "bg-blue-600 text-white"
+                                  : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCurrentPage((page) =>
+                            Math.min(
+                              totalPages,
+                              page + 1
                             )
-                        );
-                      })()}
+                          )
+                        }
+                        disabled={
+                          currentPage === totalPages
+                        }
+                        className="h-10 shrink-0 rounded-xl border border-zinc-800 bg-zinc-900 px-2.5 text-xs text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        다음
+                      </button>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setCurrentPage((page) =>
-                          Math.min(
-                            totalPages,
-                            page + 1
+                    {/* PC: 기존 페이지네이션 */}
+                    <div className="hidden items-center gap-2 sm:flex">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCurrentPage((page) =>
+                            Math.max(1, page - 1)
                           )
-                        )
-                      }
-                      disabled={
-                        currentPage === totalPages
-                      }
-                      className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
-                    >
-                      다음
-                    </button>
+                        }
+                        disabled={currentPage === 1}
+                        className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        이전
+                      </button>
+
+                      <div className="flex min-w-0 flex-wrap items-center justify-center gap-1">
+                        {(() => {
+                          const pages: (number | string)[] = [];
+
+                          if (totalPages <= 7) {
+                            for (
+                              let page = 1;
+                              page <= totalPages;
+                              page++
+                            ) {
+                              pages.push(page);
+                            }
+                          } else {
+                            pages.push(1);
+
+                            if (currentPage > 4) {
+                              pages.push("...");
+                            }
+
+                            const startPage = Math.max(
+                              2,
+                              currentPage - 1
+                            );
+                            const endPage = Math.min(
+                              totalPages - 1,
+                              currentPage + 1
+                            );
+
+                            for (
+                              let page = startPage;
+                              page <= endPage;
+                              page++
+                            ) {
+                              pages.push(page);
+                            }
+
+                            if (
+                              currentPage <
+                              totalPages - 3
+                            ) {
+                              pages.push("...");
+                            }
+
+                            pages.push(totalPages);
+                          }
+
+                          return pages.map(
+                            (page, index) =>
+                              page === "..." ? (
+                                <span
+                                  key={`ellipsis-${index}`}
+                                  className="px-2 text-sm text-zinc-600"
+                                >
+                                  ...
+                                </span>
+                              ) : (
+                                <button
+                                  key={page}
+                                  type="button"
+                                  onClick={() =>
+                                    setCurrentPage(
+                                      page as number
+                                    )
+                                  }
+                                  className={`min-w-10 shrink-0 rounded-xl px-3 py-2 text-sm font-medium transition ${
+                                    currentPage === page
+                                      ? "bg-blue-600 text-white"
+                                      : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                                  }`}
+                                >
+                                  {page}
+                                </button>
+                              )
+                          );
+                        })()}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCurrentPage((page) =>
+                            Math.min(
+                              totalPages,
+                              page + 1
+                            )
+                          )
+                        }
+                        disabled={
+                          currentPage === totalPages
+                        }
+                        className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        다음
+                      </button>
+                    </div>
                   </nav>
                 )}
 
