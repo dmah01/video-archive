@@ -16,10 +16,10 @@ type VideoFiltersProps = {
   search: string;
   date: string;
 
-  selectedPeople: number[] | null;
-  selectedGenres: number[] | null;
-  selectedTypes: number[] | null;
-  selectedSeries: number[] | null;
+  selectedPeople: number[];
+  selectedGenres: number[];
+  selectedTypes: number[];
+  selectedSeries: number[];
 
   sort: string;
 
@@ -147,6 +147,8 @@ export default function VideoFilters({
 
   const [openFilter, setOpenFilter] = useState<string | null>(null);
   const [seriesSearch, setSeriesSearch] = useState("");
+  const [seriesPage, setSeriesPage] = useState(1);
+  const SERIES_PER_PAGE = 15;
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   // 팝업 안에서 고른 값을 "적용"을 누를 때만 실제 필터에 반영한다.
@@ -181,6 +183,10 @@ export default function VideoFilters({
     selectedTypes,
     selectedSeries,
   ]);
+
+  useEffect(() => {
+    setSeriesPage(1);
+  }, [seriesSearch]);
 
   const openMenu = (menu: string) => {
     if (openFilter === menu) {
@@ -583,7 +589,7 @@ export default function VideoFilters({
 
             {openFilter === "series" && (
               <div
-                className={`${popupClass} !w-[900px] !max-w-[calc(100vw-1rem)] sm:right-0 sm:top-[calc(100%+8px)]`}
+                className={`${popupClass} !w-[700px] !max-w-[calc(100vw-1rem)] sm:right-0 sm:top-[calc(100%+8px)]`}
               >
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
@@ -623,44 +629,8 @@ export default function VideoFilters({
                   )}
                 </div>
 
-                <div className="flex max-h-[42vh] flex-wrap items-start gap-1.5 overflow-y-auto sm:max-h-[48vh] sm:gap-2">
-                  {series
-                    .filter((item) =>
-                      item.name
-                        .toLocaleLowerCase("ko-KR")
-                        .includes(
-                          seriesSearch
-                            .trim()
-                            .toLocaleLowerCase("ko-KR")
-                        )
-                    )
-                    .map((item) => {
-                      const selected = draftSeries.includes(item.id);
-
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() =>
-                            toggle(
-                              draftSeries,
-                              item.id,
-                              setDraftSeries
-                            )
-                          }
-                          className={`min-h-9 w-auto whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-9 sm:rounded-lg sm:px-2.5 sm:py-1.5 sm:text-[11px] ${
-                            selected
-                              ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-                              : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
-                          }`}
-                        >
-                          {selected ? "✓ " : ""}
-                          {item.name}
-                        </button>
-                      );
-                    })}
-
-                  {series.filter((item) =>
+                {(() => {
+                  const filteredSeries = series.filter((item) =>
                     item.name
                       .toLocaleLowerCase("ko-KR")
                       .includes(
@@ -668,12 +638,93 @@ export default function VideoFilters({
                           .trim()
                           .toLocaleLowerCase("ko-KR")
                       )
-                  ).length === 0 && (
-                    <p className="w-full py-6 text-center text-xs text-zinc-600">
-                      검색 결과가 없습니다.
-                    </p>
-                  )}
-                </div>
+                  );
+
+                  const totalSeriesPages = Math.max(
+                    1,
+                    Math.ceil(filteredSeries.length / SERIES_PER_PAGE)
+                  );
+
+                  const safePage = Math.min(seriesPage, totalSeriesPages);
+                  const start = (safePage - 1) * SERIES_PER_PAGE;
+                  const paginatedSeries = filteredSeries.slice(
+                    start,
+                    start + SERIES_PER_PAGE
+                  );
+
+                  return (
+                    <>
+                      <div className="flex max-h-[42vh] flex-wrap items-start gap-1.5 overflow-y-auto sm:max-h-[48vh] sm:gap-2">
+                        {paginatedSeries.map((item) => {
+                          const selected = draftSeries.includes(item.id);
+
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() =>
+                                setDraftSeries(
+                                  draftSeries.includes(item.id)
+                                    ? []
+                                    : [item.id]
+                                )
+                              }
+                              className={`min-h-9 w-auto whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-9 sm:rounded-lg sm:px-2.5 sm:py-1.5 sm:text-[11px] ${
+                                selected
+                                  ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                                  : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
+                              }`}
+                            >
+                              {selected ? "✓ " : ""}
+                              {item.name}
+                            </button>
+                          );
+                        })}
+
+                        {filteredSeries.length === 0 && (
+                          <p className="w-full py-6 text-center text-xs text-zinc-600">
+                            검색 결과가 없습니다.
+                          </p>
+                        )}
+                      </div>
+
+                      {totalSeriesPages > 1 && (
+                        <div className="mt-3 flex items-center justify-center gap-1.5 border-t border-zinc-800/70 pt-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSeriesPage((page) => Math.max(1, page - 1))
+                            }
+                            disabled={safePage === 1}
+                            className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-[10px] text-zinc-400 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
+                          >
+                            이전
+                          </button>
+
+                          <span className="min-w-[90px] text-center text-[10px] text-zinc-500">
+                            {safePage} / {totalSeriesPages}
+                            <span className="ml-1 text-zinc-700">
+                              ({filteredSeries.length}개)
+                            </span>
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSeriesPage((page) =>
+                                Math.min(totalSeriesPages, page + 1)
+                              )
+                            }
+                            disabled={safePage === totalSeriesPages}
+                            className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-[10px] text-zinc-400 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
+                          >
+                            다음
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
 
                 <button
                   type="button"
