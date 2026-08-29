@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import VideoCard from "./components/VideoCard";
 import VideoFilters from "./components/VideoFilters";
@@ -28,22 +28,14 @@ type Video = {
 
   // 콘텐츠 타입은 여러 개 선택할 수 있도록 배열로 관리합니다.
   typeIds?: number[];
-  type_id?: number | null;
-  type_ids?: number[];
   // 기존 단일 타입 값은 이전 데이터 호환을 위해 유지합니다.
   typeId?: number | null;
-  series_id?: number | null;
   seriesId?: number | null;
 };
 
 const VIDEOS_PER_PAGE = 12;
 
 export default function Home() {
-  const preserveScrollPosition = () => {
-    if (typeof window === "undefined") return 0;
-    return window.scrollY;
-  };
-
   // =============================
   // 데이터
   // =============================
@@ -417,6 +409,10 @@ export default function Home() {
   // =============================
 
   function openVideoEditor(video: Video) {
+    if (typeof window !== "undefined") {
+      saveScrollYRef.current = window.scrollY;
+    }
+
     setEditingVideo(video);
 
     setEditorPeople(
@@ -450,6 +446,14 @@ export default function Home() {
 
   function closeVideoEditor() {
     setEditingVideo(null);
+
+    if (typeof window !== "undefined") {
+      const y = saveScrollYRef.current;
+
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: y, left: 0, behavior: "auto" });
+      });
+    }
     setEditorPeople([]);
     setEditorGenres([]);
     setEditorTypes([]);
@@ -462,6 +466,10 @@ export default function Home() {
 
   async function saveVideoRelations() {
     if (!editingVideo) return;
+
+    if (typeof window !== "undefined") {
+      saveScrollYRef.current = window.scrollY;
+    }
 
     setSavingVideo(true);
 
@@ -577,6 +585,16 @@ export default function Home() {
       await loadVideos();
 
       closeVideoEditor();
+
+      requestAnimationFrame(() => {
+        if (typeof window !== "undefined") {
+          window.scrollTo({
+            top: saveScrollYRef.current,
+            left: 0,
+            behavior: "auto",
+          });
+        }
+      });
     } catch (error) {
       console.error(
         "영상 정보 저장 오류:",
