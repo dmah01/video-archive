@@ -213,7 +213,7 @@ export default function VideoEditor({
   };
 
   const menuClass = (menu: Menu) =>
-    `flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-[11px] font-medium transition ${
+    `flex w-full items-center justify-between rounded-lg px-2 py-2 text-center text-[10px] font-medium transition sm:rounded-xl sm:px-3 sm:py-3 sm:text-left sm:text-[11px] ${
       activeMenu === menu
         ? "bg-zinc-800 text-zinc-100"
         : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
@@ -323,14 +323,15 @@ export default function VideoEditor({
         </section>
 
         {/* 본문 */}
-        <div className="flex min-h-0 flex-1">
+        <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
 
           {/* 메뉴 */}
-          <aside className="w-[112px] shrink-0 border-r border-zinc-800/80 bg-zinc-950 p-1.5 sm:w-[132px] sm:p-2.5">
-            <p className="mb-2 px-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-700">
+          <aside className="w-full shrink-0 border-b border-zinc-800/80 bg-zinc-950 p-1.5 sm:w-[132px] sm:border-b-0 sm:border-r sm:p-2.5">
+            <p className="mb-1 px-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-700 sm:mb-2">
               Settings
             </p>
 
+            <div className="grid grid-cols-4 gap-1 sm:block">
             <button
               type="button"
               onClick={() =>
@@ -386,10 +387,11 @@ export default function VideoEditor({
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
               )}
             </button>
+            </div>
           </aside>
 
           {/* 설정 영역 */}
-          <main className="min-w-0 flex-1 overflow-y-auto p-5 sm:p-6">
+          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 sm:p-6">
 
             {/* 등장인물 */}
             {activeMenu === "people" && (
