@@ -39,6 +39,11 @@ type Video = {
 const VIDEOS_PER_PAGE = 12;
 
 export default function Home() {
+  const preserveScrollPosition = () => {
+    if (typeof window === "undefined") return 0;
+    return window.scrollY;
+  };
+
   // =============================
   // 데이터
   // =============================

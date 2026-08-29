@@ -589,7 +589,7 @@ export default function VideoFilters({
 
             {openFilter === "series" && (
               <div
-                className={`${popupClass} !w-[700px] !max-w-[calc(100vw-1rem)] sm:right-0 sm:top-[calc(100%+8px)]`}
+                className={`${popupClass} !w-[900px] !max-w-[calc(100vw-1rem)] sm:right-0 sm:top-[calc(100%+8px)]`}
               >
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
