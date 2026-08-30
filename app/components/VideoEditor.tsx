@@ -337,7 +337,7 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("people")
               }
-              className={`${menuClass("people")} min-w-0 justify-center px-2 py-2.5 sm:justify-between sm:px-3 sm:py-3`}
+              className={`${menuClass("people")} min-w-0 justify-center whitespace-nowrap px-1 py-2.5 text-[10px] sm:justify-between sm:px-3 sm:py-3 sm:text-[11px]`}
             >
               <span>등장인물</span>
               <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
@@ -350,7 +350,7 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("genres")
               }
-              className={`${menuClass("genres")} min-w-0 justify-center px-2 py-2.5 sm:justify-between sm:px-3 sm:py-3`}
+              className={`${menuClass("genres")} min-w-0 justify-center whitespace-nowrap px-1 py-2.5 text-[10px] sm:justify-between sm:px-3 sm:py-3 sm:text-[11px]`}
             >
               <span>장르</span>
               <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
@@ -363,7 +363,7 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("type")
               }
-              className={`${menuClass("type")} min-w-0 justify-center px-2 py-2.5 sm:justify-between sm:px-3 sm:py-3`}
+              className={`${menuClass("type")} min-w-0 justify-center whitespace-nowrap px-1 py-2.5 text-[10px] sm:justify-between sm:px-3 sm:py-3 sm:text-[11px]`}
             >
               <span className="shrink-0 leading-5">콘텐츠<br />타입</span>
 
@@ -379,7 +379,7 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("series")
               }
-              className={`${menuClass("series")} min-w-0 justify-center px-2 py-2.5 sm:justify-between sm:px-3 sm:py-3`}
+              className={`${menuClass("series")} min-w-0 justify-center whitespace-nowrap px-1 py-2.5 text-[10px] sm:justify-between sm:px-3 sm:py-3 sm:text-[11px]`}
             >
               <span>시리즈</span>
 
