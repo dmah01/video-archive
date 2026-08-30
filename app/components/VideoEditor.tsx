@@ -194,8 +194,6 @@ export default function VideoEditor({
 
     content.scrollTop = 0;
 
-    // 모바일 브라우저에서 레이아웃이 갱신된 뒤에도
-    // 이전 스크롤 위치가 다시 적용되지 않도록 한 번 더 초기화
     requestAnimationFrame(() => {
       content.scrollTop = 0;
     });
