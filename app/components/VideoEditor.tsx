@@ -562,7 +562,7 @@ export default function VideoEditor({
                   
                 </div>
 
-                <div className="flex flex-wrap content-start justify-start gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:content-start sm:justify-start">
                   {types.map((type) => {
                     const selected = safeSelectedTypes.includes(type.id);
 
@@ -571,7 +571,7 @@ export default function VideoEditor({
                         key={type.id}
                         type="button"
                         onClick={() => toggleType(type.id)}
-                        className={`flex min-w-[84px] shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
+                        className={`flex w-full min-w-0 shrink-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap sm:w-fit ${
                           selected
                             ? "border-indigo-400/40 bg-indigo-400/15 text-indigo-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
