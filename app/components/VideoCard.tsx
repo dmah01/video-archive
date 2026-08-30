@@ -1,3 +1,5 @@
+"use client";
+
 type Person = {
   id: number;
   name: string;
@@ -14,14 +16,9 @@ type Video = {
   thumbnail_url: string;
   published_at: string;
   youtube_url: string;
-
   peopleIds?: number[];
   genreIds?: number[];
-
-  // 콘텐츠 타입 복수 선택
   typeIds?: number[];
-
-  // 기존 단일 타입 값도 호환
   typeId?: number | null;
   seriesId?: number | null;
 };
@@ -32,6 +29,7 @@ type VideoCardProps = {
   genres: Category[];
   types: Category[];
   series: Category[];
+  relatedCount?: number;
   onEdit: (video: Video) => void;
 };
 
@@ -75,11 +73,9 @@ const sortGenres = <T extends { name: string }>(items: T[]) =>
   [...items].sort((a, b) => {
     const ai = GENRE_ORDER.indexOf(a.name);
     const bi = GENRE_ORDER.indexOf(b.name);
-
     if (ai !== -1 && bi !== -1) return ai - bi;
     if (ai !== -1) return -1;
     if (bi !== -1) return 1;
-
     return a.name.localeCompare(b.name, "ko");
   });
 
@@ -89,6 +85,7 @@ export default function VideoCard({
   genres,
   types,
   series,
+  relatedCount = 0,
   onEdit,
 }: VideoCardProps) {
   const selectedGenres = sortGenres(
@@ -97,15 +94,12 @@ export default function VideoCard({
     )
   );
 
-  // 콘텐츠 타입도 여러 개 표시
-  // typeIds가 없던 기존 데이터는 typeId 하나를 배열로 변환해서 호환
   const selectedTypes = types.filter((type) => {
-    const typeIds =
-      Array.isArray(video.typeIds)
-        ? video.typeIds
-        : video.typeId != null
-          ? [video.typeId]
-          : [];
+    const typeIds = Array.isArray(video.typeIds)
+      ? video.typeIds
+      : video.typeId != null
+        ? [video.typeId]
+        : [];
 
     return typeIds.includes(type.id);
   });
@@ -126,11 +120,10 @@ export default function VideoCard({
           <img
             src={video.thumbnail_url}
             alt={video.title}
+            loading="lazy"
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
-
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
-
           <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs text-white backdrop-blur">
             YouTube
           </div>
@@ -197,6 +190,12 @@ export default function VideoCard({
               </span>
             );
           })}
+
+          {relatedCount > 0 && (
+            <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[11px] font-medium text-sky-300">
+              연계영상 {relatedCount}개
+            </span>
+          )}
         </div>
 
         <button

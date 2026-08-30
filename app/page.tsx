@@ -26,7 +26,7 @@ type Video = {
   peopleIds?: number[];
   genreIds?: number[];
 
-  // 콘텐츠 타입은 여러 개 선택할 수 있도록 배열로 관리합니다.
+  // 타입은 여러 개 선택할 수 있도록 배열로 관리합니다.
   typeIds?: number[];
   // Supabase 원본 컬럼(snake_case)도 조회 결과에서 사용합니다.
   type_ids?: number[] | null;
@@ -46,6 +46,16 @@ export default function Home() {
   // =============================
 
   const [videos, setVideos] = useState<Video[]>([]);
+
+  // 카드에 표시할 연계 영상 개수
+  const [relatedCounts, setRelatedCounts] =
+    useState<Record<number, number>>({});
+
+  // 저장 직전/직후에 진행 중인 오래된 연계 영상 조회가
+  // 최신 화면 상태를 덮어쓰지 못하게 합니다.
+  const relatedCountsRevision =
+    useRef(0);
+
   const [people, setPeople] = useState<Person[]>([]);
   const [genres, setGenres] = useState<Category[]>([]);
   const [types, setTypes] = useState<Category[]>([]);
@@ -57,7 +67,7 @@ export default function Home() {
 
   const [search, setSearch] = useState("");
   const [date, setDate] = useState("");
-  // 등장인물 / 장르 / 콘텐츠 타입 / 시리즈 모두 복수 선택
+  // 등장인물 / 장르 / 타입 / 시리즈 모두 복수 선택
   const [selectedPeople, setSelectedPeople] = useState<number[]>([]);
 
   const [selectedGenres, setSelectedGenres] =
@@ -96,6 +106,9 @@ export default function Home() {
 
   const [editorSeries, setEditorSeries] =
     useState<number | null>(null);
+
+  const [editorRelatedVideos, setEditorRelatedVideos] =
+    useState<number[]>([]);
 
   const [savingVideo, setSavingVideo] =
     useState(false);
@@ -414,13 +427,40 @@ export default function Home() {
   // 영상 편집 열기
   // =============================
 
-  function openVideoEditor(video: Video) {
+  async function openVideoEditor(video: Video) {
     if (typeof window !== "undefined") {
       videoEditorScrollYRef.current =
         document.scrollingElement?.scrollTop ??
         window.scrollY;
     }
 
+    // 연계영상까지 먼저 조회한 뒤 에디터를 열어
+    // 빈 상태로 먼저 렌더링되는 한 박자 지연을 없앱니다.
+    const { data: relationData, error: relationError } = await supabase
+      .from("video_relations")
+      .select("video_id, related_video_id")
+      .or(
+        `video_id.eq.${video.id},related_video_id.eq.${video.id}`
+      );
+
+    if (relationError) {
+      console.error("연계 영상 불러오기 오류:", relationError);
+      return;
+    }
+
+    const relatedIds = Array.from(
+      new Set(
+        (relationData ?? []).map((relation) =>
+          Number(
+            Number(relation.video_id) === video.id
+              ? relation.related_video_id
+              : relation.video_id
+          )
+        )
+      )
+    );
+
+    setEditorRelatedVideos(relatedIds);
     setEditingVideo(video);
 
     setEditorPeople(
@@ -446,6 +486,7 @@ export default function Home() {
     setEditorSeries(
       video.seriesId ?? null
     );
+
   }
 
   // =============================
@@ -458,6 +499,7 @@ export default function Home() {
     setEditorGenres([]);
     setEditorTypes([]);
     setEditorSeries(null);
+    setEditorRelatedVideos([]);
   }
 
   // =============================
@@ -466,6 +508,10 @@ export default function Home() {
 
   async function saveVideoRelations() {
     if (!editingVideo) return;
+
+    // 기존 연계 영상 개수 조회가 저장 결과를 덮어쓰지 못하도록
+    // 저장 작업을 시작하는 순간 이전 요청을 무효화합니다.
+    relatedCountsRevision.current += 1;
 
     if (typeof window !== "undefined") {
       videoEditorScrollYRef.current =
@@ -580,10 +626,84 @@ export default function Home() {
       }
 
       // =============================
-      // 새 데이터 다시 불러오기
+      // 연계 영상 저장
       // =============================
 
-      await loadVideos();
+      const { error: relationDeleteAError } = await supabase
+        .from("video_relations")
+        .delete()
+        .eq("video_id", editingVideo.id);
+
+      if (relationDeleteAError) {
+        throw relationDeleteAError;
+      }
+
+      const { error: relationDeleteBError } = await supabase
+        .from("video_relations")
+        .delete()
+        .eq("related_video_id", editingVideo.id);
+
+      if (relationDeleteBError) {
+        throw relationDeleteBError;
+      }
+
+      const uniqueRelatedIds = Array.from(
+        new Set(
+          editorRelatedVideos.filter(
+            (id) => id !== editingVideo.id
+          )
+        )
+      );
+
+      if (uniqueRelatedIds.length > 0) {
+        const relationRows = uniqueRelatedIds.map((relatedId) => ({
+          video_id: Math.min(editingVideo.id, relatedId),
+          related_video_id: Math.max(editingVideo.id, relatedId),
+        }));
+
+        const { error: relationInsertError } = await supabase
+          .from("video_relations")
+          .insert(relationRows);
+
+        if (relationInsertError) {
+          throw relationInsertError;
+        }
+      }
+
+      // 저장 직후 카드의 연계 영상 개수를 즉시 반영합니다.
+      // 다시 전체 영상을 불러오지 않아 "한 박자 늦게" 보이는 현상을 없앱니다.
+      setRelatedCounts((current) => {
+        const next = { ...current };
+
+        next[editingVideo.id] = uniqueRelatedIds.length;
+
+        // 양방향 관계이므로 연결된 상대 영상도 즉시 1 증가/갱신합니다.
+        // 현재 영상과 연결된 영상은 이 저장 결과를 기준으로 표시합니다.
+        uniqueRelatedIds.forEach((relatedId) => {
+          next[relatedId] = Math.max(
+            next[relatedId] ?? 0,
+            1
+          );
+        });
+
+        return next;
+      });
+
+      // 영상 메타데이터는 현재 화면에 즉시 반영합니다.
+      setVideos((currentVideos) =>
+        currentVideos.map((item) =>
+          item.id === editingVideo.id
+            ? {
+                ...item,
+                peopleIds: [...editorPeople],
+                genreIds: [...editorGenres],
+                typeIds: [...editorTypes],
+                typeId: editorTypes[0] ?? null,
+                seriesId: editorSeries,
+              }
+            : item
+        )
+      );
 
       closeVideoEditor();
 
@@ -681,7 +801,7 @@ export default function Home() {
               )
           );
 
-        // 콘텐츠 타입
+        // 타입
         const videoTypeIds =
           Array.isArray(video.typeIds)
             ? video.typeIds
@@ -762,6 +882,62 @@ export default function Home() {
         VIDEOS_PER_PAGE
     );
 
+  // 현재 페이지에 보이는 영상의 연계 개수만 조회합니다.
+  useEffect(() => {
+    const pageIds = paginatedVideos.map((video) => video.id);
+
+    if (pageIds.length === 0) return;
+
+    let cancelled = false;
+    const requestRevision =
+      relatedCountsRevision.current;
+
+    async function loadRelatedCounts() {
+      const { data, error } = await supabase
+        .from("video_relations")
+        .select("video_id, related_video_id")
+        .or(
+          `video_id.in.(${pageIds.join(",")}),related_video_id.in.(${pageIds.join(",")})`
+        );
+
+      if (
+        cancelled ||
+        error ||
+        requestRevision !== relatedCountsRevision.current
+      ) {
+        return;
+      }
+
+      const counts: Record<number, number> = {};
+
+      (data ?? []).forEach((relation) => {
+        const videoId = Number(relation.video_id);
+        const relatedId = Number(relation.related_video_id);
+
+        if (pageIds.includes(videoId)) {
+          counts[videoId] = (counts[videoId] ?? 0) + 1;
+        }
+
+        if (pageIds.includes(relatedId)) {
+          counts[relatedId] = (counts[relatedId] ?? 0) + 1;
+        }
+      });
+
+      setRelatedCounts((current) => ({
+        ...current,
+        ...Object.fromEntries(
+          pageIds.map((id) => [id, counts[id] ?? 0])
+        ),
+      }));
+    }
+
+    void loadRelatedCounts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [paginatedVideos]);
+
   // =============================
   // 필터 초기화
   // =============================
@@ -775,6 +951,64 @@ export default function Home() {
     setSelectedSeries([]);
     setSort("최신순");
   }
+
+  // =============================
+  // 카드 연계 영상 개수
+  // =============================
+  // 저장 직후 오래된 조회가 optimistic 상태를 덮어쓰지 않도록
+  // 요청 시점의 revision을 확인합니다.
+  useEffect(() => {
+    const pageIds = paginatedVideos.map((video) => video.id);
+    if (pageIds.length === 0) return;
+
+    let cancelled = false;
+    const requestRevision = relatedCountsRevision.current;
+
+    async function loadRelatedCounts() {
+      const { data, error } = await supabase
+        .from("video_relations")
+        .select("video_id, related_video_id")
+        .or(
+          `video_id.in.(${pageIds.join(",")}),related_video_id.in.(${pageIds.join(",")})`
+        );
+
+      if (
+        cancelled ||
+        error ||
+        requestRevision !== relatedCountsRevision.current
+      ) {
+        return;
+      }
+
+      const counts: Record<number, number> = {};
+
+      (data ?? []).forEach((relation) => {
+        const a = Number(relation.video_id);
+        const b = Number(relation.related_video_id);
+
+        if (pageIds.includes(a)) {
+          counts[a] = (counts[a] ?? 0) + 1;
+        }
+
+        if (pageIds.includes(b)) {
+          counts[b] = (counts[b] ?? 0) + 1;
+        }
+      });
+
+      setRelatedCounts((current) => ({
+        ...current,
+        ...Object.fromEntries(
+          pageIds.map((id) => [id, counts[id] ?? 0])
+        ),
+      }));
+    }
+
+    void loadRelatedCounts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [paginatedVideos]);
 
   // =============================
   // 화면
@@ -934,6 +1168,9 @@ export default function Home() {
                       genres={genres}
                       types={types}
                       series={series}
+                      relatedCount={
+                        relatedCounts[video.id] ?? 0
+                      }
                       onEdit={
                         openVideoEditor
                       }
@@ -1160,6 +1397,10 @@ export default function Home() {
         selectedSeries={
           editorSeries
         }
+        videos={videos}
+        selectedRelatedVideos={
+          editorRelatedVideos
+        }
         saving={savingVideo}
         setSelectedPeople={
           setEditorPeople
@@ -1173,6 +1414,9 @@ export default function Home() {
         setSelectedSeries={
           setEditorSeries
         }
+        setSelectedRelatedVideos={
+          setEditorRelatedVideos
+        }
         onSave={
           saveVideoRelations
         }
@@ -1183,4 +1427,5 @@ export default function Home() {
       </main>
     </>
   );
+
 }
