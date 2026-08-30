@@ -323,20 +323,21 @@ export default function VideoEditor({
         </section>
 
         {/* 본문 */}
-        <div className="flex min-h-0 flex-1">
+        <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
 
           {/* 메뉴 */}
-          <aside className="w-[112px] shrink-0 border-r border-zinc-800/80 bg-zinc-950 p-1.5 sm:w-[132px] sm:p-2.5">
+          <aside className="shrink-0 border-b border-zinc-800/80 bg-zinc-950 p-2 sm:w-[132px] sm:border-b-0 sm:border-r sm:p-2.5">
             <p className="mb-2 px-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-700">
               Settings
             </p>
 
+            <div className="grid grid-cols-4 gap-1 sm:block sm:space-y-1">
             <button
               type="button"
               onClick={() =>
                 setActiveMenu("people")
               }
-              className={`${menuClass("people")} min-w-0`}
+              className={`${menuClass("people")} min-w-0 justify-center px-2 py-2.5 sm:justify-between sm:px-3 sm:py-3`}
             >
               <span>등장인물</span>
               <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
@@ -349,7 +350,7 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("genres")
               }
-              className={`${menuClass("genres")} min-w-0`}
+              className={`${menuClass("genres")} min-w-0 justify-center px-2 py-2.5 sm:justify-between sm:px-3 sm:py-3`}
             >
               <span>장르</span>
               <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
@@ -362,7 +363,7 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("type")
               }
-              className={`${menuClass("type")} min-w-0`}
+              className={`${menuClass("type")} min-w-0 justify-center px-2 py-2.5 sm:justify-between sm:px-3 sm:py-3`}
             >
               <span className="shrink-0 leading-5">콘텐츠<br />타입</span>
 
@@ -378,7 +379,7 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("series")
               }
-              className={`${menuClass("series")} min-w-0`}
+              className={`${menuClass("series")} min-w-0 justify-center px-2 py-2.5 sm:justify-between sm:px-3 sm:py-3`}
             >
               <span>시리즈</span>
 
@@ -386,10 +387,11 @@ export default function VideoEditor({
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
               )}
             </button>
+            </div>
           </aside>
 
           {/* 설정 영역 */}
-          <main className="min-w-0 flex-1 overflow-y-auto p-5 sm:p-6">
+          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 sm:p-6">
 
             {/* 등장인물 */}
             {activeMenu === "people" && (
