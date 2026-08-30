@@ -11,12 +11,13 @@ export default function Icon() {
   return new ImageResponse(
     <div
       style={{
-        fontSize: 48,
         width: "100%",
         height: "100%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        fontSize: 64,
+        lineHeight: 1,
       }}
     >
       🐳
