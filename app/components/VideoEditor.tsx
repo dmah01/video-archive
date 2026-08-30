@@ -190,9 +190,15 @@ export default function VideoEditor({
       "[data-video-editor-content]"
     ) as HTMLElement | null;
 
-    if (content) {
+    if (!content) return;
+
+    content.scrollTop = 0;
+
+    // 모바일 브라우저에서 레이아웃이 갱신된 뒤에도
+    // 이전 스크롤 위치가 다시 적용되지 않도록 한 번 더 초기화
+    requestAnimationFrame(() => {
       content.scrollTop = 0;
-    }
+    });
   }, [activeMenu]);
 
 
@@ -562,7 +568,7 @@ export default function VideoEditor({
                   
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:content-start sm:justify-start">
+                <div className="flex flex-wrap content-start justify-start gap-2">
                   {types.map((type) => {
                     const selected = safeSelectedTypes.includes(type.id);
 
@@ -571,7 +577,7 @@ export default function VideoEditor({
                         key={type.id}
                         type="button"
                         onClick={() => toggleType(type.id)}
-                        className={`flex w-full min-w-0 shrink-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap sm:w-fit ${
+                        className={`flex min-w-[84px] shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
                           selected
                             ? "border-indigo-400/40 bg-indigo-400/15 text-indigo-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -590,8 +596,8 @@ export default function VideoEditor({
 
             {/* 시리즈 */}
             {activeMenu === "series" && (
-              <section>
-                <div className="mb-5">
+              <section className="m-0 block">
+                <div className="mb-5 mt-0">
                   <div className="flex items-center justify-between gap-3">
                     <h3 className="text-base font-semibold text-zinc-100">
                       시리즈
