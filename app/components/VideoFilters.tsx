@@ -279,7 +279,7 @@ export default function VideoFilters({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="영상 제목 검색..."
+            placeholder="영상 제목 검색"
             className="search-input h-10 w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-2.5 py-2 text-base sm:h-auto sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
           />
 

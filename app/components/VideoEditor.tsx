@@ -181,6 +181,20 @@ export default function VideoEditor({
     }
   }, [video]);
 
+  /*
+   * 모바일에서 메뉴를 바꿀 때 설정 영역의 이전 스크롤 위치가
+   * 그대로 남지 않도록 항상 맨 위에서 시작
+   */
+  useEffect(() => {
+    const content = document.querySelector(
+      "[data-video-editor-content]"
+    ) as HTMLElement | null;
+
+    if (content) {
+      content.scrollTop = 0;
+    }
+  }, [activeMenu]);
+
 
   if (!video) return null;
 
@@ -391,7 +405,7 @@ export default function VideoEditor({
           </aside>
 
           {/* 설정 영역 */}
-          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 sm:p-6">
+          <main data-video-editor-content className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 sm:p-6">
 
             {/* 등장인물 */}
             {activeMenu === "people" && (
@@ -601,7 +615,7 @@ export default function VideoEditor({
                     type="text"
                     value={seriesSearch}
                     onChange={(e) => setSeriesSearch(e.target.value)}
-                    placeholder="시리즈 이름 검색..."
+                    placeholder="시리즈 이름 검색"
                     className="h-10 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 text-xs text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600"
                   />
                   {seriesSearch && (
