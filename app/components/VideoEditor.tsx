@@ -189,7 +189,7 @@ export default function VideoEditor({
 
   /*
    * 다른 영상을 열 때마다
-   * 항상 등장인물 메뉴부터 표시
+   * 항상 멤버 메뉴부터 표시
    */
   useEffect(() => {
     if (video) {
@@ -371,7 +371,7 @@ export default function VideoEditor({
               }
               className={`${menuClass("people")} min-w-0 justify-center whitespace-nowrap px-1 py-1.5 text-[9px] sm:justify-between sm:px-1.5 sm:py-1.5 sm:text-[10px]`}
             >
-              <span>등장인물</span>
+              <span>멤버</span>
               <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
                 {safeSelectedPeople.length}
               </span>
@@ -436,13 +436,13 @@ export default function VideoEditor({
           {/* 설정 영역 */}
           <main data-video-editor-content className="min-h-0 min-w-0 flex-1 overflow-y-auto p-3 sm:p-4">
 
-            {/* 등장인물 */}
+            {/* 멤버 */}
             {activeMenu === "people" && (
               <section>
                 <div className="mb-5">
                   <div className="flex items-center justify-between gap-3">
                     <h3 className="text-base font-semibold text-zinc-100">
-                      등장인물
+                      멤버
                     </h3>
 
                     <button

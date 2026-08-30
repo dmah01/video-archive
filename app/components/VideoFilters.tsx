@@ -324,7 +324,7 @@ export default function VideoFilters({
       {/* 필터 버튼 */}
       <div className="border-t border-zinc-800/70 px-2 py-1.5 sm:px-4 sm:py-2.5">
         <div className="grid grid-cols-5 gap-1 sm:gap-1.5 lg:gap-2">
-          {/* 등장인물 */}
+          {/* 멤버 */}
           <div className="relative">
             <button
               type="button"
@@ -332,7 +332,7 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">등장인물</p>
+                <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">멤버</p>
                 <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedPersonData,
@@ -350,7 +350,7 @@ export default function VideoFilters({
 >
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
-                    등장인물 선택
+                    멤버 선택
                   </span>
                   {draftPeople.length > 0 && (
                     <button
@@ -489,7 +489,7 @@ export default function VideoFilters({
             )}
           </div>
 
-          {/* 콘텐츠 타입 */}
+          {/* 타입 */}
           <div className="relative">
             <button
               type="button"
@@ -497,7 +497,7 @@ export default function VideoFilters({
               className={`${filterButtonClass} w-full`}
             >
               <div className="min-w-0">
-                <p className="leading-3 text-[8px] text-zinc-600 sm:text-[10px] sm:leading-4">콘텐츠 타입</p>
+                <p className="leading-3 text-[8px] text-zinc-600 sm:text-[10px] sm:leading-4">타입</p>
                 <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
                   {selectionText(
                     selectedTypeData,
@@ -513,7 +513,7 @@ export default function VideoFilters({
               <div className={`filter-popup ${popupClass} sm:left-0 sm:top-[calc(100%+8px)]`}>
                 <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                   <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
-                    콘텐츠 타입 선택
+                    타입 선택
                   </span>
                   {draftTypes.length > 0 && (
                     <button

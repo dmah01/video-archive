@@ -67,7 +67,7 @@ export default function Home() {
 
   const [search, setSearch] = useState("");
   const [date, setDate] = useState("");
-  // 등장인물 / 장르 / 타입 / 시리즈 모두 복수 선택
+  // 멤버 / 장르 / 타입 / 시리즈 모두 복수 선택
   const [selectedPeople, setSelectedPeople] = useState<number[]>([]);
 
   const [selectedGenres, setSelectedGenres] =
@@ -220,7 +220,7 @@ export default function Home() {
       );
     }
 
-    // 영상 ↔ 등장인물
+    // 영상 ↔ 멤버
     const {
       data: peopleRelations,
       error: peopleError,
@@ -231,7 +231,7 @@ export default function Home() {
 
     if (peopleError) {
       console.error(
-        "등장인물 연결 불러오기 오류:",
+        "멤버 연결 불러오기 오류:",
         peopleError
       );
     }
@@ -284,7 +284,7 @@ export default function Home() {
   }
 
   // =============================
-  // 등장인물
+  // 멤버
   // =============================
 
   async function loadPeople() {
@@ -298,7 +298,7 @@ export default function Home() {
 
     if (error) {
       console.error(
-        "등장인물 불러오기 오류:",
+        "멤버 불러오기 오류:",
         error
       );
       return;
@@ -522,7 +522,7 @@ export default function Home() {
 
     try {
       // =============================
-      // 등장인물 기존 연결 삭제
+      // 멤버 기존 연결 삭제
       // =============================
 
       const {
@@ -540,7 +540,7 @@ export default function Home() {
       }
 
       // =============================
-      // 등장인물 저장
+      // 멤버 저장
       // =============================
 
       if (editorPeople.length > 0) {
@@ -777,7 +777,7 @@ export default function Home() {
             10
           ) === date;
 
-        // 등장인물
+        // 멤버
         const matchesPerson =
           selectedPeople.length === 0 ||
           (video.peopleIds ?? []).some((personId) =>
