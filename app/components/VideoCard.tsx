@@ -55,6 +55,7 @@ const GENRE_ORDER = [
   "상황극",
   "공포 / 스릴",
   "예능 / 개그",
+  "감동 / 드라마",
   "미니게임",
   "PVP / 전투",
   "생존 / 야생 / 엔드런",
@@ -109,7 +110,7 @@ export default function VideoCard({
   );
 
   return (
-    <article className="group overflow-hidden rounded-3xl border border-zinc-800/80 bg-zinc-900/70 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-zinc-700 hover:bg-zinc-900">
+    <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800/80 bg-zinc-900/70 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-zinc-700 hover:bg-zinc-900">
       <a
         href={video.youtube_url}
         target="_blank"
@@ -130,7 +131,7 @@ export default function VideoCard({
         </div>
       </a>
 
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-5">
         <a
           href={video.youtube_url}
           target="_blank"
@@ -145,7 +146,7 @@ export default function VideoCard({
           {video.published_at.slice(0, 10)}
         </p>
 
-        <div className="mt-4 flex min-h-8 flex-wrap gap-1.5">
+        <div className="mt-4 flex h-20 shrink-0 content-start flex-wrap gap-1.5 overflow-hidden">
           {selectedGenres.map((genre) => (
             <span
               key={`genre-${genre.id}`}
@@ -201,7 +202,7 @@ export default function VideoCard({
         <button
           type="button"
           onClick={() => onEdit(video)}
-          className="mt-5 flex w-full items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-800/70 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-600 hover:bg-zinc-700 hover:text-white"
+          className="mt-auto flex w-full items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-800/70 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-600 hover:bg-zinc-700 hover:text-white"
         >
           영상 관리
         </button>

@@ -87,6 +87,8 @@ export default function Home() {
   const [importMessage, setImportMessage] =
     useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [pendingVideoCardId, setPendingVideoCardId] = useState<number | null>(null);
+  const skipFilterPageResetRef = useRef(false);
 
   // =============================
   // 영상 편집
@@ -132,6 +134,11 @@ export default function Home() {
   // =============================
 
   useEffect(() => {
+    if (skipFilterPageResetRef.current) {
+      skipFilterPageResetRef.current = false;
+      return;
+    }
+
     setCurrentPage(1);
   }, [
     search,
@@ -500,6 +507,37 @@ export default function Home() {
     setEditorTypes([]);
     setEditorSeries(null);
     setEditorRelatedVideos([]);
+  }
+
+  // 연계 영상에서 선택한 영상의 페이지로 이동한 뒤,
+  // 렌더링이 끝난 즉시 해당 카드를 화면에 배치합니다.
+  function navigateToVideoCard(videoId: number) {
+    const currentIndex = filteredVideos.findIndex(
+      (item) => item.id === videoId
+    );
+
+    setPendingVideoCardId(videoId);
+
+    if (currentIndex !== -1) {
+      setCurrentPage(Math.floor(currentIndex / VIDEOS_PER_PAGE) + 1);
+    } else {
+      const allIndex = videos.findIndex(
+        (item) => item.id === videoId
+      );
+
+      if (allIndex === -1) {
+        setPendingVideoCardId(null);
+        return;
+      }
+
+      // 필터를 초기화하면 필터 변경 effect가 페이지를 1로 되돌립니다.
+      // 이번 이동에서는 그 자동 초기화를 한 번만 건너뜁니다.
+      skipFilterPageResetRef.current = true;
+      resetFilters();
+      setCurrentPage(Math.floor(allIndex / VIDEOS_PER_PAGE) + 1);
+    }
+
+    closeVideoEditor();
   }
 
   // =============================
@@ -882,6 +920,25 @@ export default function Home() {
         VIDEOS_PER_PAGE
     );
 
+  // 연계 영상으로 다른 페이지의 카드로 이동할 때
+  // 페이지 상태가 실제 DOM에 반영된 다음 바로 카드 위치로 이동합니다.
+  useEffect(() => {
+    if (pendingVideoCardId === null) return;
+
+    const card = document.querySelector<HTMLElement>(
+      `[data-video-id="${pendingVideoCardId}"]`
+    );
+
+    if (!card) return;
+
+    card.scrollIntoView({
+      behavior: "auto",
+      block: "start",
+    });
+
+    setPendingVideoCardId(null);
+  }, [pendingVideoCardId, paginatedVideos]);
+
   // 현재 페이지에 보이는 영상의 연계 개수만 조회합니다.
   useEffect(() => {
     const pageIds = paginatedVideos.map((video) => video.id);
@@ -1161,8 +1218,11 @@ export default function Home() {
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {paginatedVideos.map(
                   (video) => (
+                    <div
+                      key={`video-card-${video.id}`}
+                      data-video-id={video.id}
+                    >
                     <VideoCard
-                      key={video.id}
                       video={video}
                       people={people}
                       genres={genres}
@@ -1175,6 +1235,7 @@ export default function Home() {
                         openVideoEditor
                       }
                     />
+                    </div>
                   )
                 )}
               </div>
@@ -1422,6 +1483,9 @@ export default function Home() {
         }
         onClose={
           closeVideoEditor
+        }
+        onNavigateToVideo={
+          navigateToVideoCard
         }
       />
       </main>

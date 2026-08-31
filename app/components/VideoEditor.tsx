@@ -69,6 +69,7 @@ type VideoEditorProps = {
 
   onSave: () => void;
   onClose: () => void;
+  onNavigateToVideo: (videoId: number) => void;
 };
 
 const personColors: Record<string, string> = {
@@ -94,6 +95,7 @@ const GENRE_ORDER = [
   "스토리 / 역할극",
   "공포 / 스릴",
   "예능 / 개그",
+  "감동 / 드라마",
   "추리",
   "상황극",
   "미니게임",
@@ -171,6 +173,7 @@ export default function VideoEditor({
   setSelectedRelatedVideos,
   onSave,
   onClose,
+  onNavigateToVideo,
 }: VideoEditorProps) {
   const safeSelectedPeople = selectedPeople ?? [];
   const safeSelectedGenres = selectedGenres ?? [];
@@ -238,7 +241,7 @@ export default function VideoEditor({
   };
 
   const menuClass = (menu: Menu) =>
-    `flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-[11px] font-medium transition ${
+    `flex min-h-9 w-full items-center justify-between rounded-xl px-3 py-2 text-left text-[11px] font-medium transition ${
       activeMenu === menu
         ? "bg-zinc-800 text-zinc-100"
         : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
@@ -363,13 +366,13 @@ export default function VideoEditor({
               Settings
             </p>
 
-            <div className="grid grid-cols-5 gap-0.5 sm:block sm:space-y-0.5">
+            <div className="grid grid-cols-5 gap-1 sm:block sm:space-y-0.5">
             <button
               type="button"
               onClick={() =>
                 setActiveMenu("people")
               }
-              className={`${menuClass("people")} min-w-0 justify-center whitespace-nowrap px-1 py-1.5 text-[9px] sm:justify-between sm:px-1.5 sm:py-1.5 sm:text-[10px]`}
+              className={`${menuClass("people")} min-w-0 w-full justify-center whitespace-nowrap px-1 py-2 text-[9px] sm:justify-between sm:px-1.5 sm:py-2 sm:text-[10px]`}
             >
               <span>멤버</span>
               <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
@@ -382,7 +385,7 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("genres")
               }
-              className={`${menuClass("genres")} min-w-0 justify-center whitespace-nowrap px-1 py-1.5 text-[9px] sm:justify-between sm:px-1.5 sm:py-1.5 sm:text-[10px]`}
+              className={`${menuClass("genres")} min-w-0 w-full justify-center whitespace-nowrap px-1 py-2 text-[9px] sm:justify-between sm:px-1.5 sm:py-2 sm:text-[10px]`}
             >
               <span>장르</span>
               <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
@@ -395,15 +398,13 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("type")
               }
-              className={`${menuClass("type")} min-w-0 justify-center whitespace-nowrap px-1 py-1.5 text-[9px] sm:justify-between sm:px-1.5 sm:py-1.5 sm:text-[10px]`}
+              className={`${menuClass("type")} min-w-0 w-full justify-center whitespace-nowrap px-1 py-2 text-[9px] sm:justify-between sm:px-1.5 sm:py-2 sm:text-[10px]`}
             >
               <span>타입</span>
 
-              {safeSelectedTypes.length > 0 && (
-                <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
-                  {safeSelectedTypes.length}
-                </span>
-              )}
+              <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
+                {safeSelectedTypes.length}
+              </span>
             </button>
 
             <button
@@ -411,7 +412,7 @@ export default function VideoEditor({
               onClick={() =>
                 setActiveMenu("series")
               }
-              className={`${menuClass("series")} min-w-0 justify-center whitespace-nowrap px-1 py-1.5 text-[9px] sm:justify-between sm:px-1.5 sm:py-1.5 sm:text-[10px]`}
+              className={`${menuClass("series")} min-w-0 w-full justify-center whitespace-nowrap px-1 py-2 text-[9px] sm:justify-between sm:px-1.5 sm:py-2 sm:text-[10px]`}
             >
               <span>시리즈</span>
 
@@ -423,7 +424,7 @@ export default function VideoEditor({
             <button
               type="button"
               onClick={() => setActiveMenu("related")}
-              className={`${menuClass("related")} min-w-0 justify-center whitespace-nowrap px-1 py-1.5 text-[9px] sm:justify-between sm:px-1.5 sm:py-1.5 sm:text-[10px]`}
+              className={`${menuClass("related")} min-w-0 w-full justify-center whitespace-nowrap px-1 py-2 text-[9px] sm:justify-between sm:px-1.5 sm:py-2 sm:text-[10px]`}
             >
               <span>연계 영상</span>
               <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
@@ -769,8 +770,8 @@ export default function VideoEditor({
                                 <button
                                   key={item.id}
                                   type="button"
-                                  onClick={() => toggleRelatedVideo(item.id)}
-                                  className="flex w-full items-center gap-3 rounded-xl border border-sky-400/20 bg-sky-400/10 p-2 text-left"
+                                  onClick={() => onNavigateToVideo(item.id)}
+                                  className="flex w-full items-center gap-3 rounded-xl border border-sky-400/20 bg-sky-400/10 p-2 text-left transition hover:border-sky-400/40 hover:bg-sky-400/15"
                                 >
                                   <img
                                     src={item.thumbnail_url}
