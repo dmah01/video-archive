@@ -416,9 +416,9 @@ export default function VideoEditor({
             >
               <span>시리즈</span>
 
-              {safeSelectedSeries !== null && (
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
-              )}
+              <span className="flex h-4 w-3.5 shrink-0 items-center justify-center text-center text-[10px] leading-none text-zinc-600">
+                {safeSelectedSeries !== null ? "✓" : "○"}
+              </span>
             </button>
 
             <button
