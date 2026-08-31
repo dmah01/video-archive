@@ -375,7 +375,7 @@ export default function VideoEditor({
               className={`${menuClass("people")} min-w-0 w-full justify-center whitespace-nowrap px-1 py-2 text-[9px] sm:justify-between sm:px-1.5 sm:py-2 sm:text-[10px]`}
             >
               <span>멤버</span>
-              <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
+              <span className="w-4 shrink-0 text-center text-[10px] leading-none text-zinc-600">
                 {safeSelectedPeople.length}
               </span>
             </button>
@@ -388,7 +388,7 @@ export default function VideoEditor({
               className={`${menuClass("genres")} min-w-0 w-full justify-center whitespace-nowrap px-1 py-2 text-[9px] sm:justify-between sm:px-1.5 sm:py-2 sm:text-[10px]`}
             >
               <span>장르</span>
-              <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
+              <span className="w-4 shrink-0 text-center text-[10px] leading-none text-zinc-600">
                 {safeSelectedGenres.length}
               </span>
             </button>
@@ -402,7 +402,7 @@ export default function VideoEditor({
             >
               <span>타입</span>
 
-              <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
+              <span className="w-4 shrink-0 text-center text-[10px] leading-none text-zinc-600">
                 {safeSelectedTypes.length}
               </span>
             </button>
@@ -427,7 +427,7 @@ export default function VideoEditor({
               className={`${menuClass("related")} min-w-0 w-full justify-center whitespace-nowrap px-1 py-2 text-[9px] sm:justify-between sm:px-1.5 sm:py-2 sm:text-[10px]`}
             >
               <span>연계 영상</span>
-              <span className="w-4 shrink-0 text-center text-[10px] text-zinc-600">
+              <span className="w-4 shrink-0 text-center text-[10px] leading-none text-zinc-600">
                 {safeSelectedRelatedVideos.length}
               </span>
             </button>
