@@ -47,11 +47,11 @@ export default function Home() {
 
   const [videos, setVideos] = useState<Video[]>([]);
 
-  // 카드에 표시할 연계 영상 개수
+  // 카드에 표시할 연계 개수
   const [relatedCounts, setRelatedCounts] =
     useState<Record<number, number>>({});
 
-  // 저장 직전/직후에 진행 중인 오래된 연계 영상 조회가
+  // 저장 직전/직후에 진행 중인 오래된 연계 조회가
   // 최신 화면 상태를 덮어쓰지 못하게 합니다.
   const relatedCountsRevision =
     useRef(0);
@@ -451,7 +451,7 @@ export default function Home() {
       );
 
     if (relationError) {
-      console.error("연계 영상 불러오기 오류:", relationError);
+      console.error("연계 불러오기 오류:", relationError);
       return;
     }
 
@@ -509,7 +509,7 @@ export default function Home() {
     setEditorRelatedVideos([]);
   }
 
-  // 연계 영상에서 선택한 영상의 페이지로 이동한 뒤,
+  // 연계에서 선택한 영상의 페이지로 이동한 뒤,
   // 렌더링이 끝난 즉시 해당 카드를 화면에 배치합니다.
   function navigateToVideoCard(videoId: number) {
     const currentIndex = filteredVideos.findIndex(
@@ -547,7 +547,7 @@ export default function Home() {
   async function saveVideoRelations() {
     if (!editingVideo) return;
 
-    // 기존 연계 영상 개수 조회가 저장 결과를 덮어쓰지 못하도록
+    // 기존 연계 개수 조회가 저장 결과를 덮어쓰지 못하도록
     // 저장 작업을 시작하는 순간 이전 요청을 무효화합니다.
     relatedCountsRevision.current += 1;
 
@@ -664,7 +664,7 @@ export default function Home() {
       }
 
       // =============================
-      // 연계 영상 저장
+      // 연계 저장
       // =============================
 
       const { error: relationDeleteAError } = await supabase
@@ -708,7 +708,7 @@ export default function Home() {
         }
       }
 
-      // 저장 직후 카드의 연계 영상 개수를 즉시 반영합니다.
+      // 저장 직후 카드의 연계 개수를 즉시 반영합니다.
       // 다시 전체 영상을 불러오지 않아 "한 박자 늦게" 보이는 현상을 없앱니다.
       setRelatedCounts((current) => {
         const next = { ...current };
@@ -920,7 +920,7 @@ export default function Home() {
         VIDEOS_PER_PAGE
     );
 
-  // 연계 영상으로 다른 페이지의 카드로 이동할 때
+  // 연계로 다른 페이지의 카드로 이동할 때
   // 페이지 상태가 실제 DOM에 반영된 다음 바로 카드 위치로 이동합니다.
   useEffect(() => {
     if (pendingVideoCardId === null) return;

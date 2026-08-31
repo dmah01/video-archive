@@ -340,7 +340,7 @@ export default function VideoEditor({
 
               {safeSelectedRelatedVideos.length > 0 && (
                 <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[11px] text-sky-300">
-                  연계 영상 {safeSelectedRelatedVideos.length}개
+                  연계 {safeSelectedRelatedVideos.length}
                 </span>
               )}
 
@@ -426,7 +426,7 @@ export default function VideoEditor({
               onClick={() => setActiveMenu("related")}
               className={`${menuClass("related")} min-w-0 w-full justify-center whitespace-nowrap px-1 py-2 text-[9px] sm:justify-between sm:px-1.5 sm:py-2 sm:text-[10px]`}
             >
-              <span>연계 영상</span>
+              <span>연계</span>
               <span className="w-4 shrink-0 text-center text-[10px] leading-none text-zinc-600">
                 {safeSelectedRelatedVideos.length}
               </span>
@@ -716,13 +716,13 @@ export default function VideoEditor({
                 </div>
               </section>
             )}
-            {/* 연계 영상 */}
+            {/* 연계 */}
             {activeMenu === "related" && (
               <section>
                 <div className="mb-5 flex items-center justify-between gap-3">
                   <div>
                     <h3 className="text-base font-semibold text-zinc-100">
-                      연계 영상
+                      연계
                     </h3>
                   </div>
 
@@ -757,7 +757,7 @@ export default function VideoEditor({
                       !relatedSearch.trim() && (
                         <div className="mb-4">
                           <p className="mb-2 text-[10px] text-zinc-600">
-                            현재 연계 영상
+                            현재 연계
                           </p>
                           <div className="space-y-1.5">
                             {safeSelectedRelatedVideos.map((id) => {
