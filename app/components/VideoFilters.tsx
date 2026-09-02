@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Category, Person } from "../lib/archive-types";
+import type { Category, Person } from "@/lib/archive-types";
 
 type VideoFiltersProps = {
   search: string;
@@ -58,12 +58,12 @@ const GENRE_ORDER = [
   "상황극",
   "미니게임",
   "마피아 / 머더 / 라이어게임",
-  "술래잡기 / 숨바꼭질 / 꼬리잡기 / 도능",
-  "베드워즈 / 스카이블록 / 기지전쟁",
+  "베드워즈 / 스카이블록",
   "생존 / 야생 / 엔드런",
   "PVP / 전투 / 레이드",
   "탈출 / 추격",
   "파쿠르 / 데스런",
+  "숨바꼭질 / 꼬리잡기 / 도능",
   "모드 / 업데이트",
   "크로스오버",
   "실사",
