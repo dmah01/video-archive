@@ -48,7 +48,7 @@ const personColors: Record<string, string> = {
 const genreColor = "border-purple-400/40 bg-purple-400/15 text-purple-300";
 
 const GENRE_ORDER = [
-  "마인크래프트",
+  "마인크래프",
   "종합게임",
   "스토리 / 역할극",
   "공포 / 스릴",
