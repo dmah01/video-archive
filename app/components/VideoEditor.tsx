@@ -5,7 +5,7 @@ import {
   useState,
 } from "react";
 import { supabase } from "@/lib/supabase";
-import type { Category, Person, Video } from "../lib/archive-types";
+import type { Category, Person, Video } from "@/lib/archive-types";
 
 type VideoEditorProps = {
   video: Video | null;
@@ -177,6 +177,16 @@ export default function VideoEditor({
       setRelatedSearch("");
     }
   }, [video]);
+
+  useEffect(() => {
+    const content = document.querySelector<HTMLElement>(
+      "[data-video-editor-content]",
+    );
+
+    if (!content) return;
+
+    content.scrollTop = 0;
+  }, [activeMenu]);
 
   if (!video) return null;
 
