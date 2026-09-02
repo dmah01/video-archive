@@ -5,29 +5,7 @@ import {
   useState,
 } from "react";
 import { supabase } from "@/lib/supabase";
-
-type Person = {
-  id: number;
-  name: string;
-};
-
-type Category = {
-  id: number;
-  name: string;
-};
-
-type Video = {
-  id: number;
-  title: string;
-  thumbnail_url: string;
-  published_at: string;
-  youtube_url: string;
-  peopleIds?: number[];
-  genreIds?: number[];
-  typeIds?: number[];
-  typeId?: number | null;
-  seriesId?: number | null;
-};
+import type { Category, Person, Video } from "../lib/archive-types";
 
 type VideoEditorProps = {
   video: Video | null;
@@ -150,7 +128,6 @@ const sortPeople = <T extends { name: string }>(items: T[]) =>
     return a.name.localeCompare(b.name, "ko");
   });
 
-
 type Menu = "people" | "genres" | "type" | "series" | "related";
 
 export default function VideoEditor({
@@ -188,7 +165,6 @@ export default function VideoEditor({
   const [seriesSearch, setSeriesSearch] = useState("");
   const [relatedSearch, setRelatedSearch] = useState("");
   const [relatedLoading, setRelatedLoading] = useState(false);
-
 
   /*
    * 다른 영상을 열 때마다
@@ -456,7 +432,6 @@ export default function VideoEditor({
                     </button>
                   </div>
 
-                  
                 </div>
 
                 <div className="flex flex-wrap content-start justify-start gap-2">
@@ -509,7 +484,6 @@ export default function VideoEditor({
                     </button>
                   </div>
 
-                  
                 </div>
 
                 <div className="flex flex-wrap content-start justify-start gap-2">
@@ -589,7 +563,6 @@ export default function VideoEditor({
                     </button>
                   </div>
 
-                  
                 </div>
 
                 <div className="flex flex-wrap content-start justify-start gap-2">
@@ -637,7 +610,6 @@ export default function VideoEditor({
                     </button>
                   </div>
 
-                 
                 </div>
 
                 <div className="relative mb-3">

@@ -1,16 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
-type Person = {
-  id: number;
-  name: string;
-};
-
-type Category = {
-  id: number;
-  name: string;
-};
+import type { Category, Person } from "../lib/archive-types";
 
 type VideoFiltersProps = {
   search: string;

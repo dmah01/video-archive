@@ -1,27 +1,6 @@
 "use client";
 
-type Person = {
-  id: number;
-  name: string;
-};
-
-type Category = {
-  id: number;
-  name: string;
-};
-
-type Video = {
-  id: number;
-  title: string;
-  thumbnail_url: string;
-  published_at: string;
-  youtube_url: string;
-  peopleIds?: number[];
-  genreIds?: number[];
-  typeIds?: number[];
-  typeId?: number | null;
-  seriesId?: number | null;
-};
+import type { Category, Person, Video } from "@/lib/archive-types";
 
 type VideoCardProps = {
   video: Video;

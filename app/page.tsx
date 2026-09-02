@@ -2,64 +2,31 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import type { Video } from "./lib/archive-types";
+import { useVideos } from "./hooks/useVideos";
 import VideoCard from "./components/VideoCard";
 import VideoFilters from "./components/VideoFilters";
 import VideoEditor from "./components/VideoEditor";
 
-type Person = {
-  id: number;
-  name: string;
-};
-
-type Category = {
-  id: number;
-  name: string;
-};
-
-type Video = {
-  id: number;
-  title: string;
-  thumbnail_url: string;
-  published_at: string;
-  youtube_url: string;
-
-  peopleIds?: number[];
-  genreIds?: number[];
-
-  // 타입은 여러 개 선택할 수 있도록 배열로 관리합니다.
-  typeIds?: number[];
-  // Supabase 원본 컬럼(snake_case)도 조회 결과에서 사용합니다.
-  type_ids?: number[] | null;
-  type_id?: number | null;
-  series_id?: number | null;
-
-  // 앱에서 사용하는 camelCase 값
-  typeId?: number | null;
-  seriesId?: number | null;
-};
-
 const VIDEOS_PER_PAGE = 12;
 
 export default function Home() {
-  // =============================
-  // 데이터
-  // =============================
+  const {
+    videos,
+    setVideos,
+    people,
+    genres,
+    types,
+    series,
+    loading,
+    importing,
+    importMessage,
+    importYouTubeVideos,
+  } = useVideos();
 
-  const [videos, setVideos] = useState<Video[]>([]);
-
-  // 카드에 표시할 연계 개수
   const [relatedCounts, setRelatedCounts] =
     useState<Record<number, number>>({});
-
-  // 저장 직전/직후에 진행 중인 오래된 연계 조회가
-  // 최신 화면 상태를 덮어쓰지 못하게 합니다.
-  const relatedCountsRevision =
-    useRef(0);
-
-  const [people, setPeople] = useState<Person[]>([]);
-  const [genres, setGenres] = useState<Category[]>([]);
-  const [types, setTypes] = useState<Category[]>([]);
-  const [series, setSeries] = useState<Category[]>([]);
+  const relatedCountsRevision = useRef(0);
 
   // =============================
   // 필터
@@ -78,14 +45,6 @@ export default function Home() {
 
   const [sort, setSort] = useState("최신순");
 
-  // =============================
-  // 상태
-  // =============================
-
-  const [loading, setLoading] = useState(true);
-  const [importing, setImporting] = useState(false);
-  const [importMessage, setImportMessage] =
-    useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pendingVideoCardId, setPendingVideoCardId] = useState<number | null>(null);
   const skipFilterPageResetRef = useRef(false);
@@ -117,19 +76,6 @@ export default function Home() {
   const videoEditorScrollYRef = useRef(0);
 
   // =============================
-  // 최초 로딩
-  // =============================
-
-  useEffect(() => {
-    loadVideos();
-    loadPeople();
-    loadGenres();
-    loadTypes();
-    loadSeries();
-  }, []);
-
-
-  // =============================
   // 필터 변경
   // =============================
 
@@ -149,286 +95,6 @@ export default function Home() {
     selectedSeries,
     sort,
   ]);
-
-  // =============================
-  // 영상 불러오기
-  // =============================
-
-  async function loadVideos() {
-    setLoading(true);
-
-    // Supabase에 저장된 영상 전체를 가져옵니다.
-    // 1000개씩 나누어 가져오기 때문에 2019년 영상도 계속 웹사이트에 남습니다.
-    const allVideos: Video[] = [];
-    const pageSize = 1000;
-    let from = 0;
-
-    while (true) {
-      const {
-        data: pageData,
-        error: pageError,
-      } = await supabase
-        .from("videos")
-        .select("*")
-        .order("published_at", {
-          ascending: false,
-        })
-        .range(
-          from,
-          from + pageSize - 1
-        );
-
-      if (pageError) {
-        console.error(
-          "영상 불러오기 오류:",
-          pageError
-        );
-        setLoading(false);
-        return;
-      }
-
-      const currentVideos =
-        (pageData ?? []) as Video[];
-
-      allVideos.push(...currentVideos);
-
-      if (currentVideos.length < pageSize) {
-        break;
-      }
-
-      from += pageSize;
-    }
-
-    const data = allVideos;
-
-    const videoIds = data.map(
-      (video) => video.id
-    );
-
-    if (videoIds.length === 0) {
-      setVideos([]);
-      setLoading(false);
-      return;
-    }
-
-    // 영상 ↔ 장르
-    const {
-      data: genreRelations,
-      error: genreError,
-    } = await supabase
-      .from("video_genres")
-      .select("video, genre")
-      .in("video", videoIds);
-
-    if (genreError) {
-      console.error(
-        "장르 연결 불러오기 오류:",
-        genreError
-      );
-    }
-
-    // 영상 ↔ 멤버
-    const {
-      data: peopleRelations,
-      error: peopleError,
-    } = await supabase
-      .from("video_people")
-      .select("video, person")
-      .in("video", videoIds);
-
-    if (peopleError) {
-      console.error(
-        "멤버 연결 불러오기 오류:",
-        peopleError
-      );
-    }
-
-    const videosWithRelations: Video[] =
-      data.map((video) => ({
-        ...video,
-
-        peopleIds: (
-          peopleRelations ?? []
-        )
-          .filter(
-            (relation) =>
-              relation.video === video.id
-          )
-          .map(
-            (relation) =>
-              relation.person
-          ),
-
-        genreIds: (
-          genreRelations ?? []
-        )
-          .filter(
-            (relation) =>
-              relation.video === video.id
-          )
-          .map(
-            (relation) =>
-              relation.genre
-          ),
-
-        typeIds:
-          Array.isArray(video.type_ids)
-            ? video.type_ids
-            : video.type_id != null
-              ? [video.type_id]
-              : [],
-
-        // Supabase의 snake_case 컬럼을 앱의 camelCase로 변환
-        typeId:
-          video.type_id ?? null,
-
-        seriesId:
-          video.series_id ?? null,
-      }));
-
-    setVideos(videosWithRelations);
-    setLoading(false);
-  }
-
-  // =============================
-  // 멤버
-  // =============================
-
-  async function loadPeople() {
-    const {
-      data,
-      error,
-    } = await supabase
-      .from("people")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      console.error(
-        "멤버 불러오기 오류:",
-        error
-      );
-      return;
-    }
-
-    setPeople(data ?? []);
-  }
-
-  // =============================
-  // 장르
-  // =============================
-
-  async function loadGenres() {
-    const {
-      data,
-      error,
-    } = await supabase
-      .from("genres")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      console.error(
-        "장르 불러오기 오류:",
-        error
-      );
-      return;
-    }
-
-    setGenres(data ?? []);
-  }
-
-  // =============================
-  // 타입
-  // =============================
-
-  async function loadTypes() {
-    const {
-      data,
-      error,
-    } = await supabase
-      .from("types")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      console.error(
-        "타입 불러오기 오류:",
-        error
-      );
-      return;
-    }
-
-    setTypes(data ?? []);
-  }
-
-  // =============================
-  // 시리즈
-  // =============================
-
-  async function loadSeries() {
-    const {
-      data,
-      error,
-    } = await supabase
-      .from("series")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      console.error(
-        "시리즈 불러오기 오류:",
-        error
-      );
-      return;
-    }
-
-    setSeries(data ?? []);
-  }
-
-  // =============================
-  // YouTube 가져오기
-  // =============================
-
-  async function importYouTubeVideos() {
-    setImporting(true);
-    setImportMessage("");
-
-    try {
-      const response =
-        await fetch("/api/youtube");
-
-      const data =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.details ||
-            data.error ||
-            "영상 가져오기에 실패했습니다."
-        );
-      }
-
-      setImportMessage(
-        `${data.count}개의 영상을 가져왔습니다.`
-      );
-
-      await loadVideos();
-    } catch (error) {
-      console.error(
-        "영상 가져오기 오류:",
-        error
-      );
-
-      setImportMessage(
-        error instanceof Error
-          ? error.message
-          : "영상 가져오기에 실패했습니다."
-      );
-    } finally {
-      setImporting(false);
-    }
-  }
 
   // =============================
   // 영상 편집 열기
