@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import type { Video } from "./lib/archive-types";
+import { supabase } from "@/app/lib/supabase";
+import type { Video } from "@/app/lib/archive-types";
 import { useVideos } from "./hooks/useVideos";
 import VideoCard from "./components/VideoCard";
 import VideoFilters from "./components/VideoFilters";

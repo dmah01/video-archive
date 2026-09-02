@@ -4,8 +4,8 @@ import {
   useEffect,
   useState,
 } from "react";
-import { supabase } from "@/lib/supabase";
-import type { Category, Person, Video } from "@/lib/archive-types";
+import { supabase } from "@/app/lib/supabase";
+import type { Category, Person, Video } from "@/app/lib/archive-types";
 
 type VideoEditorProps = {
   video: Video | null;

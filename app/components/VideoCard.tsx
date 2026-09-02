@@ -1,6 +1,6 @@
 "use client";
 
-import type { Category, Person, Video } from "@/lib/archive-types";
+import type { Category, Person, Video } from "@/app/lib/archive-types";
 
 type VideoCardProps = {
   video: Video;
