@@ -14,7 +14,6 @@ type VideoCardProps = {
 
 const personColors: Record<string, string> = {
   잠뜰: "bg-sky-400/15 text-sky-300 border-sky-400/25",
-  하늘: "bg-cyan-400/15 text-cyan-300 border-cyan-400/25",
   각별: "bg-yellow-400/15 text-yellow-300 border-yellow-400/25",
   공룡: "bg-green-400/15 text-green-300 border-green-400/25",
   수현: "bg-purple-500/15 text-purple-300 border-purple-500/25",
@@ -25,6 +24,30 @@ const personColors: Record<string, string> = {
   태쁘: "bg-blue-700/20 text-blue-300 border-blue-700/30",
   팀샐: "bg-lime-400/15 text-lime-300 border-lime-400/25",
 };
+
+const PERSON_ORDER = [
+  "잠뜰",
+  "라더",
+  "덕개",
+  "각별",
+  "공룡",
+  "수현",
+  "올멤",
+  "요정",
+  "태쁘",
+  "팀샐",
+  "게스트",
+];
+
+const sortPeople = <T extends { name: string }>(items: T[]) =>
+  [...items].sort((a, b) => {
+    const ai = PERSON_ORDER.indexOf(a.name);
+    const bi = PERSON_ORDER.indexOf(b.name);
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+    return a.name.localeCompare(b.name, "ko");
+  });
 
 const GENRE_ORDER = [
   "마인크래프트",
@@ -68,6 +91,10 @@ export default function VideoCard({
   relatedCount = 0,
   onEdit,
 }: VideoCardProps) {
+  const selectedPeople = sortPeople(
+    people.filter((person) => (video.peopleIds ?? []).includes(person.id))
+  );
+
   const selectedGenres = sortGenres(
     genres.filter((genre) =>
       (video.genreIds ?? []).includes(genre.id)
@@ -150,20 +177,14 @@ export default function VideoCard({
             </span>
           )}
 
-          {(video.peopleIds ?? []).map((personId) => {
-            const person = people.find(
-              (item) => item.id === personId
-            );
-
-            if (!person) return null;
-
+          {selectedPeople.map((person) => {
             const colorClass =
               personColors[person.name] ??
               "border-zinc-700 bg-zinc-800 text-zinc-400";
 
             return (
               <span
-                key={`person-${personId}`}
+                key={`person-${person.id}`}
                 className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${colorClass}`}
               >
                 {person.name}
