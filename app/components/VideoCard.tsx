@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect, useRef, useState } from "react";
 import type { Category, Person, Video } from "@/app/lib/archive-types";
 
 type VideoCardProps = {
@@ -115,6 +116,110 @@ export default function VideoCard({
     (item) => item.id === video.seriesId
   );
 
+  const allTags = [
+    ...selectedGenres.map((genre) => ({
+      id: `genre-${genre.id}`,
+      name: genre.name,
+      className: "rounded-full border border-purple-400/20 bg-purple-400/10 px-2.5 py-1 text-[11px] font-medium text-purple-300",
+    })),
+    ...selectedTypes.map((type) => ({
+      id: `type-${type.id}`,
+      name: type.name,
+      className: "rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-medium text-indigo-300",
+    })),
+    ...(videoSeries
+      ? [{
+          id: `series-${videoSeries.id}`,
+          name: videoSeries.name,
+          className: "rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300",
+        }]
+      : []),
+    ...selectedPeople.map((person) => ({
+      id: `person-${person.id}`,
+      name: person.name,
+      className: `rounded-full border px-2.5 py-1 text-[11px] font-medium ${personColors[person.name] ?? "border-zinc-700 bg-zinc-800 text-zinc-400"}`,
+    })),
+    ...(relatedCount > 0
+      ? [{
+          id: "related",
+          name: `연계 ${relatedCount}`,
+          className: "rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[11px] font-medium text-sky-300",
+        }]
+      : []),
+  ];
+
+  const [showAllTags, setShowAllTags] = useState(false);
+  const [visibleTagCount, setVisibleTagCount] = useState(allTags.length);
+  const tagMeasureRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const container = tagMeasureRef.current;
+    if (!container) return;
+
+    const measure = () => {
+      const tagElements = Array.from(
+        container.querySelectorAll<HTMLElement>("[data-tag-index]")
+      );
+      const moreButton = container.querySelector<HTMLElement>("[data-more-button]");
+
+      if (!tagElements.length) {
+        setVisibleTagCount(0);
+        return;
+      }
+
+      const lineHeight = 24;
+      const fitsTwoLines = (count: number) => {
+        const elements = tagElements.slice(0, count);
+        elements.forEach((element) => {
+          element.style.display = "inline-flex";
+        });
+        tagElements.slice(count).forEach((element) => {
+          element.style.display = "none";
+        });
+
+        if (moreButton) {
+          moreButton.style.display = count < allTags.length ? "inline-flex" : "none";
+        }
+
+        const tops = elements
+          .filter((element) => element.offsetParent !== null)
+          .map((element) => element.offsetTop);
+        const moreTop = moreButton && moreButton.offsetParent !== null
+          ? moreButton.offsetTop
+          : null;
+        const allTops = moreTop === null ? tops : [...tops, moreTop];
+        const rows = new Set(allTops);
+
+        return rows.size <= 2;
+      };
+
+      let best = allTags.length;
+      if (!fitsTwoLines(best)) {
+        best = 0;
+        for (let count = 1; count <= allTags.length; count += 1) {
+          if (fitsTwoLines(count)) best = count;
+          else break;
+        }
+      }
+
+      setVisibleTagCount(best);
+
+      tagElements.forEach((element, index) => {
+        element.style.display = index < best ? "inline-flex" : "none";
+      });
+      if (moreButton) {
+        moreButton.style.display = best < allTags.length ? "inline-flex" : "none";
+      }
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [allTags.length]);
+
+  const hiddenTagCount = Math.max(0, allTags.length - visibleTagCount);
+
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800/80 bg-zinc-900/70 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-zinc-700 hover:bg-zinc-900">
       <a
@@ -152,52 +257,63 @@ export default function VideoCard({
           {video.published_at.slice(0, 10)}
         </p>
 
-        <div className="mt-4 flex h-20 shrink-0 content-start flex-wrap gap-1.5 overflow-hidden">
-          {selectedGenres.map((genre) => (
-            <span
-              key={`genre-${genre.id}`}
-              className="rounded-full border border-purple-400/20 bg-purple-400/10 px-2.5 py-1 text-[11px] font-medium text-purple-300"
-            >
-              {genre.name}
-            </span>
-          ))}
-
-          {selectedTypes.map((type) => (
-            <span
-              key={`type-${type.id}`}
-              className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-medium text-indigo-300"
-            >
-              {type.name}
-            </span>
-          ))}
-
-          {videoSeries && (
-            <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300">
-              {videoSeries.name}
-            </span>
-          )}
-
-          {selectedPeople.map((person) => {
-            const colorClass =
-              personColors[person.name] ??
-              "border-zinc-700 bg-zinc-800 text-zinc-400";
-
-            return (
+        <div className="relative mt-4 h-20 shrink-0 overflow-hidden">
+          <div ref={tagMeasureRef} className="flex h-full content-start flex-wrap gap-1.5 overflow-hidden">
+            {allTags.map((tag, index) => (
               <span
-                key={`person-${person.id}`}
-                className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${colorClass}`}
+                key={tag.id}
+                data-tag-index={index}
+                className={`${tag.className} max-w-full whitespace-nowrap`}
+                title={tag.name}
               >
-                {person.name}
+                {tag.name}
               </span>
-            );
-          })}
+            ))}
 
-          {relatedCount > 0 && (
-            <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[11px] font-medium text-sky-300">
-              연계 {relatedCount}
-            </span>
-          )}
+            <button
+              type="button"
+              data-more-button
+              onClick={() => setShowAllTags(true)}
+              className="hidden shrink-0 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[11px] font-medium text-zinc-300 transition hover:border-zinc-600 hover:bg-zinc-700 hover:text-white"
+              aria-label={`태그 ${hiddenTagCount}개 더 보기`}
+            >
+              +{hiddenTagCount}
+            </button>
+          </div>
         </div>
+
+        {showAllTags && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            onClick={() => setShowAllTags(false)}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl border border-zinc-700 bg-zinc-900 p-5 shadow-2xl"
+              onClick={(event) => event.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label="전체 태그"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-zinc-100">전체 태그</h4>
+                <button
+                  type="button"
+                  onClick={() => setShowAllTags(false)}
+                  className="rounded-lg px-2 py-1 text-xs text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                >
+                  닫기
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {allTags.map((tag) => (
+                  <span key={tag.id} className={tag.className}>
+                    {tag.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <button
           type="button"
