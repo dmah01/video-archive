@@ -60,35 +60,75 @@ export function useVideos() {
 
     const videoIds = allVideos.map((video) => video.id);
 
-    const [
-      { data: genreRelations, error: genreError },
-      { data: peopleRelations, error: peopleError },
-    ] = await Promise.all([
-      supabase
-        .from("video_genres")
-        .select("video, genre")
-        .in("video", videoIds),
-      supabase
-        .from("video_people")
-        .select("video, person")
-        .in("video", videoIds),
-    ]);
+    // 관계 테이블은 한 번에 너무 많은 ID를 .in()에 넣으면
+    // 요청 URL이 길어져 조회가 실패할 수 있으므로 100개씩 나눠 조회합니다.
+    const RELATION_CHUNK_SIZE = 100;
 
-    if (genreError) console.error("장르 연결 불러오기 오류:", genreError);
-    if (peopleError) console.error("멤버 연결 불러오기 오류:", peopleError);
+    const peopleRelations: Array<{ video: number; person: number }> = [];
+    const genreRelations: Array<{ video: number; genre: number }> = [];
+
+    for (let i = 0; i < videoIds.length; i += RELATION_CHUNK_SIZE) {
+      const chunk = videoIds.slice(i, i + RELATION_CHUNK_SIZE);
+
+      const [
+        { data: chunkPeople, error: peopleError },
+        { data: chunkGenres, error: genreError },
+      ] = await Promise.all([
+        supabase
+          .from("video_people")
+          .select("video, person")
+          .in("video", chunk),
+        supabase
+          .from("video_genres")
+          .select("video, genre")
+          .in("video", chunk),
+      ]);
+
+      if (peopleError) {
+        console.error(
+          `멤버 연결 불러오기 오류 (chunk ${i}~${i + chunk.length - 1}):`,
+          peopleError
+        );
+      } else {
+        peopleRelations.push(
+          ...((chunkPeople ?? []) as Array<{ video: number; person: number }>)
+        );
+      }
+
+      if (genreError) {
+        console.error(
+          `장르 연결 불러오기 오류 (chunk ${i}~${i + chunk.length - 1}):`,
+          genreError
+        );
+      } else {
+        genreRelations.push(
+          ...((chunkGenres ?? []) as Array<{ video: number; genre: number }>)
+        );
+      }
+    }
 
     const peopleMap = new Map<number, number[]>();
-    for (const relation of peopleRelations ?? []) {
-      const ids = peopleMap.get(relation.video) ?? [];
-      ids.push(relation.person);
-      peopleMap.set(relation.video, ids);
+    for (const relation of peopleRelations) {
+      const videoId = Number(relation.video);
+      const personId = Number(relation.person);
+
+      if (!Number.isFinite(videoId) || !Number.isFinite(personId)) continue;
+
+      const ids = peopleMap.get(videoId) ?? [];
+      if (!ids.includes(personId)) ids.push(personId);
+      peopleMap.set(videoId, ids);
     }
 
     const genreMap = new Map<number, number[]>();
-    for (const relation of genreRelations ?? []) {
-      const ids = genreMap.get(relation.video) ?? [];
-      ids.push(relation.genre);
-      genreMap.set(relation.video, ids);
+    for (const relation of genreRelations) {
+      const videoId = Number(relation.video);
+      const genreId = Number(relation.genre);
+
+      if (!Number.isFinite(videoId) || !Number.isFinite(genreId)) continue;
+
+      const ids = genreMap.get(videoId) ?? [];
+      if (!ids.includes(genreId)) ids.push(genreId);
+      genreMap.set(videoId, ids);
     }
 
     setVideos(
