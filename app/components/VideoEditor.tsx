@@ -440,7 +440,7 @@
 
                     </div>
 
-                    <div className="flex flex-wrap content-start justify-start gap-2">
+                    <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:content-start sm:justify-start">
                       {sortPeople(people).map((person) => {
                         const selected =
                           safeSelectedPeople.includes(person.id);
@@ -454,7 +454,7 @@
                             key={person.id}
                             type="button"
                             onClick={() => togglePerson(person.id)}
-                            className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-[11px] font-medium leading-4 whitespace-nowrap transition ${
+                            className={`flex min-w-0 w-full sm:w-fit shrink-0 grow-0 items-center justify-center self-start rounded-lg border px-2.5 py-2 text-[11px] font-medium leading-4 whitespace-nowrap transition ${
                               selected
                                 ? color
                                 : "border-zinc-800 bg-zinc-900/60 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
