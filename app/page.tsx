@@ -1,1059 +1,950 @@
-"use client";
+    "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "@/app/lib/supabase";
-import type { Video } from "@/app/lib/archive-types";
-import { useVideos } from "./hooks/useVideos";
-import VideoCard from "./components/VideoCard";
-import VideoFilters from "./components/VideoFilters";
-import VideoEditor from "./components/VideoEditor";
+    import { useEffect, useMemo, useRef, useState } from "react";
+    import { supabase } from "@/app/lib/supabase";
+    import type { Video } from "@/app/lib/archive-types";
+    import { useVideos } from "./hooks/useVideos";
+    import VideoCard from "./components/VideoCard";
+    import VideoFilters from "./components/VideoFilters";
+    import VideoEditor from "./components/VideoEditor";
 
-const VIDEOS_PER_PAGE = 12;
+    const VIDEOS_PER_PAGE = 12;
 
-export default function Home() {
-  const {
-    videos,
-    setVideos,
-    people,
-    genres,
-    types,
-    series,
-    loading,
-    importing,
-    importMessage,
-    importYouTubeVideos,
-  } = useVideos();
-
-  const [relatedCounts, setRelatedCounts] =
-    useState<Record<number, number>>({});
-  const relatedCountsRevision = useRef(0);
-
-  // =============================
-  // 필터
-  // =============================
-
-  const [search, setSearch] = useState("");
-  const [date, setDate] = useState("");
-  // 멤버 / 장르 / 타입 / 시리즈 모두 복수 선택
-  const [selectedPeople, setSelectedPeople] = useState<number[]>([]);
-
-  const [selectedGenres, setSelectedGenres] =
-    useState<number[]>([]);
-
-  const [selectedTypes, setSelectedTypes] = useState<number[]>([]);
-  const [selectedSeries, setSelectedSeries] = useState<number[]>([]);
-
-  const [sort, setSort] = useState("최신순");
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pendingVideoCardId, setPendingVideoCardId] = useState<number | null>(null);
-  const skipFilterPageResetRef = useRef(false);
-
-  // =============================
-  // 영상 편집
-  // =============================
-
-  const [editingVideo, setEditingVideo] =
-    useState<Video | null>(null);
-
-  const [editorPeople, setEditorPeople] =
-    useState<number[]>([]);
-
-  const [editorGenres, setEditorGenres] =
-    useState<number[]>([]);
-
-  const [editorTypes, setEditorTypes] =
-    useState<number[]>([]);
-
-  const [editorSeries, setEditorSeries] =
-    useState<number | null>(null);
-
-  const [editorRelatedVideos, setEditorRelatedVideos] =
-    useState<number[]>([]);
-
-  const [savingVideo, setSavingVideo] =
-    useState(false);
-  const videoEditorScrollYRef = useRef(0);
-
-  // =============================
-  // 필터 변경
-  // =============================
-
-  useEffect(() => {
-    if (skipFilterPageResetRef.current) {
-      skipFilterPageResetRef.current = false;
-      return;
-    }
-
-    setCurrentPage(1);
-  }, [
-    search,
-    date,
-    selectedPeople,
-    selectedGenres,
-    selectedTypes,
-    selectedSeries,
-    sort,
-  ]);
-
-  // =============================
-  // 영상 편집 열기
-  // =============================
-
-  async function openVideoEditor(video: Video) {
-    if (typeof window !== "undefined") {
-      videoEditorScrollYRef.current =
-        document.scrollingElement?.scrollTop ??
-        window.scrollY;
-    }
-
-    // 연계영상까지 먼저 조회한 뒤 에디터를 열어
-    // 빈 상태로 먼저 렌더링되는 한 박자 지연을 없앱니다.
-    const { data: relationData, error: relationError } = await supabase
-      .from("video_relations")
-      .select("video_id, related_video_id")
-      .or(
-        `video_id.eq.${video.id},related_video_id.eq.${video.id}`
-      );
-
-    if (relationError) {
-      console.error("연계 불러오기 오류:", relationError);
-      return;
-    }
-
-    const relatedIds = Array.from(
-      new Set(
-        (relationData ?? []).map((relation) =>
-          Number(
-            Number(relation.video_id) === video.id
-              ? relation.related_video_id
-              : relation.video_id
-          )
-        )
-      )
-    );
-
-    setEditorRelatedVideos(relatedIds);
-    setEditingVideo(video);
-
-    setEditorPeople(
-      Array.isArray(video.peopleIds)
-        ? video.peopleIds
-        : []
-    );
-
-    setEditorGenres(
-      Array.isArray(video.genreIds)
-        ? video.genreIds
-        : []
-    );
-
-    setEditorTypes(
-      Array.isArray(video.typeIds)
-        ? video.typeIds
-        : video.typeId != null
-          ? [video.typeId]
-          : []
-    );
-
-    setEditorSeries(
-      video.seriesId ?? null
-    );
-
-  }
-
-  // =============================
-  // 영상 편집 닫기
-  // =============================
-
-  function closeVideoEditor() {
-    setEditingVideo(null);
-    setEditorPeople([]);
-    setEditorGenres([]);
-    setEditorTypes([]);
-    setEditorSeries(null);
-    setEditorRelatedVideos([]);
-  }
-
-  // 연계에서 선택한 영상의 페이지로 이동한 뒤,
-  // 렌더링이 끝난 즉시 해당 카드를 화면에 배치합니다.
-  function navigateToVideoCard(videoId: number) {
-    const currentIndex = filteredVideos.findIndex(
-      (item) => item.id === videoId
-    );
-
-    setPendingVideoCardId(videoId);
-
-    if (currentIndex !== -1) {
-      setCurrentPage(Math.floor(currentIndex / VIDEOS_PER_PAGE) + 1);
-    } else {
-      const allIndex = videos.findIndex(
-        (item) => item.id === videoId
-      );
-
-      if (allIndex === -1) {
-        setPendingVideoCardId(null);
-        return;
-      }
-
-      // 필터를 초기화하면 필터 변경 effect가 페이지를 1로 되돌립니다.
-      // 이번 이동에서는 그 자동 초기화를 한 번만 건너뜁니다.
-      skipFilterPageResetRef.current = true;
-      resetFilters();
-      setCurrentPage(Math.floor(allIndex / VIDEOS_PER_PAGE) + 1);
-    }
-
-    closeVideoEditor();
-  }
-
-  // =============================
-  // 영상 저장
-  // =============================
-
-  async function saveVideoRelations() {
-    if (!editingVideo) return;
-
-    // 기존 연계 개수 조회가 저장 결과를 덮어쓰지 못하도록
-    // 저장 작업을 시작하는 순간 이전 요청을 무효화합니다.
-    relatedCountsRevision.current += 1;
-
-    if (typeof window !== "undefined") {
-      videoEditorScrollYRef.current =
-        window.scrollY;
-    }
-
-    setSavingVideo(true);
-
-    try {
-      // =============================
-      // 멤버 기존 연결 삭제
-      // =============================
-
+    export default function Home() {
       const {
-        error: peopleDeleteError,
-      } = await supabase
-        .from("video_people")
-        .delete()
-        .eq(
-          "video",
-          editingVideo.id
-        );
+        videos,
+        setVideos,
+        people,
+        genres,
+        types,
+        series,
+        loading,
+        importing,
+        importMessage,
+        importYouTubeVideos,
+      } = useVideos();
 
-      if (peopleDeleteError) {
-        throw peopleDeleteError;
-      }
+      const [relatedCounts, setRelatedCounts] =
+        useState<Record<number, number>>({});
+      const relatedCountsRevision = useRef(0);
 
       // =============================
-      // 멤버 저장
+      // 필터
       // =============================
 
-      if (editorPeople.length > 0) {
-        const {
-          error: peopleInsertError,
-        } = await supabase
-          .from("video_people")
-          .insert(
-            editorPeople.map(
-              (personId) => ({
-                video: editingVideo.id,
-                person: personId,
-              })
-            )
-          );
+      const [search, setSearch] = useState("");
+      const [date, setDate] = useState("");
+      // 멤버 / 장르 / 타입 / 시리즈 모두 복수 선택
+      const [selectedPeople, setSelectedPeople] = useState<number[]>([]);
 
-        if (peopleInsertError) {
-          throw peopleInsertError;
+      const [selectedGenres, setSelectedGenres] =
+        useState<number[]>([]);
+
+      const [selectedTypes, setSelectedTypes] = useState<number[]>([]);
+      const [selectedSeries, setSelectedSeries] = useState<number[]>([]);
+
+      const [sort, setSort] = useState("최신순");
+
+      const [currentPage, setCurrentPage] = useState(1);
+      const [pendingVideoCardId, setPendingVideoCardId] = useState<number | null>(null);
+      const skipFilterPageResetRef = useRef(false);
+
+      // =============================
+      // 영상 편집
+      // =============================
+
+      const [editingVideo, setEditingVideo] =
+        useState<Video | null>(null);
+
+      const [editorPeople, setEditorPeople] =
+        useState<number[]>([]);
+
+      const [editorGenres, setEditorGenres] =
+        useState<number[]>([]);
+
+      const [editorTypes, setEditorTypes] =
+        useState<number[]>([]);
+
+      const [editorSeries, setEditorSeries] =
+        useState<number | null>(null);
+
+      const [editorRelatedVideos, setEditorRelatedVideos] =
+        useState<number[]>([]);
+
+      const [savingVideo, setSavingVideo] =
+        useState(false);
+      const videoEditorScrollYRef = useRef(0);
+
+      // =============================
+      // 필터 변경
+      // =============================
+
+      useEffect(() => {
+        if (skipFilterPageResetRef.current) {
+          skipFilterPageResetRef.current = false;
+          return;
         }
-      }
+
+        setCurrentPage(1);
+      }, [
+        search,
+        date,
+        selectedPeople,
+        selectedGenres,
+        selectedTypes,
+        selectedSeries,
+        sort,
+      ]);
 
       // =============================
-      // 장르 기존 연결 삭제
+      // 영상 편집 열기
       // =============================
 
-      const {
-        error: genreDeleteError,
-      } = await supabase
-        .from("video_genres")
-        .delete()
-        .eq(
-          "video",
-          editingVideo.id
-        );
-
-      if (genreDeleteError) {
-        throw genreDeleteError;
-      }
-
-      // =============================
-      // 장르 저장
-      // =============================
-
-      if (editorGenres.length > 0) {
-        const {
-          error: genreInsertError,
-        } = await supabase
-          .from("video_genres")
-          .insert(
-            editorGenres.map(
-              (genreId) => ({
-                video: editingVideo.id,
-                genre: genreId,
-              })
-            )
-          );
-
-        if (genreInsertError) {
-          throw genreInsertError;
+      async function openVideoEditor(video: Video) {
+        if (typeof window !== "undefined") {
+          videoEditorScrollYRef.current =
+            document.scrollingElement?.scrollTop ??
+            window.scrollY;
         }
-      }
 
-      // =============================
-      // 타입 / 시리즈 저장
-      // =============================
-
-      const {
-        error: videoUpdateError,
-      } = await supabase
-        .from("videos")
-        .update({
-          type_ids: editorTypes,
-          type_id: editorTypes[0] ?? null,
-          series_id: editorSeries,
-        })
-        .eq(
-          "id",
-          editingVideo.id
-        );
-
-      if (videoUpdateError) {
-        throw videoUpdateError;
-      }
-
-      // =============================
-      // 연계 저장
-      // =============================
-
-      const { error: relationDeleteAError } = await supabase
-        .from("video_relations")
-        .delete()
-        .eq("video_id", editingVideo.id);
-
-      if (relationDeleteAError) {
-        throw relationDeleteAError;
-      }
-
-      const { error: relationDeleteBError } = await supabase
-        .from("video_relations")
-        .delete()
-        .eq("related_video_id", editingVideo.id);
-
-      if (relationDeleteBError) {
-        throw relationDeleteBError;
-      }
-
-      const uniqueRelatedIds = Array.from(
-        new Set(
-          editorRelatedVideos.filter(
-            (id) => id !== editingVideo.id
-          )
-        )
-      );
-
-      if (uniqueRelatedIds.length > 0) {
-        const relationRows = uniqueRelatedIds.map((relatedId) => ({
-          video_id: Math.min(editingVideo.id, relatedId),
-          related_video_id: Math.max(editingVideo.id, relatedId),
-        }));
-
-        const { error: relationInsertError } = await supabase
+        // 연계영상까지 먼저 조회한 뒤 에디터를 열어
+        // 빈 상태로 먼저 렌더링되는 한 박자 지연을 없앱니다.
+        const { data: relationData, error: relationError } = await supabase
           .from("video_relations")
-          .insert(relationRows);
-
-        if (relationInsertError) {
-          throw relationInsertError;
-        }
-      }
-
-      // 저장 직후 카드의 연계 개수를 즉시 반영합니다.
-      // 다시 전체 영상을 불러오지 않아 "한 박자 늦게" 보이는 현상을 없앱니다.
-      setRelatedCounts((current) => {
-        const next = { ...current };
-
-        next[editingVideo.id] = uniqueRelatedIds.length;
-
-        // 양방향 관계이므로 연결된 상대 영상도 즉시 1 증가/갱신합니다.
-        // 현재 영상과 연결된 영상은 이 저장 결과를 기준으로 표시합니다.
-        uniqueRelatedIds.forEach((relatedId) => {
-          next[relatedId] = Math.max(
-            next[relatedId] ?? 0,
-            1
+          .select("video_id, related_video_id")
+          .or(
+            `video_id.eq.${video.id},related_video_id.eq.${video.id}`
           );
-        });
 
-        return next;
-      });
+        if (relationError) {
+          console.error("연계 불러오기 오류:", relationError);
+          return;
+        }
 
-      // 영상 메타데이터는 현재 화면에 즉시 반영합니다.
-      setVideos((currentVideos) =>
-        currentVideos.map((item) =>
-          item.id === editingVideo.id
-            ? {
-                ...item,
-                peopleIds: [...editorPeople],
-                genreIds: [...editorGenres],
-                typeIds: [...editorTypes],
-                typeId: editorTypes[0] ?? null,
-                seriesId: editorSeries,
-              }
-            : item
-        )
-      );
-
-      closeVideoEditor();
-
-      if (typeof window !== "undefined") {
-        const restoreScroll = () => {
-          const y = videoEditorScrollYRef.current;
-          window.scrollTo({
-            top: y,
-            left: 0,
-            behavior: "auto",
-          });
-
-          const scrollingElement = document.scrollingElement;
-          if (scrollingElement) {
-            scrollingElement.scrollTop = y;
-          }
-        };
-
-        restoreScroll();
-
-        requestAnimationFrame(() => {
-          restoreScroll();
-          requestAnimationFrame(() => {
-            restoreScroll();
-            window.setTimeout(restoreScroll, 100);
-          });
-        });
-      }
-    } catch (error) {
-      console.error(
-        "영상 정보 저장 오류:",
-        error
-      );
-
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert(
-          JSON.stringify(
-            error,
-            null,
-            2
+        const relatedIds = Array.from(
+          new Set(
+            (relationData ?? []).map((relation) =>
+              Number(
+                Number(relation.video_id) === video.id
+                  ? relation.related_video_id
+                  : relation.video_id
+              )
+            )
           )
         );
-      }
-    } finally {
-      setSavingVideo(false);
-    }
-  }
 
-  // =============================
-  // 필터링
-  // =============================
+        setEditorRelatedVideos(relatedIds);
+        setEditingVideo(video);
 
-  const filteredVideos = useMemo(() => {
-    let result = videos.filter(
-      (video) => {
-        // 제목
-        const matchesSearch =
-          video.title
-            .toLowerCase()
-            .includes(
-              search.toLowerCase()
-            );
+        setEditorPeople(
+          Array.isArray(video.peopleIds)
+            ? video.peopleIds
+            : []
+        );
 
-        // 날짜
-        const matchesDate =
-          date === "" ||
-          video.published_at.slice(
-            0,
-            10
-          ) === date;
-
-        // 멤버
-        const matchesPerson =
-          selectedPeople.length === 0 ||
-          (video.peopleIds ?? []).some((personId) =>
-            selectedPeople.includes(personId)
-          );
-
-        // 장르
-        const videoGenreIds =
-          Array.isArray(
-            video.genreIds
-          )
+        setEditorGenres(
+          Array.isArray(video.genreIds)
             ? video.genreIds
-            : [];
+            : []
+        );
 
-        const matchesGenre =
-          selectedGenres.length === 0 ||
-          selectedGenres.some(
-            (genreId) =>
-              videoGenreIds.includes(
-                genreId
-              )
-          );
-
-        // 타입
-        const videoTypeIds =
+        setEditorTypes(
           Array.isArray(video.typeIds)
             ? video.typeIds
             : video.typeId != null
               ? [video.typeId]
-              : [];
+              : []
+        );
 
-        const matchesType =
-          selectedTypes.length === 0 ||
-          selectedTypes.some((typeId) =>
-            videoTypeIds.includes(typeId)
+        setEditorSeries(
+          video.seriesId ?? null
+        );
+
+      }
+
+      // =============================
+      // 영상 편집 닫기
+      // =============================
+
+      function closeVideoEditor() {
+        setEditingVideo(null);
+        setEditorPeople([]);
+        setEditorGenres([]);
+        setEditorTypes([]);
+        setEditorSeries(null);
+        setEditorRelatedVideos([]);
+      }
+
+      // 연계에서 선택한 영상의 페이지로 이동한 뒤,
+      // 렌더링이 끝난 즉시 해당 카드를 화면에 배치합니다.
+      function navigateToVideoCard(videoId: number) {
+        const currentIndex = filteredVideos.findIndex(
+          (item) => item.id === videoId
+        );
+
+        setPendingVideoCardId(videoId);
+
+        if (currentIndex !== -1) {
+          setCurrentPage(Math.floor(currentIndex / VIDEOS_PER_PAGE) + 1);
+        } else {
+          const allIndex = videos.findIndex(
+            (item) => item.id === videoId
           );
 
-        // 시리즈
-        const matchesSeries =
-          selectedSeries.length === 0 ||
-          (video.seriesId != null &&
-            selectedSeries.includes(video.seriesId));
+          if (allIndex === -1) {
+            setPendingVideoCardId(null);
+            return;
+          }
 
-        return (
-          matchesSearch &&
-          matchesDate &&
-          matchesPerson &&
-          matchesGenre &&
-          matchesType &&
-          matchesSeries
-        );
+          // 필터를 초기화하면 필터 변경 effect가 페이지를 1로 되돌립니다.
+          // 이번 이동에서는 그 자동 초기화를 한 번만 건너뜁니다.
+          skipFilterPageResetRef.current = true;
+          resetFilters();
+          setCurrentPage(Math.floor(allIndex / VIDEOS_PER_PAGE) + 1);
+        }
+
+        closeVideoEditor();
       }
-    );
 
-    // =============================
-    // 정렬
-    // =============================
+      // =============================
+      // 영상 저장
+      // =============================
 
-    result = [...result].sort(
-      (a, b) => {
-        if (sort === "최신순") {
-          return b.published_at.localeCompare(
-            a.published_at
+      async function saveVideoRelations() {
+        if (!editingVideo) return;
+
+        // 기존 연계 개수 조회가 저장 결과를 덮어쓰지 못하도록
+        // 저장 작업을 시작하는 순간 이전 요청을 무효화합니다.
+        relatedCountsRevision.current += 1;
+
+        if (typeof window !== "undefined") {
+          videoEditorScrollYRef.current =
+            window.scrollY;
+        }
+
+        setSavingVideo(true);
+
+        try {
+          // =============================
+          // 멤버 기존 연결 삭제
+          // =============================
+
+          const {
+            error: peopleDeleteError,
+          } = await supabase
+            .from("video_people")
+            .delete()
+            .eq(
+              "video",
+              editingVideo.id
+            );
+
+          if (peopleDeleteError) {
+            throw peopleDeleteError;
+          }
+
+          // =============================
+          // 멤버 저장
+          // =============================
+
+          if (editorPeople.length > 0) {
+            const {
+              error: peopleInsertError,
+            } = await supabase
+              .from("video_people")
+              .insert(
+                editorPeople.map(
+                  (personId) => ({
+                    video: editingVideo.id,
+                    person: personId,
+                  })
+                )
+              );
+
+            if (peopleInsertError) {
+              throw peopleInsertError;
+            }
+          }
+
+          // =============================
+          // 장르 기존 연결 삭제
+          // =============================
+
+          const {
+            error: genreDeleteError,
+          } = await supabase
+            .from("video_genres")
+            .delete()
+            .eq(
+              "video",
+              editingVideo.id
+            );
+
+          if (genreDeleteError) {
+            throw genreDeleteError;
+          }
+
+          // =============================
+          // 장르 저장
+          // =============================
+
+          if (editorGenres.length > 0) {
+            const {
+              error: genreInsertError,
+            } = await supabase
+              .from("video_genres")
+              .insert(
+                editorGenres.map(
+                  (genreId) => ({
+                    video: editingVideo.id,
+                    genre: genreId,
+                  })
+                )
+              );
+
+            if (genreInsertError) {
+              throw genreInsertError;
+            }
+          }
+
+          // =============================
+          // 타입 / 시리즈 저장
+          // =============================
+
+          const {
+            error: videoUpdateError,
+          } = await supabase
+            .from("videos")
+            .update({
+              type_ids: editorTypes,
+              type_id: editorTypes[0] ?? null,
+              series_id: editorSeries,
+            })
+            .eq(
+              "id",
+              editingVideo.id
+            );
+
+          if (videoUpdateError) {
+            throw videoUpdateError;
+          }
+
+          // =============================
+          // 연계 저장
+          // =============================
+
+          const { error: relationDeleteAError } = await supabase
+            .from("video_relations")
+            .delete()
+            .eq("video_id", editingVideo.id);
+
+          if (relationDeleteAError) {
+            throw relationDeleteAError;
+          }
+
+          const { error: relationDeleteBError } = await supabase
+            .from("video_relations")
+            .delete()
+            .eq("related_video_id", editingVideo.id);
+
+          if (relationDeleteBError) {
+            throw relationDeleteBError;
+          }
+
+          const uniqueRelatedIds = Array.from(
+            new Set(
+              editorRelatedVideos.filter(
+                (id) => id !== editingVideo.id
+              )
+            )
           );
-        }
 
-        return a.published_at.localeCompare(
-          b.published_at
-        );
-      }
-    );
+          if (uniqueRelatedIds.length > 0) {
+            const relationRows = uniqueRelatedIds.map((relatedId) => ({
+              video_id: Math.min(editingVideo.id, relatedId),
+              related_video_id: Math.max(editingVideo.id, relatedId),
+            }));
 
-    return result;
-  }, [
-    videos,
-    search,
-    date,
-    selectedPeople,
-    selectedGenres,
-    selectedTypes,
-    selectedSeries,
-    sort,
-  ]);
+            const { error: relationInsertError } = await supabase
+              .from("video_relations")
+              .insert(relationRows);
 
-  // =============================
-  // 페이지네이션
-  // =============================
+            if (relationInsertError) {
+              throw relationInsertError;
+            }
+          }
 
-  const totalPages = Math.ceil(
-    filteredVideos.length /
-      VIDEOS_PER_PAGE
-  );
+          // 저장 직후 카드의 연계 개수를 즉시 반영합니다.
+          // 다시 전체 영상을 불러오지 않아 "한 박자 늦게" 보이는 현상을 없앱니다.
+          setRelatedCounts((current) => {
+            const next = { ...current };
 
-  const startIndex =
-    (currentPage - 1) *
-    VIDEOS_PER_PAGE;
+            next[editingVideo.id] = uniqueRelatedIds.length;
 
-  const paginatedVideos =
-    filteredVideos.slice(
-      startIndex,
-      startIndex +
-        VIDEOS_PER_PAGE
-    );
+            // 양방향 관계이므로 연결된 상대 영상도 즉시 1 증가/갱신합니다.
+            // 현재 영상과 연결된 영상은 이 저장 결과를 기준으로 표시합니다.
+            uniqueRelatedIds.forEach((relatedId) => {
+              next[relatedId] = Math.max(
+                next[relatedId] ?? 0,
+                1
+              );
+            });
 
-  // 연계로 다른 페이지의 카드로 이동할 때
-  // 페이지 상태가 실제 DOM에 반영된 다음 바로 카드 위치로 이동합니다.
-  useEffect(() => {
-    if (pendingVideoCardId === null) return;
+            return next;
+          });
 
-    const card = document.querySelector<HTMLElement>(
-      `[data-video-id="${pendingVideoCardId}"]`
-    );
+          // 영상 메타데이터는 현재 화면에 즉시 반영합니다.
+          setVideos((currentVideos) =>
+            currentVideos.map((item) =>
+              item.id === editingVideo.id
+                ? {
+                    ...item,
+                    peopleIds: [...editorPeople],
+                    genreIds: [...editorGenres],
+                    typeIds: [...editorTypes],
+                    typeId: editorTypes[0] ?? null,
+                    seriesId: editorSeries,
+                  }
+                : item
+            )
+          );
 
-    if (!card) return;
+          closeVideoEditor();
 
-    card.scrollIntoView({
-      behavior: "auto",
-      block: "start",
-    });
+          if (typeof window !== "undefined") {
+            const restoreScroll = () => {
+              const y = videoEditorScrollYRef.current;
+              window.scrollTo({
+                top: y,
+                left: 0,
+                behavior: "auto",
+              });
 
-    setPendingVideoCardId(null);
-  }, [pendingVideoCardId, paginatedVideos]);
-
-  // 현재 페이지에 보이는 영상의 연계 개수만 조회합니다.
-  useEffect(() => {
-    const pageIds = paginatedVideos.map((video) => video.id);
-
-    if (pageIds.length === 0) return;
-
-    let cancelled = false;
-    const requestRevision =
-      relatedCountsRevision.current;
-
-    async function loadRelatedCounts() {
-      const { data, error } = await supabase
-        .from("video_relations")
-        .select("video_id, related_video_id")
-        .or(
-          `video_id.in.(${pageIds.join(",")}),related_video_id.in.(${pageIds.join(",")})`
-        );
-
-      if (
-        cancelled ||
-        error ||
-        requestRevision !== relatedCountsRevision.current
-      ) {
-        return;
-      }
-
-      const counts: Record<number, number> = {};
-
-      (data ?? []).forEach((relation) => {
-        const videoId = Number(relation.video_id);
-        const relatedId = Number(relation.related_video_id);
-
-        if (pageIds.includes(videoId)) {
-          counts[videoId] = (counts[videoId] ?? 0) + 1;
-        }
-
-        if (pageIds.includes(relatedId)) {
-          counts[relatedId] = (counts[relatedId] ?? 0) + 1;
-        }
-      });
-
-      setRelatedCounts((current) => ({
-        ...current,
-        ...Object.fromEntries(
-          pageIds.map((id) => [id, counts[id] ?? 0])
-        ),
-      }));
-    }
-
-    void loadRelatedCounts();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [paginatedVideos]);
-
-  // =============================
-  // 필터 초기화
-  // =============================
-
-  function resetFilters() {
-    setSearch("");
-    setDate("");
-    setSelectedPeople([]);
-    setSelectedGenres([]);
-    setSelectedTypes([]);
-    setSelectedSeries([]);
-    setSort("최신순");
-  }
-
-  // =============================
-  // 카드 연계 영상 개수
-  // =============================
-  // 저장 직후 오래된 조회가 optimistic 상태를 덮어쓰지 않도록
-  // 요청 시점의 revision을 확인합니다.
-  useEffect(() => {
-    const pageIds = paginatedVideos.map((video) => video.id);
-    if (pageIds.length === 0) return;
-
-    let cancelled = false;
-    const requestRevision = relatedCountsRevision.current;
-
-    async function loadRelatedCounts() {
-      const { data, error } = await supabase
-        .from("video_relations")
-        .select("video_id, related_video_id")
-        .or(
-          `video_id.in.(${pageIds.join(",")}),related_video_id.in.(${pageIds.join(",")})`
-        );
-
-      if (
-        cancelled ||
-        error ||
-        requestRevision !== relatedCountsRevision.current
-      ) {
-        return;
-      }
-
-      const counts: Record<number, number> = {};
-
-      (data ?? []).forEach((relation) => {
-        const a = Number(relation.video_id);
-        const b = Number(relation.related_video_id);
-
-        if (pageIds.includes(a)) {
-          counts[a] = (counts[a] ?? 0) + 1;
-        }
-
-        if (pageIds.includes(b)) {
-          counts[b] = (counts[b] ?? 0) + 1;
-        }
-      });
-
-      setRelatedCounts((current) => ({
-        ...current,
-        ...Object.fromEntries(
-          pageIds.map((id) => [id, counts[id] ?? 0])
-        ),
-      }));
-    }
-
-    void loadRelatedCounts();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [paginatedVideos]);
-
-  // =============================
-  // 화면
-  // =============================
-
-  return (
-    <>
-      <main className="site-page min-h-screen bg-zinc-950 text-white">
-
-      <div className="mx-auto max-w-7xl px-4 pb-8 pt-20 sm:px-6 sm:py-10 sm:pb-16">
-
-        {/* ========================= */}
-        {/* 헤더 */}
-        {/* ========================= */}
-
-        <header className="mb-8">
-          <p className="text-xs font-semibold tracking-[0.25em] text-zinc-600">
-            SLEEPGROUND TV ARCHIVE
-          </p>
-
-          <div className="mt-3 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                잠뜰TV Archive
-              </h1>
-
-              <p className="mt-2 text-sm text-zinc-500">
-                잠뜰TV 영상을 검색하고
-                정리해보세요.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={
-                importYouTubeVideos
+              const scrollingElement = document.scrollingElement;
+              if (scrollingElement) {
+                scrollingElement.scrollTop = y;
               }
-              disabled={importing}
-              className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {importing
-                ? "영상 가져오는 중..."
-                : "YouTube 영상 가져오기"}
-            </button>
-          </div>
+            };
 
-          {importMessage && (
-            <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-400">
-              {importMessage}
-            </div>
-          )}
-        </header>
+            restoreScroll();
 
-        {/* ========================= */}
-        {/* 필터 */}
-        {/* ========================= */}
+            requestAnimationFrame(() => {
+              restoreScroll();
+              requestAnimationFrame(() => {
+                restoreScroll();
+                window.setTimeout(restoreScroll, 100);
+              });
+            });
+          }
+        } catch (error) {
+          console.error(
+            "영상 정보 저장 오류:",
+            error
+          );
 
-        <VideoFilters
-  search={search}
-  date={date}
-  selectedPeople={selectedPeople}
-  selectedGenres={selectedGenres}
-  selectedTypes={selectedTypes}
-  selectedSeries={selectedSeries}
-  sort={sort}
-  people={people}
-  genres={genres}
-  types={types}
-  series={series}
-  setSearch={setSearch}
-  setDate={setDate}
-  setSelectedPeople={setSelectedPeople}
-  setSelectedGenres={setSelectedGenres}
-  setSelectedTypes={setSelectedTypes}
-  setSelectedSeries={setSelectedSeries}
-  setSort={setSort}
-  onReset={resetFilters}
-/>
+          if (error instanceof Error) {
+            alert(error.message);
+          } else {
+            alert(
+              JSON.stringify(
+                error,
+                null,
+                2
+              )
+            );
+          }
+        } finally {
+          setSavingVideo(false);
+        }
+      }
 
-        {/* ========================= */}
-        {/* 결과 헤더 */}
-        {/* ========================= */}
+      // =============================
+      // 필터링
+      // =============================
 
-        <div className="mb-4 flex items-center justify-between sm:mb-5">
-          <div>
-            <h2 className="font-semibold text-zinc-200">
-              영상
-            </h2>
+      const filteredVideos = useMemo(() => {
+        let result = videos.filter(
+          (video) => {
+            // 제목
+            const matchesSearch =
+              video.title
+                .toLowerCase()
+                .includes(
+                  search.toLowerCase()
+                );
 
-            {selectedGenres.length >
-              0 && (
-              <p className="mt-1 text-xs text-zinc-600">
-                장르{" "}
-                {selectedGenres.length}개
-                선택됨
-              </p>
-            )}
-          </div>
+            // 날짜
+            const matchesDate =
+              date === "" ||
+              video.published_at.slice(
+                0,
+                10
+              ) === date;
 
-          <span className="rounded-full bg-zinc-900 px-3 py-1.5 text-xs text-zinc-500">
-            {filteredVideos.length}개
-          </span>
-        </div>
+            // 멤버
+            const matchesPerson =
+              selectedPeople.length === 0 ||
+              (video.peopleIds ?? []).some((personId) =>
+                selectedPeople.includes(personId)
+              );
 
-        {/* ========================= */}
-        {/* 로딩 */}
-        {/* ========================= */}
+            // 장르
+            const videoGenreIds =
+              Array.isArray(
+                video.genreIds
+              )
+                ? video.genreIds
+                : [];
 
-        {loading && (
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/50 py-24 text-center">
-            <p className="text-sm text-zinc-500">
-              영상을 불러오는 중...
-            </p>
-          </div>
-        )}
-
-        {/* ========================= */}
-        {/* 영상 없음 */}
-        {/* ========================= */}
-
-        {!loading &&
-          filteredVideos.length ===
-            0 && (
-            <div className="rounded-3xl border border-dashed border-zinc-800 bg-zinc-900/30 py-24 text-center">
-              <p className="text-sm text-zinc-500">
-                해당 조건의 영상이
-                없습니다.
-              </p>
-
-              <button
-                type="button"
-                onClick={
-                  resetFilters
-                }
-                className="mt-4 rounded-xl bg-zinc-800 px-4 py-2 text-sm text-zinc-400 transition hover:bg-zinc-700 hover:text-white"
-              >
-                필터 초기화
-              </button>
-            </div>
-          )}
-
-        {/* ========================= */}
-        {/* 영상 목록 */}
-        {/* ========================= */}
-
-        {!loading &&
-          filteredVideos.length >
-            0 && (
-            <>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {paginatedVideos.map(
-                  (video) => (
-                    <div
-                      key={`video-card-${video.id}`}
-                      data-video-id={video.id}
-                    >
-                    <VideoCard
-                      video={video}
-                      people={people}
-                      genres={genres}
-                      types={types}
-                      series={series}
-                      relatedCount={
-                        relatedCounts[video.id] ?? 0
-                      }
-                      onEdit={
-                        openVideoEditor
-                      }
-                    />
-                    </div>
+            const matchesGenre =
+              selectedGenres.length === 0 ||
+              selectedGenres.some(
+                (genreId) =>
+                  videoGenreIds.includes(
+                    genreId
                   )
+              );
+
+            // 타입
+            const videoTypeIds =
+              Array.isArray(video.typeIds)
+                ? video.typeIds
+                : video.typeId != null
+                  ? [video.typeId]
+                  : [];
+
+            const matchesType =
+              selectedTypes.length === 0 ||
+              selectedTypes.some((typeId) =>
+                videoTypeIds.includes(typeId)
+              );
+
+            // 시리즈
+            const matchesSeries =
+              selectedSeries.length === 0 ||
+              (video.seriesId != null &&
+                selectedSeries.includes(video.seriesId));
+
+            return (
+              matchesSearch &&
+              matchesDate &&
+              matchesPerson &&
+              matchesGenre &&
+              matchesType &&
+              matchesSeries
+            );
+          }
+        );
+
+        // =============================
+        // 정렬
+        // =============================
+
+        result = [...result].sort(
+          (a, b) => {
+            if (sort === "최신순") {
+              return b.published_at.localeCompare(
+                a.published_at
+              );
+            }
+
+            return a.published_at.localeCompare(
+              b.published_at
+            );
+          }
+        );
+
+        return result;
+      }, [
+        videos,
+        search,
+        date,
+        selectedPeople,
+        selectedGenres,
+        selectedTypes,
+        selectedSeries,
+        sort,
+      ]);
+
+      // =============================
+      // 페이지네이션
+      // =============================
+
+      const totalPages = Math.ceil(
+        filteredVideos.length /
+          VIDEOS_PER_PAGE
+      );
+
+      const startIndex =
+        (currentPage - 1) *
+        VIDEOS_PER_PAGE;
+
+      const paginatedVideos =
+        filteredVideos.slice(
+          startIndex,
+          startIndex +
+            VIDEOS_PER_PAGE
+        );
+
+      // 연계로 다른 페이지의 카드로 이동할 때
+      // 페이지 상태가 실제 DOM에 반영된 다음 바로 카드 위치로 이동합니다.
+      useEffect(() => {
+        if (pendingVideoCardId === null) return;
+
+        const card = document.querySelector<HTMLElement>(
+          `[data-video-id="${pendingVideoCardId}"]`
+        );
+
+        if (!card) return;
+
+        card.scrollIntoView({
+          behavior: "auto",
+          block: "start",
+        });
+
+        setPendingVideoCardId(null);
+      }, [pendingVideoCardId, paginatedVideos]);
+
+      // 현재 페이지에 보이는 영상의 연계 개수만 조회합니다.
+      useEffect(() => {
+        const pageIds = paginatedVideos.map((video) => video.id);
+
+        if (pageIds.length === 0) return;
+
+        let cancelled = false;
+        const requestRevision =
+          relatedCountsRevision.current;
+
+        async function loadRelatedCounts() {
+          const { data, error } = await supabase
+            .from("video_relations")
+            .select("video_id, related_video_id")
+            .or(
+              `video_id.in.(${pageIds.join(",")}),related_video_id.in.(${pageIds.join(",")})`
+            );
+
+          if (
+            cancelled ||
+            error ||
+            requestRevision !== relatedCountsRevision.current
+          ) {
+            return;
+          }
+
+          const counts: Record<number, number> = {};
+
+          (data ?? []).forEach((relation) => {
+            const videoId = Number(relation.video_id);
+            const relatedId = Number(relation.related_video_id);
+
+            if (pageIds.includes(videoId)) {
+              counts[videoId] = (counts[videoId] ?? 0) + 1;
+            }
+
+            if (pageIds.includes(relatedId)) {
+              counts[relatedId] = (counts[relatedId] ?? 0) + 1;
+            }
+          });
+
+          setRelatedCounts((current) => ({
+            ...current,
+            ...Object.fromEntries(
+              pageIds.map((id) => [id, counts[id] ?? 0])
+            ),
+          }));
+        }
+
+        void loadRelatedCounts();
+
+        return () => {
+          cancelled = true;
+        };
+      }, [paginatedVideos]);
+
+      // =============================
+      // 필터 초기화
+      // =============================
+
+      function resetFilters() {
+        setSearch("");
+        setDate("");
+        setSelectedPeople([]);
+        setSelectedGenres([]);
+        setSelectedTypes([]);
+        setSelectedSeries([]);
+        setSort("최신순");
+      }
+
+      // =============================
+      // 카드 연계 영상 개수
+      // =============================
+      // 저장 직후 오래된 조회가 optimistic 상태를 덮어쓰지 않도록
+      // 요청 시점의 revision을 확인합니다.
+      useEffect(() => {
+        const pageIds = paginatedVideos.map((video) => video.id);
+        if (pageIds.length === 0) return;
+
+        let cancelled = false;
+        const requestRevision = relatedCountsRevision.current;
+
+        async function loadRelatedCounts() {
+          const { data, error } = await supabase
+            .from("video_relations")
+            .select("video_id, related_video_id")
+            .or(
+              `video_id.in.(${pageIds.join(",")}),related_video_id.in.(${pageIds.join(",")})`
+            );
+
+          if (
+            cancelled ||
+            error ||
+            requestRevision !== relatedCountsRevision.current
+          ) {
+            return;
+          }
+
+          const counts: Record<number, number> = {};
+
+          (data ?? []).forEach((relation) => {
+            const a = Number(relation.video_id);
+            const b = Number(relation.related_video_id);
+
+            if (pageIds.includes(a)) {
+              counts[a] = (counts[a] ?? 0) + 1;
+            }
+
+            if (pageIds.includes(b)) {
+              counts[b] = (counts[b] ?? 0) + 1;
+            }
+          });
+
+          setRelatedCounts((current) => ({
+            ...current,
+            ...Object.fromEntries(
+              pageIds.map((id) => [id, counts[id] ?? 0])
+            ),
+          }));
+        }
+
+        void loadRelatedCounts();
+
+        return () => {
+          cancelled = true;
+        };
+      }, [paginatedVideos]);
+
+      // =============================
+      // 화면
+      // =============================
+
+      return (
+        <>
+          <main className="site-page min-h-screen bg-zinc-950 text-white">
+
+          <div className="mx-auto max-w-7xl px-4 pb-8 pt-20 sm:px-6 sm:py-10 sm:pb-16">
+
+            {/* ========================= */}
+            {/* 헤더 */}
+            {/* ========================= */}
+
+            <header className="mb-8">
+              <p className="text-xs font-semibold tracking-[0.25em] text-zinc-600">
+                SLEEPGROUND TV ARCHIVE
+              </p>
+
+              <div className="mt-3 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                    잠뜰TV Archive
+                  </h1>
+
+                  <p className="mt-2 text-sm text-zinc-500">
+                    잠뜰TV 영상을 검색하고
+                    정리해보세요.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={
+                    importYouTubeVideos
+                  }
+                  disabled={importing}
+                  className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {importing
+                    ? "영상 가져오는 중..."
+                    : "YouTube 영상 가져오기"}
+                </button>
+              </div>
+
+              {importMessage && (
+                <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-400">
+                  {importMessage}
+                </div>
+              )}
+            </header>
+
+            {/* ========================= */}
+            {/* 필터 */}
+            {/* ========================= */}
+
+            <VideoFilters
+      search={search}
+      date={date}
+      selectedPeople={selectedPeople}
+      selectedGenres={selectedGenres}
+      selectedTypes={selectedTypes}
+      selectedSeries={selectedSeries}
+      sort={sort}
+      people={people}
+      genres={genres}
+      types={types}
+      series={series}
+      setSearch={setSearch}
+      setDate={setDate}
+      setSelectedPeople={setSelectedPeople}
+      setSelectedGenres={setSelectedGenres}
+      setSelectedTypes={setSelectedTypes}
+      setSelectedSeries={setSelectedSeries}
+      setSort={setSort}
+      onReset={resetFilters}
+    />
+
+            {/* ========================= */}
+            {/* 결과 헤더 */}
+            {/* ========================= */}
+
+            <div className="mb-4 flex items-center justify-between sm:mb-5">
+              <div>
+                <h2 className="font-semibold text-zinc-200">
+                  영상
+                </h2>
+
+                {selectedGenres.length >
+                  0 && (
+                  <p className="mt-1 text-xs text-zinc-600">
+                    장르{" "}
+                    {selectedGenres.length}개
+                    선택됨
+                  </p>
                 )}
               </div>
 
-              {totalPages > 1 && (
-                  <nav
-                    aria-label="영상 페이지 이동"
-                    className="mt-8 flex w-full min-w-0 items-center justify-center overflow-hidden px-0 pb-2"
+              <span className="rounded-full bg-zinc-900 px-3 py-1.5 text-xs text-zinc-500">
+                {filteredVideos.length}개
+              </span>
+            </div>
+
+            {/* ========================= */}
+            {/* 로딩 */}
+            {/* ========================= */}
+
+            {loading && (
+              <div className="rounded-3xl border border-zinc-800 bg-zinc-900/50 py-24 text-center">
+                <p className="text-sm text-zinc-500">
+                  영상을 불러오는 중...
+                </p>
+              </div>
+            )}
+
+            {/* ========================= */}
+            {/* 영상 없음 */}
+            {/* ========================= */}
+
+            {!loading &&
+              filteredVideos.length ===
+                0 && (
+                <div className="rounded-3xl border border-dashed border-zinc-800 bg-zinc-900/30 py-24 text-center">
+                  <p className="text-sm text-zinc-500">
+                    해당 조건의 영상이
+                    없습니다.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={
+                      resetFilters
+                    }
+                    className="mt-4 rounded-xl bg-zinc-800 px-4 py-2 text-sm text-zinc-400 transition hover:bg-zinc-700 hover:text-white"
                   >
-                    {/* 모바일: 다음 버튼까지 항상 한 줄 */}
-                    <div className="flex w-full min-w-0 items-center justify-center gap-1 sm:hidden">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setCurrentPage((page) =>
-                            Math.max(1, page - 1)
-                          )
-                        }
-                        disabled={currentPage === 1}
-                        className="h-10 shrink-0 rounded-xl border border-zinc-800 bg-zinc-900 px-2.5 text-xs text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
-                      >
-                        이전
-                      </button>
+                    필터 초기화
+                  </button>
+                </div>
+              )}
 
-                      <div className="flex min-w-0 shrink items-center justify-center gap-1">
-                        {[
-                          currentPage - 1,
-                          currentPage,
-                          currentPage + 1,
-                        ]
-                          .filter(
-                            (page) =>
-                              page >= 1 &&
-                              page <= totalPages
-                          )
-                          .map((page) => (
-                            <button
-                              key={`mobile-page-${page}`}
-                              type="button"
-                              onClick={() =>
-                                setCurrentPage(page)
-                              }
-                              className={`h-10 min-w-9 shrink-0 rounded-xl px-2 text-sm font-medium transition ${
-                                currentPage === page
-                                  ? "bg-blue-600 text-white"
-                                  : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white"
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          ))}
-                      </div>
+            {/* ========================= */}
+            {/* 영상 목록 */}
+            {/* ========================= */}
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setCurrentPage((page) =>
-                            Math.min(
-                              totalPages,
-                              page + 1
-                            )
-                          )
-                        }
-                        disabled={
-                          currentPage === totalPages
-                        }
-                        className="h-10 shrink-0 rounded-xl border border-zinc-800 bg-zinc-900 px-2.5 text-xs text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
-                      >
-                        다음
-                      </button>
-                    </div>
-
-                    {/* PC: 기존 페이지네이션 */}
-                    <div className="hidden items-center gap-2 sm:flex">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setCurrentPage((page) =>
-                            Math.max(1, page - 1)
-                          )
-                        }
-                        disabled={currentPage === 1}
-                        className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
-                      >
-                        이전
-                      </button>
-
-                      <div className="flex min-w-0 flex-wrap items-center justify-center gap-1">
-                        {(() => {
-                          const pages: (number | string)[] = [];
-
-                          if (totalPages <= 7) {
-                            for (
-                              let page = 1;
-                              page <= totalPages;
-                              page++
-                            ) {
-                              pages.push(page);
-                            }
-                          } else {
-                            pages.push(1);
-
-                            if (currentPage > 4) {
-                              pages.push("...");
-                            }
-
-                            const startPage = Math.max(
-                              2,
-                              currentPage - 1
-                            );
-                            const endPage = Math.min(
-                              totalPages - 1,
-                              currentPage + 1
-                            );
-
-                            for (
-                              let page = startPage;
-                              page <= endPage;
-                              page++
-                            ) {
-                              pages.push(page);
-                            }
-
-                            if (
-                              currentPage <
-                              totalPages - 3
-                            ) {
-                              pages.push("...");
-                            }
-
-                            pages.push(totalPages);
+            {!loading &&
+              filteredVideos.length >
+                0 && (
+                <>
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {paginatedVideos.map(
+                      (video) => (
+                        <div
+                          key={`video-card-${video.id}`}
+                          data-video-id={video.id}
+                        >
+                        <VideoCard
+                          video={video}
+                          people={people}
+                          genres={genres}
+                          types={types}
+                          series={series}
+                          relatedCount={
+                            relatedCounts[video.id] ?? 0
                           }
+                          onEdit={
+                            openVideoEditor
+                          }
+                        />
+                        </div>
+                      )
+                    )}
+                  </div>
 
-                          return pages.map(
-                            (page, index) =>
-                              page === "..." ? (
-                                <span
-                                  key={`ellipsis-${index}`}
-                                  className="px-2 text-sm text-zinc-600"
-                                >
-                                  ...
-                                </span>
-                              ) : (
+                  {totalPages > 1 && (
+                      <nav
+                        aria-label="영상 페이지 이동"
+                        className="mt-8 flex w-full min-w-0 items-center justify-center overflow-hidden px-0 pb-2"
+                      >
+                        {/* 모바일: 다음 버튼까지 항상 한 줄 */}
+                        <div className="flex w-full min-w-0 items-center justify-center gap-1 sm:hidden">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setCurrentPage((page) =>
+                                Math.max(1, page - 1)
+                              )
+                            }
+                            disabled={currentPage === 1}
+                            className="h-10 shrink-0 rounded-xl border border-zinc-800 bg-zinc-900 px-2.5 text-xs text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
+                          >
+                            이전
+                          </button>
+
+                          <div className="flex min-w-0 shrink items-center justify-center gap-1">
+                            {[
+                              currentPage - 1,
+                              currentPage,
+                              currentPage + 1,
+                            ]
+                              .filter(
+                                (page) =>
+                                  page >= 1 &&
+                                  page <= totalPages
+                              )
+                              .map((page) => (
                                 <button
-                                  key={page}
+                                  key={`mobile-page-${page}`}
                                   type="button"
                                   onClick={() =>
-                                    setCurrentPage(
-                                      page as number
-                                    )
+                                    setCurrentPage(page)
                                   }
-                                  className={`min-w-10 shrink-0 rounded-xl px-3 py-2 text-sm font-medium transition ${
+                                  className={`h-10 min-w-9 shrink-0 rounded-xl px-2 text-sm font-medium transition ${
                                     currentPage === page
                                       ? "bg-blue-600 text-white"
                                       : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white"
@@ -1061,101 +952,210 @@ export default function Home() {
                                 >
                                   {page}
                                 </button>
+                              ))}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setCurrentPage((page) =>
+                                Math.min(
+                                  totalPages,
+                                  page + 1
+                                )
                               )
-                          );
-                        })()}
-                      </div>
+                            }
+                            disabled={
+                              currentPage === totalPages
+                            }
+                            className="h-10 shrink-0 rounded-xl border border-zinc-800 bg-zinc-900 px-2.5 text-xs text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
+                          >
+                            다음
+                          </button>
+                        </div>
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setCurrentPage((page) =>
-                            Math.min(
-                              totalPages,
-                              page + 1
-                            )
-                          )
-                        }
-                        disabled={
-                          currentPage === totalPages
-                        }
-                        className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
-                      >
-                        다음
-                      </button>
-                    </div>
-                  </nav>
-                )}
+                        {/* PC: 기존 페이지네이션 */}
+                        <div className="hidden items-center gap-2 sm:flex">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setCurrentPage((page) =>
+                                Math.max(1, page - 1)
+                              )
+                            }
+                            disabled={currentPage === 1}
+                            className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
+                          >
+                            이전
+                          </button>
 
-            </>
-          )}
-      </div>
+                          <div className="flex min-w-0 flex-wrap items-center justify-center gap-1">
+                            {(() => {
+                              const pages: (number | string)[] = [];
 
-      {/* ========================= */}
-      {/* 영상 편집 */}
-      {/* ========================= */}
+                              if (totalPages <= 7) {
+                                for (
+                                  let page = 1;
+                                  page <= totalPages;
+                                  page++
+                                ) {
+                                  pages.push(page);
+                                }
+                              } else {
+                                pages.push(1);
 
-      <footer className="site-footer border-t border-zinc-900 bg-zinc-950">
-        <div className="mx-auto max-w-7xl px-5 py-8 text-center sm:px-6">
-          <p className="text-xs text-zinc-600">
-            SLEEPGROUND TV ARCHIVE
-          </p>
-          <p className="mt-2 text-xs text-zinc-700">
-            잠뜰TV Archive
-          </p>
-        </div>
-      </footer>
+                                if (currentPage > 4) {
+                                  pages.push("...");
+                                }
 
-      <VideoEditor
-        video={editingVideo}
-        people={people}
-        genres={genres}
-        types={types}
-        series={series}
-        selectedPeople={
-          editorPeople
-        }
-        selectedGenres={
-          editorGenres
-        }
-        selectedTypes={
-          editorTypes
-        }
-        selectedSeries={
-          editorSeries
-        }
-        videos={videos}
-        selectedRelatedVideos={
-          editorRelatedVideos
-        }
-        saving={savingVideo}
-        setSelectedPeople={
-          setEditorPeople
-        }
-        setSelectedGenres={
-          setEditorGenres
-        }
-        setSelectedTypes={
-          setEditorTypes
-        }
-        setSelectedSeries={
-          setEditorSeries
-        }
-        setSelectedRelatedVideos={
-          setEditorRelatedVideos
-        }
-        onSave={
-          saveVideoRelations
-        }
-        onClose={
-          closeVideoEditor
-        }
-        onNavigateToVideo={
-          navigateToVideoCard
-        }
-      />
-      </main>
-    </>
-  );
+                                const startPage = Math.max(
+                                  2,
+                                  currentPage - 1
+                                );
+                                const endPage = Math.min(
+                                  totalPages - 1,
+                                  currentPage + 1
+                                );
 
-}
+                                for (
+                                  let page = startPage;
+                                  page <= endPage;
+                                  page++
+                                ) {
+                                  pages.push(page);
+                                }
+
+                                if (
+                                  currentPage <
+                                  totalPages - 3
+                                ) {
+                                  pages.push("...");
+                                }
+
+                                pages.push(totalPages);
+                              }
+
+                              return pages.map(
+                                (page, index) =>
+                                  page === "..." ? (
+                                    <span
+                                      key={`ellipsis-${index}`}
+                                      className="px-2 text-sm text-zinc-600"
+                                    >
+                                      ...
+                                    </span>
+                                  ) : (
+                                    <button
+                                      key={page}
+                                      type="button"
+                                      onClick={() =>
+                                        setCurrentPage(
+                                          page as number
+                                        )
+                                      }
+                                      className={`min-w-10 shrink-0 rounded-xl px-3 py-2 text-sm font-medium transition ${
+                                        currentPage === page
+                                          ? "bg-blue-600 text-white"
+                                          : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                                      }`}
+                                    >
+                                      {page}
+                                    </button>
+                                  )
+                              );
+                            })()}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setCurrentPage((page) =>
+                                Math.min(
+                                  totalPages,
+                                  page + 1
+                                )
+                              )
+                            }
+                            disabled={
+                              currentPage === totalPages
+                            }
+                            className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-30"
+                          >
+                            다음
+                          </button>
+                        </div>
+                      </nav>
+                    )}
+
+                </>
+              )}
+          </div>
+
+          {/* ========================= */}
+          {/* 영상 편집 */}
+          {/* ========================= */}
+
+          <footer className="site-footer border-t border-zinc-900 bg-zinc-950">
+            <div className="mx-auto max-w-7xl px-5 py-8 text-center sm:px-6">
+              <p className="text-xs text-zinc-600">
+                SLEEPGROUND TV ARCHIVE
+              </p>
+              <p className="mt-2 text-xs text-zinc-700">
+                잠뜰TV Archive
+              </p>
+            </div>
+          </footer>
+
+          <VideoEditor
+            video={editingVideo}
+            people={people}
+            genres={genres}
+            types={types}
+            series={series}
+            selectedPeople={
+              editorPeople
+            }
+            selectedGenres={
+              editorGenres
+            }
+            selectedTypes={
+              editorTypes
+            }
+            selectedSeries={
+              editorSeries
+            }
+            videos={videos}
+            selectedRelatedVideos={
+              editorRelatedVideos
+            }
+            saving={savingVideo}
+            setSelectedPeople={
+              setEditorPeople
+            }
+            setSelectedGenres={
+              setEditorGenres
+            }
+            setSelectedTypes={
+              setEditorTypes
+            }
+            setSelectedSeries={
+              setEditorSeries
+            }
+            setSelectedRelatedVideos={
+              setEditorRelatedVideos
+            }
+            onSave={
+              saveVideoRelations
+            }
+            onClose={
+              closeVideoEditor
+            }
+            onNavigateToVideo={
+              navigateToVideoCard
+            }
+          />
+          </main>
+        </>
+      );
+
+    }
