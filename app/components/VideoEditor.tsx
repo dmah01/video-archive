@@ -52,7 +52,6 @@
 
     const personColors: Record<string, string> = {
       잠뜰: "border-sky-400/30 bg-sky-400/10 text-sky-300",
-      하늘: "border-cyan-400/30 bg-cyan-400/10 text-cyan-300",
       각별: "border-yellow-400/30 bg-yellow-400/10 text-yellow-300",
       공룡: "border-green-400/30 bg-green-400/10 text-green-300",
       수현: "border-purple-400/30 bg-purple-400/10 text-purple-300",
