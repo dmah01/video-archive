@@ -271,14 +271,16 @@ export default function VideoCard({
             ))}
 
             <button
-              type="button"
-              data-more-button
-              onClick={() => setShowAllTags(true)}
-              className="hidden shrink-0 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[11px] font-medium text-zinc-300 transition hover:border-zinc-600 hover:bg-zinc-700 hover:text-white"
-              aria-label={`태그 ${hiddenTagCount}개 더 보기`}
-            >
-              +{hiddenTagCount}
-            </button>
+  type="button"
+  data-more-button
+  onClick={() => setShowAllTags(true)}
+  className="hidden shrink-0 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[11px] font-medium text-zinc-300 transition hover:border-zinc-600 hover:bg-zinc-700 hover:text-white"
+  aria-label={`태그 ${hiddenTagCount}개 더 보기`}
+>
+  <span className="inline-flex h-full items-center justify-center text-[15px] leading-4">
+    +{hiddenTagCount}
+  </span>
+</button>
           </div>
         </div>
 
