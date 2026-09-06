@@ -1,4 +1,4 @@
-    "use client";
+"use client";
 
     import {
       useEffect,
@@ -20,7 +20,7 @@
       selectedGenres: number[];
 
       selectedTypes: number[];
-      selectedSeries: number | null;
+      selectedSeries: number[];
       selectedRelatedVideos: number[];
 
       saving: boolean;
@@ -38,7 +38,7 @@
       >;
 
       setSelectedSeries: React.Dispatch<
-        React.SetStateAction<number | null>
+        React.SetStateAction<number[]>
       >;
 
       setSelectedRelatedVideos: React.Dispatch<
@@ -154,7 +154,7 @@
       const safeSelectedPeople = selectedPeople ?? [];
       const safeSelectedGenres = selectedGenres ?? [];
       const safeSelectedTypes = selectedTypes ?? [];
-      const safeSelectedSeries = selectedSeries ?? null;
+      const safeSelectedSeries = selectedSeries ?? [];
       const safeSelectedRelatedVideos =
         selectedRelatedVideos ?? [];
 
@@ -316,12 +316,16 @@
                     );
                   })}
 
-                  {safeSelectedSeries !== null && (
-                    <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] text-emerald-300">
-                      {series.find((item) => item.id === safeSelectedSeries)?.name ??
-                        "시리즈"}
-                    </span>
-                  )}
+                  {safeSelectedSeries.length > 0 &&
+                    safeSelectedSeries.map((seriesId) => (
+                      <span
+                        key={seriesId}
+                        className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] text-emerald-300"
+                      >
+                        {series.find((item) => item.id === seriesId)?.name ??
+                          "시리즈"}
+                      </span>
+                    ))}
 
                   {safeSelectedRelatedVideos.length > 0 && (
                     <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[11px] text-sky-300">
@@ -332,7 +336,7 @@
                   {safeSelectedPeople.length === 0 &&
                     safeSelectedGenres.length === 0 &&
                     safeSelectedTypes.length === 0 &&
-                    safeSelectedSeries === null &&
+                    safeSelectedSeries.length === 0 &&
                     safeSelectedRelatedVideos.length === 0 && (
                       <span className="text-xs text-zinc-700">
                         선택된 태그가 없습니다.
@@ -596,8 +600,8 @@
 
                         <button
                           type="button"
-                          onClick={() => setSelectedSeries(null)}
-                          disabled={saving || safeSelectedSeries === null}
+                          onClick={() => setSelectedSeries([])}
+                          disabled={saving || safeSelectedSeries.length === 0}
                           className="text-[10px] text-zinc-600 transition hover:text-zinc-300 disabled:cursor-not-allowed disabled:opacity-30"
                         >
                           초기화
@@ -629,9 +633,9 @@
                     <div className="flex flex-wrap content-start justify-start gap-2">
                       <button
                         type="button"
-                        onClick={() => setSelectedSeries(null)}
+                        onClick={() => setSelectedSeries([])}
                         className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
-                          safeSelectedSeries === null
+                          safeSelectedSeries.length === 0
                             ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
                             : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
                         }`}
@@ -644,15 +648,17 @@
                           item.name.toLowerCase().includes(seriesSearch.trim().toLowerCase())
                         )
                         .map((item) => {
-                          const selected = safeSelectedSeries === item.id;
+                          const selected = safeSelectedSeries.includes(item.id);
 
                           return (
                             <button
                               key={item.id}
                               type="button"
                               onClick={() =>
-                                setSelectedSeries(
-                                  selected ? null : item.id
+                                setSelectedSeries((current) =>
+                                  current.includes(item.id)
+                                    ? current.filter((id) => id !== item.id)
+                                    : [...current, item.id]
                                 )
                               }
                               className={`flex w-fit shrink-0 grow-0 items-center self-start rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-4 whitespace-nowrap ${
@@ -834,7 +840,7 @@
                     setSelectedPeople([]);
                     setSelectedGenres([]);
                     setSelectedTypes([]);
-                    setSelectedSeries(null);
+                    setSelectedSeries([]);
                     setSelectedRelatedVideos([]);
                   }}
                   className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-[11px] font-medium text-zinc-500 transition hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-50"
@@ -858,3 +864,4 @@
         </div>
       );
     }
+

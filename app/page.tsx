@@ -67,7 +67,7 @@ export default function Home() {
     useState<number[]>([]);
 
   const [editorSeries, setEditorSeries] =
-    useState<number | null>(null);
+    useState<number[]>([]);
 
   const [editorRelatedVideos, setEditorRelatedVideos] =
     useState<number[]>([]);
@@ -158,8 +158,13 @@ export default function Home() {
           : []
     );
 
+    const videoWithSeriesIds = video as Video & { seriesIds?: number[] };
     setEditorSeries(
-      video.seriesId ?? null
+      Array.isArray(videoWithSeriesIds.seriesIds)
+        ? videoWithSeriesIds.seriesIds
+        : video.seriesId != null
+          ? [video.seriesId]
+          : []
     );
 
   }
@@ -173,7 +178,7 @@ export default function Home() {
     setEditorPeople([]);
     setEditorGenres([]);
     setEditorTypes([]);
-    setEditorSeries(null);
+    setEditorSeries([]);
     setEditorRelatedVideos([]);
   }
 
@@ -320,7 +325,9 @@ export default function Home() {
         .update({
           type_ids: editorTypes,
           type_id: editorTypes[0] ?? null,
-          series_id: editorSeries,
+          series_ids: editorSeries,
+          // 기존 단일 컬럼과의 호환성을 위해 첫 번째 값을 유지합니다.
+          series_id: editorSeries[0] ?? null,
         })
         .eq(
           "id",
@@ -405,7 +412,8 @@ export default function Home() {
                 genreIds: [...editorGenres],
                 typeIds: [...editorTypes],
                 typeId: editorTypes[0] ?? null,
-                seriesId: editorSeries,
+                seriesIds: [...editorSeries],
+                seriesId: editorSeries[0] ?? null,
               }
             : item
         )
@@ -526,10 +534,15 @@ export default function Home() {
           );
 
         // 시리즈
+        const videoWithSeriesIds = video as Video & { seriesIds?: number[] };
+        const videoSeriesIds = Array.isArray(videoWithSeriesIds.seriesIds)
+          ? videoWithSeriesIds.seriesIds
+          : video.seriesId != null
+            ? [video.seriesId]
+            : [];
         const matchesSeries =
           selectedSeries.length === 0 ||
-          (video.seriesId != null &&
-            selectedSeries.includes(video.seriesId));
+          selectedSeries.some((seriesId) => videoSeriesIds.includes(seriesId));
 
         return (
           matchesSearch &&
@@ -1169,3 +1182,4 @@ export default function Home() {
   );
 
 }
+

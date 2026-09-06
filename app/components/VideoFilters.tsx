@@ -1,4 +1,4 @@
-    "use client";
+"use client";
 
     import { useEffect, useRef, useState } from "react";
     import type { Category, Person } from "@/app/lib/archive-types";
@@ -676,10 +676,10 @@
                                   key={item.id}
                                   type="button"
                                   onClick={() =>
-                                    setDraftSeries(
-                                      draftSeries.includes(item.id)
-                                        ? []
-                                        : [item.id]
+                                    setDraftSeries((current) =>
+                                      current.includes(item.id)
+                                        ? current.filter((id) => id !== item.id)
+                                        : [...current, item.id]
                                     )
                                   }
                                   className={`min-h-9 w-auto whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[10px] leading-4 transition active:scale-[0.98] sm:min-h-9 sm:rounded-lg sm:px-2.5 sm:py-1.5 sm:text-[11px] ${
@@ -810,3 +810,4 @@
         </>
       );
     }
+

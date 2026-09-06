@@ -112,8 +112,14 @@ export default function VideoCard({
     return typeIds.includes(type.id);
   });
 
-  const videoSeries = series.find(
-    (item) => item.id === video.seriesId
+  const videoWithSeriesIds = video as Video & { seriesIds?: number[] };
+  const videoSeriesIds = Array.isArray(videoWithSeriesIds.seriesIds)
+    ? videoWithSeriesIds.seriesIds
+    : video.seriesId != null
+      ? [video.seriesId]
+      : [];
+  const videoSeries = series.filter((item) =>
+    videoSeriesIds.includes(item.id)
   );
 
   const allTags = [
@@ -127,13 +133,11 @@ export default function VideoCard({
       name: type.name,
       className: "rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-medium text-indigo-300",
     })),
-    ...(videoSeries
-      ? [{
-          id: `series-${videoSeries.id}`,
-          name: videoSeries.name,
-          className: "rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300",
-        }]
-      : []),
+    ...videoSeries.map((item) => ({
+      id: `series-${item.id}`,
+      name: item.name,
+      className: "rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300",
+    })),
     ...selectedPeople.map((person) => ({
       id: `person-${person.id}`,
       name: person.name,
@@ -328,3 +332,4 @@ export default function VideoCard({
     </article>
   );
 }
+
