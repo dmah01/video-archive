@@ -59,9 +59,6 @@ export function useVideos() {
     }
 
     const videoIds = allVideos.map((video) => video.id);
-
-    // 관계 테이블은 한 번에 너무 많은 ID를 .in()에 넣으면
-    // 요청 URL이 길어져 조회가 실패할 수 있으므로 100개씩 나눠 조회합니다.
     const RELATION_CHUNK_SIZE = 100;
 
     const peopleRelations: Array<{ video: number; person: number }> = [];
@@ -74,14 +71,8 @@ export function useVideos() {
         { data: chunkPeople, error: peopleError },
         { data: chunkGenres, error: genreError },
       ] = await Promise.all([
-        supabase
-          .from("video_people")
-          .select("video, person")
-          .in("video", chunk),
-        supabase
-          .from("video_genres")
-          .select("video, genre")
-          .in("video", chunk),
+        supabase.from("video_people").select("video, person").in("video", chunk),
+        supabase.from("video_genres").select("video, genre").in("video", chunk),
       ]);
 
       if (peopleError) {
@@ -111,7 +102,6 @@ export function useVideos() {
     for (const relation of peopleRelations) {
       const videoId = Number(relation.video);
       const personId = Number(relation.person);
-
       if (!Number.isFinite(videoId) || !Number.isFinite(personId)) continue;
 
       const ids = peopleMap.get(videoId) ?? [];
@@ -123,7 +113,6 @@ export function useVideos() {
     for (const relation of genreRelations) {
       const videoId = Number(relation.video);
       const genreId = Number(relation.genre);
-
       if (!Number.isFinite(videoId) || !Number.isFinite(genreId)) continue;
 
       const ids = genreMap.get(videoId) ?? [];
@@ -143,65 +132,45 @@ export function useVideos() {
             : [],
         typeId: video.type_id ?? null,
         seriesId: video.series_id ?? null,
-      })),
+      }))
     );
 
     setLoading(false);
   }
 
   async function loadPeople() {
-    const { data, error } = await supabase
-      .from("people")
-      .select("id,name")
-      .order("name");
-
+    const { data, error } = await supabase.from("people").select("id,name").order("name");
     if (error) {
       console.error("멤버 불러오기 오류:", error);
       return;
     }
-
     setPeople(data ?? []);
   }
 
   async function loadGenres() {
-    const { data, error } = await supabase
-      .from("genres")
-      .select("id,name")
-      .order("name");
-
+    const { data, error } = await supabase.from("genres").select("id,name").order("name");
     if (error) {
       console.error("장르 불러오기 오류:", error);
       return;
     }
-
     setGenres(data ?? []);
   }
 
   async function loadTypes() {
-    const { data, error } = await supabase
-      .from("types")
-      .select("id,name")
-      .order("name");
-
+    const { data, error } = await supabase.from("types").select("id,name").order("name");
     if (error) {
       console.error("타입 불러오기 오류:", error);
       return;
     }
-
     setTypes(data ?? []);
   }
 
   async function loadSeries() {
-    const { data, error } = await supabase
-      .from("series")
-      .select("id,name")
-      .order("name");
-
+    const { data, error } = await supabase.from("series").select("id,name").order("name");
     if (error) {
       console.error("시리즈 불러오기 오류:", error);
       return;
     }
-
     setSeries(data ?? []);
   }
 
@@ -217,7 +186,7 @@ export function useVideos() {
         throw new Error(
           data.details ||
             data.error ||
-            "영상 가져오기에 실패했습니다.",
+            "영상 가져오기에 실패했습니다."
         );
       }
 
@@ -225,12 +194,57 @@ export function useVideos() {
       await loadVideos();
     } catch (error) {
       console.error("영상 가져오기 오류:", error);
-
       setImportMessage(
         error instanceof Error
           ? error.message
-          : "영상 가져오기에 실패했습니다.",
+          : "영상 가져오기에 실패했습니다."
       );
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  async function addYouTubeVideo(youtubeUrl: string) {
+    setImporting(true);
+    setImportMessage("");
+
+    try {
+      const response = await fetch("/api/youtube", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ youtubeUrl }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.details ||
+            data.error ||
+            "YouTube 영상 추가에 실패했습니다."
+        );
+      }
+
+      setImportMessage(
+        data.created
+          ? "YouTube 영상을 추가했습니다."
+          : "이미 등록된 YouTube 영상입니다."
+      );
+
+      await loadVideos();
+      return data;
+    } catch (error) {
+      console.error("YouTube 영상 추가 오류:", error);
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "YouTube 영상 추가에 실패했습니다.";
+
+      setImportMessage(message);
+      throw error;
     } finally {
       setImporting(false);
     }
@@ -248,5 +262,6 @@ export function useVideos() {
     importMessage,
     loadVideos,
     importYouTubeVideos,
+    addYouTubeVideo,
   };
 }

@@ -22,6 +22,7 @@ export default function Home() {
     importing,
     importMessage,
     importYouTubeVideos,
+    addYouTubeVideo,
   } = useVideos();
 
   const [relatedCounts, setRelatedCounts] =
@@ -48,7 +49,30 @@ export default function Home() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pendingVideoCardId, setPendingVideoCardId] = useState<number | null>(null);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [showYouTubeAdd, setShowYouTubeAdd] = useState(false);
   const skipFilterPageResetRef = useRef(false);
+
+  async function handleAddYouTubeVideo() {
+    const url = youtubeUrl.trim();
+
+    if (!url || importing) return;
+
+    try {
+      const result = await addYouTubeVideo(url);
+
+      setYoutubeUrl("");
+      setShowYouTubeAdd(false);
+
+      // 추가된 영상이 포함된 페이지로 자동 이동합니다.
+      // 필터 때문에 현재 목록에서 빠져 있다면 필터를 초기화한 뒤 이동합니다.
+      if (result?.videoId != null) {
+        setPendingVideoCardId(Number(result.videoId));
+      }
+    } catch {
+      // addYouTubeVideo에서 오류 메시지를 표시합니다.
+    }
+  }
 
   // =============================
   // 영상 편집
@@ -606,6 +630,31 @@ export default function Home() {
         VIDEOS_PER_PAGE
     );
 
+  // 새로 추가한 영상이 있는 페이지로 이동합니다.
+  useEffect(() => {
+    if (pendingVideoCardId === null) return;
+
+    const currentIndex = filteredVideos.findIndex(
+      (item) => item.id === pendingVideoCardId
+    );
+
+    if (currentIndex !== -1) {
+      setCurrentPage(
+        Math.floor(currentIndex / VIDEOS_PER_PAGE) + 1
+      );
+      return;
+    }
+
+    const existsInVideos = videos.some(
+      (item) => item.id === pendingVideoCardId
+    );
+
+    if (existsInVideos) {
+      skipFilterPageResetRef.current = true;
+      resetFilters();
+    }
+  }, [pendingVideoCardId, filteredVideos, videos]);
+
   // 연계로 다른 페이지의 카드로 이동할 때
   // 페이지 상태가 실제 DOM에 반영된 다음 바로 카드 위치로 이동합니다.
   useEffect(() => {
@@ -785,18 +834,30 @@ export default function Home() {
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={
-                importYouTubeVideos
-              }
-              disabled={importing}
-              className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {importing
-                ? "영상 가져오는 중..."
-                : "YouTube 영상 가져오기"}
-            </button>
+            <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">
+              <button
+                type="button"
+                onClick={importYouTubeVideos}
+                disabled={importing}
+                className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {importing
+                  ? "영상 가져오는 중..."
+                  : "YouTube 영상 가져오기"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setYoutubeUrl("");
+                  setShowYouTubeAdd(true);
+                }}
+                disabled={importing}
+                className="rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                영상 추가
+              </button>
+            </div>
           </div>
 
           {importMessage && (
@@ -805,6 +866,84 @@ export default function Home() {
             </div>
           )}
         </header>
+
+        {showYouTubeAdd && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowYouTubeAdd(false);
+                setYoutubeUrl("");
+              }
+            }}
+          >
+            <div
+              className="w-full max-w-md rounded-3xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="youtube-add-title"
+            >
+              <div className="mb-5 flex items-start justify-between gap-4">
+                <div>
+                  <h2 id="youtube-add-title" className="text-lg font-bold text-white">
+                    YouTube 영상 추가
+                  </h2>
+                  <p className="mt-1 text-sm text-zinc-500">
+                    링크를 입력하면 제목, 썸네일, 게시 날짜를 자동으로 가져옵니다.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowYouTubeAdd(false);
+                    setYoutubeUrl("");
+                  }}
+                  disabled={importing}
+                  className="rounded-xl p-2 text-zinc-500 transition hover:bg-zinc-900 hover:text-white disabled:opacity-50"
+                  aria-label="닫기"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  autoFocus
+                  type="url"
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      setShowYouTubeAdd(false);
+                      setYoutubeUrl("");
+                    } else if (
+                      e.key === "Enter" &&
+                      youtubeUrl.trim() &&
+                      !importing
+                    ) {
+                      e.preventDefault();
+                      void handleAddYouTubeVideo();
+                    }
+                  }}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  disabled={importing}
+                  className="h-12 min-w-0 flex-1 rounded-2xl border border-zinc-800 bg-zinc-900 px-4 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-zinc-600 disabled:opacity-50"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => void handleAddYouTubeVideo()}
+                  disabled={importing || !youtubeUrl.trim()}
+                  className="shrink-0 rounded-2xl bg-white px-5 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {importing ? "추가 중..." : "추가"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {/* ========================= */}
         {/* 필터 */}
