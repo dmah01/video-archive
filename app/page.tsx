@@ -834,15 +834,15 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">
+            <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-2">
               <button
                 type="button"
                 onClick={importYouTubeVideos}
                 disabled={importing}
-                className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-w-0 rounded-2xl bg-white px-3 py-3 text-center text-xs font-semibold leading-5 text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:text-sm"
               >
                 {importing
-                  ? "영상 가져오는 중..."
+                  ? "가져오는 중..."
                   : "YouTube 영상 가져오기"}
               </button>
 
@@ -853,7 +853,7 @@ export default function Home() {
                   setShowYouTubeAdd(true);
                 }}
                 disabled={importing}
-                className="rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-w-0 rounded-2xl border border-zinc-700 bg-zinc-900 px-3 py-3 text-xs font-semibold leading-5 text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:text-sm"
               >
                 YouTube 영상 추가
               </button>
@@ -888,9 +888,6 @@ export default function Home() {
                   <h2 id="youtube-add-title" className="text-lg font-bold text-white">
                     YouTube 영상 추가
                   </h2>
-                  <p className="mt-1 text-sm text-zinc-500">
-                    링크를 입력하면 제목, 썸네일, 게시 날짜를 자동으로 가져옵니다.
-                  </p>
                 </div>
 
                 <button
@@ -926,7 +923,7 @@ export default function Home() {
                       void handleAddYouTubeVideo();
                     }
                   }}
-                  placeholder="https://www.youtube.com/watch?v=..."
+                  placeholder="https://youtube..."
                   disabled={importing}
                   className="h-12 min-w-0 flex-1 rounded-2xl border border-zinc-800 bg-zinc-900 px-4 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-zinc-600 disabled:opacity-50"
                 />
