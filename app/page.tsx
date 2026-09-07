@@ -855,7 +855,7 @@ export default function Home() {
                 disabled={importing}
                 className="rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                영상 추가
+                YouTube 영상 추가
               </button>
             </div>
           </div>
