@@ -853,7 +853,7 @@ export default function Home() {
                   setShowYouTubeAdd(true);
                 }}
                 disabled={importing}
-                className="min-w-0 rounded-2xl border border-zinc-700 bg-zinc-900 px-3 py-3 text-xs font-semibold leading-5 text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:text-sm"
+                className="min-w-0 rounded-2xl border border-zinc-700 bg-zinc-900 px-2 py-2 text-xs font-semibold leading-5 text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:text-sm"
               >
                 YouTube 영상 추가
               </button>
