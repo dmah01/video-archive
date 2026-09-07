@@ -839,7 +839,7 @@ export default function Home() {
                 type="button"
                 onClick={importYouTubeVideos}
                 disabled={importing}
-                className="min-w-0 rounded-2xl bg-white px-3 py-3 text-center text-10s font-semibold leading-5 text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:text-sm"
+                className="min-w-0 whitespace-nowrap rounded-2xl bg-white px-2 py-2 text-center text-[10px] font-semibold leading-4 text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:py-3 sm:text-sm"
               >
                 {importing
                   ? "가져오는 중..."
@@ -853,7 +853,7 @@ export default function Home() {
                   setShowYouTubeAdd(true);
                 }}
                 disabled={importing}
-                className="min-w-0 rounded-2xl border border-zinc-700 bg-zinc-900 px-2 py-2 text-10s font-semibold leading-5 text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:text-sm"
+                className="min-w-0 whitespace-nowrap rounded-2xl border border-zinc-700 bg-zinc-900 px-2 py-2 text-center text-[10px] font-semibold leading-4 text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:py-3 sm:text-sm"
               >
                 YouTube 영상 추가
               </button>
