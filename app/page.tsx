@@ -828,10 +828,7 @@ export default function Home() {
                 잠뜰TV Archive
               </h1>
 
-              <p className="mt-2 text-sm text-zinc-500">
-                잠뜰TV 영상을 검색하고
-                정리해보세요.
-              </p>
+
             </div>
 
             <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-2">
