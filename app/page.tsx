@@ -809,6 +809,15 @@ export default function Home() {
 
   return (
     <>
+      <style>{`
+        .archive-title {
+          color: #ffffff !important;
+        }
+
+        html[data-theme="light"] .archive-title {
+          color: #18181b !important;
+        }
+      `}</style>
       <main className="site-page min-h-screen bg-zinc-950 text-white">
 
       <div className="mx-auto max-w-7xl px-4 pb-8 pt-20 sm:px-6 sm:py-10 sm:pb-16">
@@ -824,9 +833,12 @@ export default function Home() {
 
           <div className="mt-3 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              <h1
+                className="archive-title text-3xl font-bold tracking-tight sm:text-4xl"
+              >
                 잠뜰TV Archive
               </h1>
+
 
             </div>
 
@@ -835,7 +847,7 @@ export default function Home() {
                 type="button"
                 onClick={importYouTubeVideos}
                 disabled={importing}
-                className="min-w-0 whitespace-nowrap rounded-2xl bg-white px-3 py-3 text-center text-[10px] font-semibold leading-4 text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:py-3 sm:text-sm"
+                className="theme-action-button min-w-0 whitespace-nowrap rounded-2xl px-3 py-3 text-center text-[10px] font-semibold leading-4 transition disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:py-3 sm:text-sm"
               >
                 {importing
                   ? "가져오는 중..."
@@ -849,7 +861,7 @@ export default function Home() {
                   setShowYouTubeAdd(true);
                 }}
                 disabled={importing}
-                className="min-w-0 whitespace-nowrap rounded-2xl border border-zinc-700 bg-zinc-900 px-3 py-3 text-center text-[10px] font-semibold leading-4 text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:py-3 sm:text-sm"
+                className="theme-action-button min-w-0 whitespace-nowrap rounded-2xl px-3 py-3 text-center text-[10px] font-semibold leading-4 transition disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:py-3 sm:text-sm"
               >
                 YouTube 영상 추가
               </button>
@@ -928,7 +940,7 @@ export default function Home() {
                   type="button"
                   onClick={() => void handleAddYouTubeVideo()}
                   disabled={importing || !youtubeUrl.trim()}
-                  className="shrink-0 rounded-2xl bg-white px-5 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="theme-action-button shrink-0 rounded-2xl px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {importing ? "추가 중..." : "추가"}
                 </button>
@@ -936,6 +948,7 @@ export default function Home() {
             </div>
           </div>
         )}
+
 
         {/* ========================= */}
         {/* 필터 */}
@@ -1313,3 +1326,4 @@ export default function Home() {
   );
 
 }
+

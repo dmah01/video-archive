@@ -420,7 +420,7 @@
                     <button
                       type="button"
                       onClick={applyMenu}
-                      className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-2 sm:rounded-xl sm:py-2 sm:text-xs"
+                      className="theme-action-button mt-2 w-full rounded-lg py-2 text-[11px] font-semibold sm:mt-2 sm:rounded-xl sm:py-2 sm:text-xs"
                     >
                       적용
                     </button>
@@ -496,7 +496,7 @@
                     <button
                       type="button"
                       onClick={applyMenu}
-                      className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-2 sm:rounded-xl sm:py-2 sm:text-xs"
+                      className="theme-action-button mt-2 w-full rounded-lg py-2 text-[11px] font-semibold sm:mt-2 sm:rounded-xl sm:py-2 sm:text-xs"
                     >
                       적용
                     </button>
@@ -571,7 +571,7 @@
                     <button
                       type="button"
                       onClick={applyMenu}
-                      className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-2 sm:rounded-xl sm:py-2 sm:text-xs"
+                      className="theme-action-button mt-2 w-full rounded-lg py-2 text-[11px] font-semibold sm:mt-2 sm:rounded-xl sm:py-2 sm:text-xs"
                     >
                       적용
                     </button>
@@ -742,7 +742,7 @@
                     <button
                       type="button"
                       onClick={applyMenu}
-                      className="mt-2 w-full rounded-lg bg-white py-2 text-[11px] font-semibold text-black hover:bg-zinc-200 sm:mt-2 sm:rounded-xl sm:py-2 sm:text-xs"
+                      className="theme-action-button mt-2 w-full rounded-lg py-2 text-[11px] font-semibold sm:mt-2 sm:rounded-xl sm:py-2 sm:text-xs"
                     >
                       적용
                     </button>
@@ -811,3 +811,5 @@
         </>
       );
     }
+
+

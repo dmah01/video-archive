@@ -6,10 +6,18 @@ type Theme = "dark" | "light" | "system";
 
 const THEME_KEY = "site-theme";
 
+function getSystemTheme(): "dark" | "light" {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
 function applyTheme(theme: Theme) {
+  const resolved = theme === "system" ? getSystemTheme() : theme;
   const root = document.documentElement;
-  if (theme === "system") root.removeAttribute("data-theme");
-  else root.setAttribute("data-theme", theme);
+
+  root.dataset.theme = resolved;
+  root.style.colorScheme = resolved;
 }
 
 export default function ThemeSettings() {
@@ -17,6 +25,7 @@ export default function ThemeSettings() {
 
   useEffect(() => {
     const saved = localStorage.getItem(THEME_KEY);
+
     const initial: Theme =
       saved === "dark" || saved === "light" || saved === "system"
         ? saved
@@ -26,42 +35,54 @@ export default function ThemeSettings() {
     applyTheme(initial);
 
     const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => {
-      if (initial === "system") applyTheme("system");
+
+    const handleSystemChange = () => {
+      if (initial === "system") {
+        applyTheme("system");
+      }
     };
 
-    media.addEventListener?.("change", onChange);
-    return () => media.removeEventListener?.("change", onChange);
+    media.addEventListener?.("change", handleSystemChange);
+
+    return () => {
+      media.removeEventListener?.("change", handleSystemChange);
+    };
   }, []);
 
-  function selectTheme(next: Theme) {
+  const selectTheme = (next: Theme) => {
     setTheme(next);
     localStorage.setItem(THEME_KEY, next);
     applyTheme(next);
-  }
+  };
 
   return (
-    <div
-      className="theme-settings"
-      style={{ position: "fixed", top: "12px", right: "12px", zIndex: 2147483647 }}
-      aria-label="화면 모드 설정"
-    >
-      {(["dark", "light", "system"] as Theme[]).map((value) => {
-        const active = theme === value;
-        const label =
-          value === "dark" ? "다크" : value === "light" ? "화이트" : "시스템";
+    <div className="theme-settings" aria-label="화면 모드 설정">
+      <button
+        type="button"
+        className={theme === "dark" ? "active" : ""}
+        onClick={() => selectTheme("dark")}
+        aria-pressed={theme === "dark"}
+      >
+        다크
+      </button>
 
-        return (
-          <button
-            key={value}
-            type="button"
-            onClick={() => selectTheme(value)}
-            aria-pressed={active}
-          >
-            {label}
-          </button>
-        );
-      })}
+      <button
+        type="button"
+        className={theme === "light" ? "active" : ""}
+        onClick={() => selectTheme("light")}
+        aria-pressed={theme === "light"}
+      >
+        화이트
+      </button>
+
+      <button
+        type="button"
+        className={theme === "system" ? "active" : ""}
+        onClick={() => selectTheme("system")}
+        aria-pressed={theme === "system"}
+      >
+        시스템
+      </button>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import ThemeSettings from "./ThemeSettings";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,34 +14,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "잠뜰TV Archive",
-  description: "잠뜰TV 영상 아카이브",
-  icons: {
-    icon: [
-      {
-        url: "/icon.png",
-        type: "image/png",
-      },
-    ],
-    shortcut: "/icon.png",
-    apple: [
-      {
-        url: "/apple-icon.png",
-        type: "image/png",
-      },
-    ],
-  },
+  title: "Video Site",
+  description: "Video site",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        <ThemeSettings />
         {children}
       </body>
     </html>
