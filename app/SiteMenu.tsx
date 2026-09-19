@@ -134,7 +134,7 @@ export default function SiteMenu({
             <aside className="site-menu-panel" aria-label="사이트 메뉴">
               <div className="site-menu-header">
                 <div>
-                  <p className="site-menu-eyebrow">SLEEPGROUND TV ARCHIVE</p>
+                  <p className="site-menu-eyebrow">MEUN</p>
                   <h2>메뉴</h2>
                 </div>
                 <button type="button" className="site-menu-close" onClick={closeMenu} aria-label="닫기">
@@ -144,7 +144,7 @@ export default function SiteMenu({
 
               <div className="site-menu-content">
                 <section className="site-menu-section">
-                  <p className="site-menu-label">사이트</p>
+                  <p className="site-menu-label">ARCHIVE GUIDE</p>
                   <button
                     type="button"
                     className="site-menu-item"
@@ -153,18 +153,18 @@ export default function SiteMenu({
                       closeMenu();
                     }}
                   >
-                    <span>사이트 안내</span>
+                    <span>안내</span>
                     <span>›</span>
                   </button>
                 </section>
 
                 <section className="site-menu-section">
-                  <p className="site-menu-label">화면 설정</p>
+                  <p className="site-menu-label">THEMES</p>
                   <ThemePicker compact />
                 </section>
 
                 <section className="site-menu-section">
-                  <p className="site-menu-label">관리자</p>
+                  <p className="site-menu-label">MANAGER</p>
 
                   {!isAdmin ? (
                     <button
@@ -179,7 +179,7 @@ export default function SiteMenu({
                       <span>›</span>
                     </button>
                   ) : (
-                    <div className="site-menu-admin-list">
+                    <div className="site-menu-admin-list flex flex-col gap-2.5">
                       <button
                         type="button"
                         className="site-menu-item site-menu-item-admin"
@@ -202,7 +202,7 @@ export default function SiteMenu({
                         }}
                       >
                         <span>YouTube 영상 추가</span>
-                        <span>›</span>
+                        <span>+</span>
                       </button>
 
                       <button
@@ -224,7 +224,6 @@ export default function SiteMenu({
                         onClick={() => void handleLogout()}
                       >
                         <span>로그아웃</span>
-                        <span>↪</span>
                       </button>
                     </div>
                   )}
@@ -307,7 +306,7 @@ export default function SiteMenu({
             <div className="site-menu-modal-header">
               <div>
                 <p className="site-menu-eyebrow">ARCHIVE GUIDE</p>
-                <h2 id="site-guide-title">사이트 안내</h2>
+                <h2 id="site-guide-title">안내</h2>
               </div>
               <button type="button" className="site-menu-close" onClick={() => setShowGuide(false)} aria-label="닫기">
                 ×
