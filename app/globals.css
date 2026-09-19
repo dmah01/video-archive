@@ -634,11 +634,13 @@ html[data-theme="light"] .theme-action-button:hover {
   color: #fff;
 }
 
-.site-menu-item-admin {
+.site-menu-item-admin,
+.site-menu-item-featured {
   background: #18181b;
 }
 
-.site-menu-item-admin:hover {
+.site-menu-item-admin:hover,
+.site-menu-item-featured:hover {
   background: #27272a;
 }
 
@@ -836,13 +838,15 @@ html[data-theme="light"] .site-menu-item {
 }
 
 html[data-theme="light"] .site-menu-item:hover,
-html[data-theme="light"] .site-menu-item-admin {
+html[data-theme="light"] .site-menu-item-admin,
+html[data-theme="light"] .site-menu-item-featured {
   background: #f8f8fa;
   border-color: #e4e4e7;
   color: #18181b;
 }
 
-html[data-theme="light"] .site-menu-item-admin:hover {
+html[data-theme="light"] .site-menu-item-admin:hover,
+html[data-theme="light"] .site-menu-item-featured:hover {
   background: #f4f4f5;
 }
 

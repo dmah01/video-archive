@@ -214,10 +214,25 @@ export default function SiteMenu({
 
               <div className="site-menu-content">
                 <section className="site-menu-section">
+                  <p className="site-menu-label">RETURN</p>
+                  <button
+                    type="button"
+                    className="site-menu-item site-menu-item-featured"
+                    onClick={() => {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                      closeMenu();
+                    }}
+                  >
+                    <span>처음으로 돌아가기</span>
+                    <span>↑</span>
+                  </button>
+                </section>
+
+                <section className="site-menu-section">
                   <p className="site-menu-label">ARCHIVE GUIDE</p>
                   <button
                     type="button"
-                    className="site-menu-item"
+                    className="site-menu-item site-menu-item-featured"
                     onClick={() => {
                       openGuide();
                       closeMenu();
