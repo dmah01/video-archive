@@ -207,9 +207,7 @@ export default function SiteMenu({
                   <p className="site-menu-eyebrow">MEUN</p>
                   <h2>메뉴</h2>
                 </div>
-                <button type="button" className="site-menu-close" onClick={closeMenu} aria-label="닫기">
-                  ×
-                </button>
+            
               </div>
 
               <div className="site-menu-content">
