@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-type Theme = "dark" | "light" | "system";
+export type Theme = "dark" | "light" | "system";
 
 const THEME_KEY = "site-theme";
 
@@ -12,7 +12,7 @@ function getSystemTheme(): "dark" | "light" {
     : "light";
 }
 
-function applyTheme(theme: Theme) {
+export function applyTheme(theme: Theme) {
   const resolved = theme === "system" ? getSystemTheme() : theme;
   const root = document.documentElement;
 
@@ -20,7 +20,7 @@ function applyTheme(theme: Theme) {
   root.style.colorScheme = resolved;
 }
 
-export default function ThemeSettings() {
+export function ThemePicker({ compact = false }: { compact?: boolean }) {
   const [theme, setTheme] = useState<Theme>("system");
 
   useEffect(() => {
@@ -35,7 +35,6 @@ export default function ThemeSettings() {
     applyTheme(initial);
 
     const media = window.matchMedia("(prefers-color-scheme: dark)");
-
     const handleSystemChange = () => {
       if (initial === "system") {
         applyTheme("system");
@@ -56,33 +55,29 @@ export default function ThemeSettings() {
   };
 
   return (
-    <div className="theme-settings" aria-label="화면 모드 설정">
-      <button
-        type="button"
-        className={theme === "dark" ? "active" : ""}
-        onClick={() => selectTheme("dark")}
-        aria-pressed={theme === "dark"}
-      >
-        다크
-      </button>
-
-      <button
-        type="button"
-        className={theme === "light" ? "active" : ""}
-        onClick={() => selectTheme("light")}
-        aria-pressed={theme === "light"}
-      >
-        화이트
-      </button>
-
-      <button
-        type="button"
-        className={theme === "system" ? "active" : ""}
-        onClick={() => selectTheme("system")}
-        aria-pressed={theme === "system"}
-      >
-        시스템
-      </button>
+    <div
+      className={`theme-picker ${compact ? "theme-picker-compact" : ""}`}
+      aria-label="화면 모드 설정"
+    >
+      {([
+        ["dark", "다크"],
+        ["light", "화이트"],
+        ["system", "시스템"],
+      ] as const).map(([value, label]) => (
+        <button
+          key={value}
+          type="button"
+          className={theme === value ? "active" : ""}
+          onClick={() => selectTheme(value)}
+          aria-pressed={theme === value}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
+}
+
+export default function ThemeSettings() {
+  return <ThemePicker />;
 }

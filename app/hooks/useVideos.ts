@@ -174,12 +174,29 @@ export function useVideos() {
     setSeries(data ?? []);
   }
 
+
+  async function getAdminHeaders() {
+    const { data } = await supabase.auth.getSession();
+    const accessToken = data.session?.access_token;
+
+    if (!accessToken) {
+      throw new Error("관리자 로그인이 필요합니다.");
+    }
+
+    return {
+      Authorization: `Bearer ${accessToken}`,
+    };
+  }
+
   async function importYouTubeVideos() {
     setImporting(true);
     setImportMessage("");
 
     try {
-      const response = await fetch("/api/youtube");
+      const headers = await getAdminHeaders();
+      const response = await fetch("/api/youtube", {
+        headers,
+      });
       const data = await response.json();
 
       if (!response.ok) {
@@ -209,9 +226,11 @@ export function useVideos() {
     setImportMessage("");
 
     try {
+      const authHeaders = await getAdminHeaders();
       const response = await fetch("/api/youtube", {
         method: "POST",
         headers: {
+          ...authHeaders,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ youtubeUrl }),

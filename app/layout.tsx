@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ThemeSettings from "./ThemeSettings";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Video Site",
-  description: "Video site",
+  title: "잠뜰TV Archive",
+  description: "잠뜰TV 영상 아카이브",
 };
 
 export default function RootLayout({
@@ -30,7 +29,6 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <ThemeSettings />
         {children}
       </body>
     </html>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/app/lib/supabase";
 
 function extractYouTubeVideoId(value: string) {
@@ -32,8 +33,92 @@ function extractYouTubeVideoId(value: string) {
   }
 }
 
-export async function GET() {
+async function requireAdmin(request: Request) {
+  const authorization = request.headers.get("authorization");
+  const token = authorization?.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length).trim()
+    : "";
+
+  if (!token) {
+    return {
+      error: NextResponse.json(
+        { error: "관리자 로그인이 필요합니다." },
+        { status: 401 }
+      ),
+    };
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!supabaseUrl || !publishableKey) {
+    return {
+      error: NextResponse.json(
+        { error: "Supabase 환경변수가 설정되지 않았습니다." },
+        { status: 500 }
+      ),
+    };
+  }
+
+  const authClient = createClient(supabaseUrl, publishableKey, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  });
+
+  const {
+    data: { user },
+    error: userError,
+  } = await authClient.auth.getUser();
+
+  if (userError || !user) {
+    return {
+      error: NextResponse.json(
+        { error: "로그인이 유효하지 않습니다." },
+        { status: 401 }
+      ),
+    };
+  }
+
+  const { data: isAdmin, error: adminError } =
+    await authClient.rpc("is_admin");
+
+  if (adminError) {
+    console.error("관리자 확인 오류:", adminError);
+
+    return {
+      error: NextResponse.json(
+        {
+          error: "관리자 권한을 확인하지 못했습니다.",
+          details: adminError.message,
+        },
+        { status: 500 }
+      ),
+    };
+  }
+
+  if (!isAdmin) {
+    return {
+      error: NextResponse.json(
+        { error: "관리자만 사용할 수 있습니다." },
+        { status: 403 }
+      ),
+    };
+  }
+
+  return { user, authClient };
+}
+
+export async function GET(request: Request) {
   try {
+    const admin = await requireAdmin(request);
+
+    if ("error" in admin) {
+      return admin.error;
+    }
+
     const apiKey = process.env.YOUTUBE_API_KEY;
 
     if (!apiKey) {
@@ -121,7 +206,7 @@ export async function GET() {
       }));
 
     if (videos.length > 0) {
-      const { error } = await supabase
+      const { error } = await admin.authClient
         .from("videos")
         .upsert(videos, { onConflict: "youtube_video_id" });
 
@@ -161,6 +246,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const admin = await requireAdmin(request);
+
+    if ("error" in admin) {
+      return admin.error;
+    }
+
     const apiKey = process.env.YOUTUBE_API_KEY;
 
     if (!apiKey) {
@@ -245,11 +336,12 @@ export async function POST(request: Request) {
       youtube_url: `https://www.youtube.com/watch?v=${videoId}`,
     };
 
-    const { data: existing, error: existingError } = await supabase
-      .from("videos")
-      .select("id")
-      .eq("youtube_video_id", videoId)
-      .maybeSingle();
+    const { data: existing, error: existingError } =
+      await admin.authClient
+        .from("videos")
+        .select("id")
+        .eq("youtube_video_id", videoId)
+        .maybeSingle();
 
     if (existingError) {
       return NextResponse.json(
@@ -270,11 +362,12 @@ export async function POST(request: Request) {
       });
     }
 
-    const { data: inserted, error: insertError } = await supabase
-      .from("videos")
-      .insert(video)
-      .select("id")
-      .single();
+    const { data: inserted, error: insertError } =
+      await admin.authClient
+        .from("videos")
+        .insert(video)
+        .select("id")
+        .single();
 
     if (insertError) {
       return NextResponse.json(

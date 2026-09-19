@@ -10,6 +10,7 @@ type VideoCardProps = {
   types: Category[];
   series: Category[];
   relatedCount?: number;
+  isAdmin?: boolean;
   onEdit: (video: Video) => void;
 };
 
@@ -91,6 +92,7 @@ export default function VideoCard({
   types,
   series,
   relatedCount = 0,
+  isAdmin = false,
   onEdit,
 }: VideoCardProps) {
   const selectedPeople = sortPeople(
@@ -322,13 +324,15 @@ export default function VideoCard({
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={() => onEdit(video)}
-          className="mt-auto flex w-full items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-800/70 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-600 hover:bg-zinc-700 hover:text-white"
-        >
-          영상 관리
-        </button>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => onEdit(video)}
+            className="mt-auto flex w-full items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-800/70 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-600 hover:bg-zinc-700 hover:text-white"
+          >
+            영상 관리
+          </button>
+        )}
       </div>
     </article>
   );

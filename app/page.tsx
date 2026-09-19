@@ -7,6 +7,7 @@ import { useVideos } from "./hooks/useVideos";
 import VideoCard from "./components/VideoCard";
 import VideoFilters from "./components/VideoFilters";
 import VideoEditor from "./components/VideoEditor";
+import SiteMenu from "./SiteMenu";
 
 const VIDEOS_PER_PAGE = 12;
 
@@ -51,12 +52,13 @@ export default function Home() {
   const [pendingVideoCardId, setPendingVideoCardId] = useState<number | null>(null);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [showYouTubeAdd, setShowYouTubeAdd] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const skipFilterPageResetRef = useRef(false);
 
   async function handleAddYouTubeVideo() {
     const url = youtubeUrl.trim();
 
-    if (!url || importing) return;
+    if (!isAdmin || !url || importing) return;
 
     try {
       const result = await addYouTubeVideo(url);
@@ -100,6 +102,14 @@ export default function Home() {
     useState(false);
   const videoEditorScrollYRef = useRef(0);
 
+  useEffect(() => {
+    if (!isAdmin) {
+      setEditingVideo(null);
+      setShowYouTubeAdd(false);
+      setYoutubeUrl("");
+    }
+  }, [isAdmin]);
+
   // =============================
   // 필터 변경
   // =============================
@@ -127,6 +137,8 @@ export default function Home() {
   // =============================
 
   async function openVideoEditor(video: Video) {
+    if (!isAdmin) return;
+
     if (typeof window !== "undefined") {
       videoEditorScrollYRef.current =
         document.scrollingElement?.scrollTop ??
@@ -242,7 +254,7 @@ export default function Home() {
   // =============================
 
   async function saveVideoRelations() {
-    if (!editingVideo) return;
+    if (!isAdmin || !editingVideo) return;
 
     // 기존 연계 개수 조회가 저장 결과를 덮어쓰지 못하도록
     // 저장 작업을 시작하는 순간 이전 요청을 무효화합니다.
@@ -842,30 +854,16 @@ export default function Home() {
 
             </div>
 
-            <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-2">
-              <button
-                type="button"
-                onClick={importYouTubeVideos}
-                disabled={importing}
-                className="theme-action-button min-w-0 whitespace-nowrap rounded-2xl px-3 py-3 text-center text-[10px] font-semibold leading-4 transition disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:py-3 sm:text-sm"
-              >
-                {importing
-                  ? "가져오는 중..."
-                  : "YouTube 영상 가져오기"}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setYoutubeUrl("");
-                  setShowYouTubeAdd(true);
-                }}
-                disabled={importing}
-                className="theme-action-button min-w-0 whitespace-nowrap rounded-2xl px-3 py-3 text-center text-[10px] font-semibold leading-4 transition disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:py-3 sm:text-sm"
-              >
-                YouTube 영상 추가
-              </button>
-            </div>
+            <SiteMenu
+              isAdmin={isAdmin}
+              onAdminChange={setIsAdmin}
+              importing={importing}
+              onImportYouTubeVideos={importYouTubeVideos}
+              onOpenYouTubeAdd={() => {
+                setYoutubeUrl("");
+                setShowYouTubeAdd(true);
+              }}
+            />
           </div>
 
           {importMessage && (
@@ -875,7 +873,7 @@ export default function Home() {
           )}
         </header>
 
-        {showYouTubeAdd && (
+        {isAdmin && showYouTubeAdd && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
             onMouseDown={(e) => {
@@ -1064,6 +1062,7 @@ export default function Home() {
                       relatedCount={
                         relatedCounts[video.id] ?? 0
                       }
+                      isAdmin={isAdmin}
                       onEdit={
                         openVideoEditor
                       }
@@ -1273,8 +1272,9 @@ export default function Home() {
         </div>
       </footer>
 
-      <VideoEditor
-        video={editingVideo}
+      {isAdmin && (
+        <VideoEditor
+          video={editingVideo}
         people={people}
         genres={genres}
         types={types}
@@ -1317,10 +1317,11 @@ export default function Home() {
         onClose={
           closeVideoEditor
         }
-        onNavigateToVideo={
-          navigateToVideoCard
-        }
-      />
+          onNavigateToVideo={
+            navigateToVideoCard
+          }
+        />
+      )}
       </main>
     </>
   );
