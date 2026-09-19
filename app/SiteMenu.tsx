@@ -22,6 +22,12 @@ export default function SiteMenu({
   const [open, setOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [editingGuide, setEditingGuide] = useState(false);
+  const [guideText, setGuideText] = useState("");
+  const [guideDraft, setGuideDraft] = useState("");
+  const [guideLoading, setGuideLoading] = useState(false);
+  const [guideSaving, setGuideSaving] = useState(false);
+  const [guideError, setGuideError] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
@@ -58,6 +64,70 @@ export default function SiteMenu({
       data.subscription.unsubscribe();
     };
   }, []);
+
+  async function loadGuide() {
+    setGuideLoading(true);
+    setGuideError("");
+
+    const { data, error } = await supabase
+      .from("site_settings")
+      .select("content")
+      .eq("id", "archive_guide")
+      .maybeSingle();
+
+    if (error) {
+      setGuideError("안내 내용을 불러오지 못했습니다.");
+      setGuideLoading(false);
+      return;
+    }
+
+    const content = data?.content ?? "";
+    setGuideText(content);
+    setGuideDraft(content);
+    setGuideLoading(false);
+  }
+
+  async function saveGuide() {
+    if (!isAdmin || guideSaving) return;
+
+    setGuideSaving(true);
+    setGuideError("");
+
+    const { data: sessionData } = await supabase.auth.getSession();
+
+    if (!sessionData.session) {
+      setGuideError("관리자 로그인이 필요합니다.");
+      setGuideSaving(false);
+      return;
+    }
+
+    const { error } = await supabase
+      .from("site_settings")
+      .upsert(
+        {
+          id: "archive_guide",
+          content: guideDraft,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      );
+
+    if (error) {
+      setGuideError("안내 내용을 저장하지 못했습니다.");
+      setGuideSaving(false);
+      return;
+    }
+
+    setGuideText(guideDraft);
+    setEditingGuide(false);
+    setGuideSaving(false);
+  }
+
+  const openGuide = () => {
+    setShowGuide(true);
+    setEditingGuide(false);
+    void loadGuide();
+  };
 
   const closeMenu = () => setOpen(false);
 
@@ -149,7 +219,7 @@ export default function SiteMenu({
                     type="button"
                     className="site-menu-item"
                     onClick={() => {
-                      setShowGuide(true);
+                      openGuide();
                       closeMenu();
                     }}
                   >
@@ -316,10 +386,87 @@ export default function SiteMenu({
             </div>
 
             <div className="site-guide-body">
-              <p>잠뜰TV Archive에 등록된 영상을 검색하고 필터링할 수 있습니다.</p>
-              <p>영상 카드를 누르면 YouTube 영상으로 이동합니다.</p>
-              <p>멤버, 장르, 타입, 시리즈와 날짜 필터를 이용해 원하는 영상을 찾을 수 있습니다.</p>
-              <p>관리 기능은 관리자 계정으로 로그인한 경우에만 표시됩니다.</p>
+              {guideLoading ? (
+                <p>불러오는 중...</p>
+              ) : editingGuide && isAdmin ? (
+                <>
+                  <textarea
+                    value={guideDraft}
+                    onChange={(event) => setGuideDraft(event.target.value)}
+                    rows={10}
+                    className="site-guide-editor"
+                    placeholder="사이트 안내 내용을 입력하세요."
+                  />
+
+                  {guideError && <p className="site-menu-error">{guideError}</p>}
+
+                  <div
+                    className="site-guide-actions"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "10px",
+                      width: "100%",
+                      marginTop: "16px",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGuideDraft(guideText);
+                        setEditingGuide(false);
+                        setGuideError("");
+                      }}
+                      disabled={guideSaving}
+                      className="site-menu-login-button"
+                    >
+                      취소
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => void saveGuide()}
+                      disabled={guideSaving}
+                      style={{
+                        width: "100%",
+                        minHeight: "44px",
+                        borderRadius: "12px",
+                        padding: "10px 16px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                      className="site-menu-login-button"
+                    >
+                      {guideSaving ? "저장 중..." : "저장"}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {guideText ? (
+                    <div className="whitespace-pre-wrap">{guideText}</div>
+                  ) : (
+                    <p>등록된 안내 내용이 없습니다.</p>
+                  )}
+
+                  {guideError && <p className="site-menu-error">{guideError}</p>}
+
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      className="site-menu-login-button mt-4 w-full"
+                      onClick={() => {
+                        setGuideDraft(guideText);
+                        setGuideError("");
+                        setEditingGuide(true);
+                      }}
+                    >
+                      안내 수정
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
