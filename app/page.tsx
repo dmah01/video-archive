@@ -828,7 +828,6 @@ export default function Home() {
                 잠뜰TV Archive
               </h1>
 
-
             </div>
 
             <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-2">
@@ -937,7 +936,6 @@ export default function Home() {
             </div>
           </div>
         )}
-
 
         {/* ========================= */}
         {/* 필터 */}
@@ -1315,4 +1313,3 @@ export default function Home() {
   );
 
 }
-
