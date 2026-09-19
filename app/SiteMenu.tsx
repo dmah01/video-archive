@@ -257,6 +257,7 @@ export default function SiteMenu({
                   autoComplete="email"
                   autoFocus
                   placeholder="관리자 이메일"
+                  style={{ fontSize: "16px" }}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") void handleLogin();
                   }}
@@ -271,6 +272,7 @@ export default function SiteMenu({
                   onChange={(event) => setPassword(event.target.value)}
                   autoComplete="current-password"
                   placeholder="비밀번호"
+                  style={{ fontSize: "16px" }}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") void handleLogin();
                   }}
