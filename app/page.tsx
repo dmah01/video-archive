@@ -988,11 +988,11 @@ export default function Home() {
           <button
             type="button"
             onClick={() => setSort(sort === "최신순" ? "오래된순" : "최신순")}
-            className="inline-flex h-7 shrink-0 items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 text-[10px] font-medium text-zinc-400 transition hover:border-zinc-700 hover:bg-zinc-900 hover:text-zinc-200 active:scale-[0.98] sm:h-8 sm:rounded-xl sm:px-3 sm:text-[11px]"
+            className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg border border-zinc-800/80 bg-zinc-900/50 px-3 text-[10px] font-medium text-zinc-400 transition hover:border-zinc-700 hover:bg-zinc-800/70 hover:text-zinc-100 active:scale-[0.98] sm:h-8 sm:rounded-lg sm:px-3.5 sm:text-[11px]"
             aria-label={`정렬 변경: 현재 ${sort}`}
           >
             <span>{sort}</span>
-            <span className="text-[8px] text-zinc-600">⇅</span>
+            <span className="text-[9px] leading-none text-zinc-600">⇅</span>
           </button>
         </div>
 
