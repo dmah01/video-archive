@@ -348,27 +348,25 @@
                     </div>
 
                     <div className="mb-2 rounded-xl border border-zinc-800/70 bg-zinc-900/50 p-1 sm:mb-3">
-                      <p className="px-2 pb-1.5 pt-1 text-[9px] font-medium tracking-tight text-zinc-500">검색 조건</p>
-                      <div className="grid grid-cols-3 gap-1">
-                        {([
-                          ["all", "모두 포함"],
-                          ["only", "멤버만"],
-                          ["any", "하나라도 포함"],
-                        ] as const).map(([value, label]) => (
-                          <button
-                            key={value}
-                            type="button"
-                            onClick={() => setDraftPeopleFilterMode(value)}
-                            className={`min-h-8 rounded-lg px-2 py-1.5 text-[10px] font-medium transition sm:min-h-9 sm:px-2 sm:py-2 sm:text-[11px] ${
-                              draftPeopleFilterMode === value
-                                ? "bg-white font-semibold text-black shadow-sm"
-                                : "text-zinc-500 hover:bg-zinc-800/80 hover:text-zinc-200"
-                            }`}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
+                      <div className="grid grid-cols-2 gap-1">
+                  {([
+                    ["all", "모두 포함"],
+                    ["only", "선택 멤버만"],
+                  ] as const).map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setDraftPeopleFilterMode(value)}
+                      className={`h-7 rounded-md px-2 text-[10px] font-medium transition ${
+                        draftPeopleFilterMode === value
+                          ? "bg-zinc-800 text-zinc-100 shadow-sm"
+                          : "text-zinc-500 hover:text-zinc-300"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
