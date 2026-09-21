@@ -357,7 +357,7 @@
                       key={value}
                       type="button"
                       onClick={() => setDraftPeopleFilterMode(value)}
-                      className={`h-7 rounded-md px-2 text-[10px] font-medium transition ${
+                      className={`h-6 rounded-md px-1.5 text-[9px] font-medium transition sm:h-7 sm:px-2 sm:text-[10px] ${
                         draftPeopleFilterMode === value
                           ? "bg-zinc-800 text-zinc-100 shadow-sm"
                           : "text-zinc-500 hover:text-zinc-300"
