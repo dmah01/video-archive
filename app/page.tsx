@@ -961,7 +961,6 @@ export default function Home() {
   selectedGenres={selectedGenres}
   selectedTypes={selectedTypes}
   selectedSeries={selectedSeries}
-  sort={sort}
   people={people}
   genres={genres}
   types={types}
@@ -972,7 +971,6 @@ export default function Home() {
   setSelectedGenres={setSelectedGenres}
   setSelectedTypes={setSelectedTypes}
   setSelectedSeries={setSelectedSeries}
-  setSort={setSort}
   onReset={resetFilters}
 />
 
@@ -980,25 +978,22 @@ export default function Home() {
         {/* 결과 헤더 */}
         {/* ========================= */}
 
-        <div className="mb-4 flex items-center justify-between sm:mb-5">
-          <div>
-            <h2 className="font-semibold text-zinc-200">
-              영상
-            </h2>
-
-            {selectedGenres.length >
-              0 && (
-              <p className="mt-1 text-xs text-zinc-600">
-                장르{" "}
-                {selectedGenres.length}개
-                선택됨
-              </p>
-            )}
+        <div className="mb-5 flex items-center justify-between gap-3 border-b border-zinc-900/80 px-2 pb-3 sm:mb-6 sm:px-3 sm:pb-4 lg:px-4">
+          <div className="min-w-0">
+            <span className="text-sm font-medium tracking-tight text-zinc-500 sm:text-base">
+              {filteredVideos.length.toLocaleString()}개
+            </span>
           </div>
 
-          <span className="rounded-full bg-zinc-900 px-3 py-1.5 text-xs text-zinc-500">
-            {filteredVideos.length}개
-          </span>
+          <button
+            type="button"
+            onClick={() => setSort(sort === "최신순" ? "오래된순" : "최신순")}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-zinc-500 transition hover:bg-zinc-900 hover:text-zinc-200 sm:rounded-xl sm:px-3 sm:py-2 sm:text-sm"
+            aria-label={`정렬 변경: 현재 ${sort}`}
+          >
+            <span>{sort}</span>
+            <span className="text-zinc-600">⇅</span>
+          </button>
         </div>
 
         {/* ========================= */}

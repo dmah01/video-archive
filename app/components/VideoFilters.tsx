@@ -13,7 +13,6 @@
       selectedTypes: number[];
       selectedSeries: number[];
 
-      sort: string;
 
       people: Person[];
       genres: Category[];
@@ -29,7 +28,6 @@
       setSelectedTypes: (value: number[]) => void;
       setSelectedSeries: (value: number[]) => void;
 
-      setSort: (value: string) => void;
       onReset: () => void;
     };
 
@@ -121,7 +119,6 @@
       selectedGenres,
       selectedTypes,
       selectedSeries,
-      sort,
       people,
       genres,
       types,
@@ -133,7 +130,6 @@
       setSelectedGenres,
       setSelectedTypes,
       setSelectedSeries,
-      setSort,
       onReset,
     }: VideoFiltersProps) {
       const safeSelectedPeople = selectedPeople ?? [];
@@ -239,7 +235,7 @@
       );
 
       const filterButtonClass =
-        "flex min-w-0 min-h-9 items-center justify-between gap-1 rounded-lg border border-zinc-800 bg-zinc-950/70 px-1.5 py-1.5 text-left transition hover:border-zinc-700 hover:bg-zinc-900 sm:min-h-11 sm:gap-3 sm:rounded-xl sm:px-3.5 sm:py-2.5";
+        "flex min-w-0 min-h-11 items-center justify-between gap-0.5 rounded-lg border border-zinc-800 bg-zinc-950/70 px-1.5 py-1.5 text-left transition hover:border-zinc-700 hover:bg-zinc-900 active:scale-[0.99] sm:min-h-12 sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2.5";
 
       const selectionText = (
         values: Category[] | Person[],
@@ -250,6 +246,10 @@
         if (count === 1) return values[0]?.name ?? allText;
         return `${count}개 선택`;
       };
+
+      const dateButtonText = date
+        ? date.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$2.$3")
+        : "전체";
 
       return (
         <>
@@ -275,48 +275,32 @@
             className="filter-panel relative z-40 mb-8 rounded-2xl border border-zinc-800/80 bg-zinc-900/60 shadow-lg shadow-black/10"
           >
           {/* 상단 검색 */}
-          <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-1.5 p-2 sm:flex sm:gap-2 sm:p-3 lg:flex-row lg:p-4">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="영상 제목 검색"
-                className="search-input h-10 w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-2.5 py-2 text-base sm:h-auto sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
-              />
+          <div className="p-2 sm:p-3 lg:p-4">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5 sm:gap-2">
+              <div className="relative min-w-0">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="영상 제목 검색"
+                  className="search-input h-10 w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-2.5 py-2 pr-8 text-base sm:h-auto sm:rounded-xl sm:px-4 sm:py-3 sm:pr-10 sm:text-sm text-zinc-100 outline-none placeholder:text-zinc-600 transition hover:border-zinc-700 focus:border-zinc-600"
+                />
 
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 px-1 text-zinc-600 transition hover:text-zinc-300"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-
-            <div className="contents sm:flex sm:gap-2">
-              <button
-                type="button"
-                onClick={() =>
-                  setSort(sort === "최신순" ? "오래된순" : "최신순")
-                }
-                className={`${filterButtonClass} h-10 min-w-0 px-2 sm:h-11 sm:min-w-[130px]`}
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">정렬</p>
-                  <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
-                    {sort}
-                  </p>
-                </div>
-                <span className="text-zinc-600">⇅</span>
-              </button>
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 px-1 text-zinc-600 transition hover:text-zinc-300"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
 
               <button
                 type="button"
                 onClick={onReset}
-                className="h-10 rounded-lg border border-zinc-800 px-2.5 text-[10px] sm:min-h-11 sm:rounded-xl sm:px-3.5 sm:text-xs text-zinc-500 transition hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-200"
+                className="h-10 shrink-0 rounded-lg border border-zinc-800 px-3 text-[10px] font-medium text-zinc-500 transition hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-200 sm:h-11 sm:rounded-xl sm:px-3.5 sm:text-xs"
               >
                 초기화
               </button>
@@ -324,8 +308,8 @@
           </div>
 
           {/* 필터 버튼 */}
-          <div className="border-t border-zinc-800/70 px-2 py-1.5 sm:px-4 sm:py-2.5">
-            <div className="grid grid-cols-5 gap-1 sm:gap-1.5 lg:gap-2">
+          <div className="border-t border-zinc-800/70 px-1.5 py-2 sm:px-4 sm:py-2.5">
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-2 lg:gap-2.5">
               {/* 멤버 */}
               <div className="relative">
                 <button
@@ -334,8 +318,8 @@
                   className={`${filterButtonClass} w-full`}
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">멤버</p>
-                    <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
+                    <p className="truncate text-[9px] text-zinc-600 sm:text-[10px]">멤버</p>
+                    <p className="mt-0.5 truncate text-[10px] text-zinc-300 sm:text-xs">
                       {safeSelectedPeople.length === 0
                         ? "전체"
                         : `${safeSelectedPeople.length}명 선택`}
@@ -436,8 +420,8 @@
                   className={`${filterButtonClass} w-full`}
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">장르</p>
-                    <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
+                    <p className="truncate text-[9px] text-zinc-600 sm:text-[10px]">장르</p>
+                    <p className="mt-0.5 truncate text-[10px] text-zinc-300 sm:text-xs">
                       {selectionText(
                         selectedGenreData,
                         safeSelectedGenres.length,
@@ -512,8 +496,8 @@
                   className={`${filterButtonClass} w-full`}
                 >
                   <div className="min-w-0">
-                    <p className="leading-3 text-[8px] text-zinc-600 sm:text-[10px] sm:leading-4">타입</p>
-                    <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
+                    <p className="leading-3 text-[9px] text-zinc-600 sm:text-[10px] sm:leading-4">타입</p>
+                    <p className="mt-0.5 truncate text-[10px] text-zinc-300 sm:text-xs">
                       {selectionText(
                         selectedTypeData,
                         safeSelectedTypes.length,
@@ -587,10 +571,10 @@
                   className={`${filterButtonClass} w-full`}
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">
+                    <p className="truncate text-[9px] text-zinc-600 sm:text-[10px]">
                       시리즈
                     </p>
-                    <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
+                    <p className="mt-0.5 truncate text-[10px] text-zinc-300 sm:text-xs">
                       {selectionText(
                         selectedSeriesData,
                         safeSelectedSeries.length,
@@ -758,9 +742,9 @@
                   className={`${filterButtonClass} w-full`}
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-[8px] text-zinc-600 sm:text-[10px]">날짜</p>
-                    <p className="mt-0.5 truncate text-[9px] text-zinc-300 sm:text-xs">
-                      {date || "전체 날짜"}
+                    <p className="truncate text-[9px] text-zinc-600 sm:text-[10px]">날짜</p>
+                    <p className="mt-0.5 truncate text-[10px] text-zinc-300 sm:text-xs">
+                      {dateButtonText}
                     </p>
                   </div>
                   <span className="text-zinc-600">⌄</span>
@@ -772,7 +756,7 @@
                   >
                     <div className="mb-1.5 flex items-center justify-between sm:mb-2">
                       <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
-                        업로드 날짜
+                        날짜 선택
                       </span>
                       {date && (
                         <button
@@ -784,7 +768,7 @@
                         </button>
                       )}
                     </div>
-
+                    
                     <input
                       autoFocus
                       type="date"
@@ -807,6 +791,81 @@
               </div>
             </div>
           </div>
+
+          {/* 적용된 필터 태그 */}
+          {(safeSelectedPeople.length > 0 ||
+            safeSelectedGenres.length > 0 ||
+            safeSelectedTypes.length > 0 ||
+            safeSelectedSeries.length > 0 ||
+            date) && (
+            <div className="border-t border-zinc-800/60 px-2 py-2.5 sm:px-4 sm:py-3">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {selectedPersonData.map((person) => (
+                  <button
+                    key={`filter-person-${person.id}`}
+                    type="button"
+                    onClick={() => setSelectedPeople(safeSelectedPeople.filter((id) => id !== person.id))}
+                    className={`inline-flex max-w-full items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] leading-4 transition hover:opacity-80 sm:text-[11px] ${personColors[person.name] ?? "border-zinc-700 bg-zinc-900 text-zinc-300"}`}
+                    title={`${person.name} 필터 해제`}
+                  >
+                    <span className="truncate">{person.name}</span>
+                    <span aria-hidden="true">×</span>
+                  </button>
+                ))}
+
+                {selectedGenreData.map((genre) => (
+                  <button
+                    key={`filter-genre-${genre.id}`}
+                    type="button"
+                    onClick={() => setSelectedGenres(safeSelectedGenres.filter((id) => id !== genre.id))}
+                    className="inline-flex max-w-full items-center gap-1 rounded-full border border-purple-400/40 bg-purple-400/15 px-2.5 py-1 text-[10px] leading-4 text-purple-300 transition hover:opacity-80 sm:text-[11px]"
+                    title={`${genre.name} 필터 해제`}
+                  >
+                    <span className="truncate">{genre.name}</span>
+                    <span aria-hidden="true">×</span>
+                  </button>
+                ))}
+
+                {selectedTypeData.map((type) => (
+                  <button
+                    key={`filter-type-${type.id}`}
+                    type="button"
+                    onClick={() => setSelectedTypes(safeSelectedTypes.filter((id) => id !== type.id))}
+                    className="inline-flex max-w-full items-center gap-1 rounded-full border border-blue-400/30 bg-blue-400/10 px-2.5 py-1 text-[10px] leading-4 text-blue-300 transition hover:opacity-80 sm:text-[11px]"
+                    title={`${type.name} 필터 해제`}
+                  >
+                    <span className="truncate">{type.name}</span>
+                    <span aria-hidden="true">×</span>
+                  </button>
+                ))}
+
+                {selectedSeriesData.map((item) => (
+                  <button
+                    key={`filter-series-${item.id}`}
+                    type="button"
+                    onClick={() => setSelectedSeries(safeSelectedSeries.filter((id) => id !== item.id))}
+                    className="inline-flex max-w-full items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[10px] leading-4 text-emerald-300 transition hover:opacity-80 sm:text-[11px]"
+                    title={`${item.name} 필터 해제`}
+                  >
+                    <span className="truncate">{item.name}</span>
+                    <span aria-hidden="true">×</span>
+                  </button>
+                ))}
+
+                {date && (
+                  <button
+                    type="button"
+                    onClick={() => setDate("")}
+                    className="inline-flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] leading-4 text-zinc-300 transition hover:border-zinc-600 hover:bg-zinc-700 sm:text-[11px]"
+                    title="날짜 필터 해제"
+                  >
+                    <span>{dateButtonText}</span>
+                    <span aria-hidden="true">×</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
           </section>
         </>
       );
