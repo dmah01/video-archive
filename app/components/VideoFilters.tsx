@@ -348,26 +348,34 @@
                     </div>
 
                     <div className="mb-2 rounded-xl border border-zinc-800/70 bg-zinc-900/50 p-1 sm:mb-3">
-                      <div className="grid grid-cols-2 gap-1">
+                      <div
+                  className="theme-picker w-full"
+                  style={{
+                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    border: "0",
+                    borderRadius: "12px",
+                    background: "transparent",
+                    padding: "3px",
+                    gap: "3px",
+                  }}
+                  aria-label="멤버 선택 조건"
+                >
                   {([
-                    ["all", "모두 포함"],
-                    ["only", "선택 멤버만"],
+                    ["all", "모두 선택"],
+                    ["only", "선택한 멤버"],
                   ] as const).map(([value, label]) => (
                     <button
                       key={value}
                       type="button"
+                      className={draftPeopleFilterMode === value ? "active" : ""}
                       onClick={() => setDraftPeopleFilterMode(value)}
-                      className={`h-6 rounded-md px-1.5 text-[9px] font-medium transition sm:h-7 sm:px-2 sm:text-[10px] ${
-                        draftPeopleFilterMode === value
-                          ? "bg-zinc-800 text-zinc-100 shadow-sm"
-                          : "text-zinc-500 hover:text-zinc-300"
-                      }`}
+                      aria-pressed={draftPeopleFilterMode === value}
+                      style={{ fontSize: "12px" }}
                     >
                       {label}
                     </button>
                   ))}
-                </div>
-                    </div>
+                </div></div>
 
                     <div className="flex flex-wrap items-center gap-2">
                       {sortPeople(people).map((person) => {
