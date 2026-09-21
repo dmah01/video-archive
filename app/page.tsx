@@ -978,9 +978,9 @@ export default function Home() {
         {/* 결과 헤더 */}
         {/* ========================= */}
 
-        <div className="mb-3 flex items-center justify-between gap-2 border-b border-zinc-900/80 px-2 pb-2 sm:mb-4 sm:px-3 sm:pb-2.5 lg:px-4">
+        <div className="mb-2 flex items-center justify-between gap-2 border-b border-zinc-900/80 px-2 pb-1 sm:mb-2.5 sm:px-3 sm:pb-1.5 lg:px-4">
           <div className="min-w-0">
-            <span className="text-xs font-medium tracking-tight text-zinc-500 sm:text-sm">
+            <span className="text-xs font-medium tracking-tight text-zinc-500">
               {filteredVideos.length.toLocaleString()}개
             </span>
           </div>
@@ -988,11 +988,11 @@ export default function Home() {
           <button
             type="button"
             onClick={() => setSort(sort === "최신순" ? "오래된순" : "최신순")}
-            className="inline-flex h-7 shrink-0 items-center gap-1 rounded-md border border-zinc-800 bg-zinc-900/60 px-2.5 text-[11px] font-medium text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100 active:scale-[0.98] sm:h-8 sm:rounded-lg sm:px-3 sm:text-xs"
+            className="inline-flex h-7 shrink-0 items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 text-[10px] font-medium text-zinc-400 transition hover:border-zinc-700 hover:bg-zinc-900 hover:text-zinc-200 active:scale-[0.98] sm:h-8 sm:rounded-xl sm:px-3 sm:text-[11px]"
             aria-label={`정렬 변경: 현재 ${sort}`}
           >
             <span>{sort}</span>
-            <span className="text-[9px] text-zinc-500">⇅</span>
+            <span className="text-[8px] text-zinc-600">⇅</span>
           </button>
         </div>
 
