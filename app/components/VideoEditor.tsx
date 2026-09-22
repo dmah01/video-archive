@@ -46,6 +46,7 @@
       >;
 
       onSave: () => void;
+      onDelete: () => void | Promise<void>;
       onClose: () => void;
       onNavigateToVideo: (videoId: number) => void;
     };
@@ -149,6 +150,7 @@
       setSelectedSeries,
       setSelectedRelatedVideos,
       onSave,
+      onDelete,
       onClose,
       onNavigateToVideo,
     }: VideoEditorProps) {
@@ -853,11 +855,20 @@
                 <button
                   type="button"
                   disabled={saving}
+                  onClick={onDelete}
+                  className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-[11px] font-semibold text-red-300 transition hover:border-red-500/30 hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  삭제
+                </button>
+
+                <button
+                  type="button"
+                  disabled={saving}
                   onClick={onSave}
                   className="theme-action-button flex-1 rounded-xl px-5 py-2.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {saving
-                    ? "저장 중..."
+                    ? "처리 중..."
                     : "변경사항 저장"}
                 </button>
               </div>
@@ -866,4 +877,3 @@
         </div>
       );
     }
-

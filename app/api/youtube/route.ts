@@ -244,6 +244,107 @@ export async function GET(request: Request) {
   }
 }
 
+export async function DELETE(request: Request) {
+  try {
+    const admin = await requireAdmin(request);
+
+    if ("error" in admin) {
+      return admin.error;
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const videoId = Number(body?.videoId);
+
+    if (!Number.isInteger(videoId) || videoId <= 0) {
+      return NextResponse.json(
+        { error: "삭제할 영상 ID가 올바르지 않습니다." },
+        { status: 400 }
+      );
+    }
+
+    // 관계 데이터를 먼저 정리한 뒤 본 영상을 삭제합니다.
+    const { error: relationAError } = await admin.authClient
+      .from("video_relations")
+      .delete()
+      .eq("video_id", videoId);
+
+    if (relationAError) {
+      return NextResponse.json(
+        { error: "연계 영상 정보 삭제에 실패했습니다.", details: relationAError.message },
+        { status: 500 }
+      );
+    }
+
+    const { error: relationBError } = await admin.authClient
+      .from("video_relations")
+      .delete()
+      .eq("related_video_id", videoId);
+
+    if (relationBError) {
+      return NextResponse.json(
+        { error: "연계 영상 정보 삭제에 실패했습니다.", details: relationBError.message },
+        { status: 500 }
+      );
+    }
+
+    const { error: peopleError } = await admin.authClient
+      .from("video_people")
+      .delete()
+      .eq("video", videoId);
+
+    if (peopleError) {
+      return NextResponse.json(
+        { error: "멤버 연결 정보 삭제에 실패했습니다.", details: peopleError.message },
+        { status: 500 }
+      );
+    }
+
+    const { error: genresError } = await admin.authClient
+      .from("video_genres")
+      .delete()
+      .eq("video", videoId);
+
+    if (genresError) {
+      return NextResponse.json(
+        { error: "장르 연결 정보 삭제에 실패했습니다.", details: genresError.message },
+        { status: 500 }
+      );
+    }
+
+    const { data: deleted, error: videoError } = await admin.authClient
+      .from("videos")
+      .delete()
+      .eq("id", videoId)
+      .select("id")
+      .maybeSingle();
+
+    if (videoError) {
+      return NextResponse.json(
+        { error: "영상 삭제에 실패했습니다.", details: videoError.message },
+        { status: 500 }
+      );
+    }
+
+    if (!deleted) {
+      return NextResponse.json(
+        { error: "삭제할 영상을 찾을 수 없습니다." },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true, videoId });
+  } catch (error) {
+    console.error("영상 삭제 오류:", error);
+    return NextResponse.json(
+      {
+        error: "서버 오류가 발생했습니다.",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const admin = await requireAdmin(request);

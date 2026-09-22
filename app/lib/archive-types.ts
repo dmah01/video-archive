@@ -21,6 +21,8 @@ export type Video = {
   type_ids?: number[] | null;
   type_id?: number | null;
   series_id?: number | null;
+  series_ids?: number[] | null;
+  seriesIds?: number[];
   seriesId?: number | null;
   typeId?: number | null;
 };

@@ -4,7 +4,7 @@ import type { Category, Person, Video } from "@/app/lib/archive-types";
 
 const VIDEO_PAGE_SIZE = 1000;
 const VIDEO_COLUMNS =
-  "id,title,thumbnail_url,published_at,youtube_url,type_ids,type_id,series_id";
+  "id,title,thumbnail_url,published_at,youtube_url,type_ids,type_id,series_id,series_ids";
 
 export function useVideos() {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -132,6 +132,11 @@ export function useVideos() {
             : [],
         typeId: video.type_id ?? null,
         seriesId: video.series_id ?? null,
+        seriesIds: Array.isArray(video.series_ids)
+          ? video.series_ids
+          : video.series_id != null
+            ? [video.series_id]
+            : [],
       }))
     );
 
@@ -221,6 +226,47 @@ export function useVideos() {
     }
   }
 
+  async function deleteVideo(videoId: number) {
+    setImporting(true);
+    setImportMessage("");
+
+    try {
+      const authHeaders = await getAdminHeaders();
+      const response = await fetch("/api/youtube", {
+        method: "DELETE",
+        headers: {
+          ...authHeaders,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ videoId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.details ||
+            data.error ||
+            "영상 삭제에 실패했습니다."
+        );
+      }
+
+      setVideos((current) => current.filter((video) => video.id !== videoId));
+      setImportMessage("영상을 삭제했습니다.");
+      return data;
+    } catch (error) {
+      console.error("영상 삭제 오류:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "영상 삭제에 실패했습니다.";
+      setImportMessage(message);
+      throw error;
+    } finally {
+      setImporting(false);
+    }
+  }
+
   async function addYouTubeVideo(youtubeUrl: string) {
     setImporting(true);
     setImportMessage("");
@@ -282,5 +328,6 @@ export function useVideos() {
     loadVideos,
     importYouTubeVideos,
     addYouTubeVideo,
+    deleteVideo,
   };
 }
