@@ -385,7 +385,7 @@ export default function SiteMenu({
                 </section>
 
                 <section className="site-menu-section">
-                  <p className="site-menu-label">ARCHIVE GUIDE</p>
+                  <p className="site-menu-label">GUIDE</p>
                   <div className="site-menu-admin-list flex flex-col gap-2.5">
                     <button
                       type="button"
@@ -592,11 +592,11 @@ export default function SiteMenu({
         >
           <div
             className="site-menu-modal-card"
-            style={{ width: "min(700px, calc(100vw - 24px))" }}
+            style={{ width: "min(760px, calc(100vw - 20px))" }}
           >
             <div className="site-menu-modal-header">
               <div>
-                <p className="site-menu-eyebrow">ARCHIVE GUIDE</p>
+                <p className="site-menu-eyebrow">GUIDE</p>
                 <h2 id="site-guide-title">이용 안내</h2>
               </div>
               <button
@@ -712,11 +712,11 @@ export default function SiteMenu({
         >
           <div
             className="site-menu-modal-card"
-            style={{ width: "min(700px, calc(100vw - 24px))" }}
+            style={{ width: "min(760px, calc(100vw - 20px))" }}
           >
             <div className="site-menu-modal-header">
               <div>
-                <p className="site-menu-eyebrow">ARCHIVE GUIDE</p>
+                <p className="site-menu-eyebrow">GUIDE</p>
                 <h2 id="site-guide2-title">검색 및 분류 안내</h2>
               </div>
               <button
@@ -730,14 +730,15 @@ export default function SiteMenu({
               </button>
             </div>
 
-            <div className="site-guide-body">
+            <div className="site-guide-body" style={{ fontSize: "14px", lineHeight: 1.7 }}>
               {!guide2Loading && guide2Pages.length > 0 && (
                 <div
                   style={{
                     display: "flex",
                     flexWrap: "wrap",
-                    gap: "8px",
-                    marginBottom: "16px",
+                    gap: "6px",
+                    marginBottom: "14px",
+                    width: "100%",
                   }}
                 >
                   {guide2Pages.map((page, index) => (
@@ -748,7 +749,8 @@ export default function SiteMenu({
                       disabled={editingGuide2}
                       style={{
                         minHeight: "38px",
-                        padding: "8px 13px",
+                        flex: "1 1 auto",
+                        padding: "8px 11px",
                         borderRadius: "10px",
                         border: index === guide2Page ? "1px solid #71717a" : "1px solid #27272a",
                         background: index === guide2Page ? "#27272a" : "transparent",
