@@ -702,6 +702,9 @@ html[data-theme="light"] .theme-action-button:hover {
 
 .site-menu-modal-card {
   width: min(420px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid #27272a;
   border-radius: 24px;
   background: #09090b;
@@ -753,44 +756,6 @@ html[data-theme="light"] .theme-action-button:hover {
 
 .site-menu-form input::placeholder {
   color: #52525b;
-}
-
-.site-feedback-textarea {
-  width: 100%;
-  min-height: 180px;
-  border: 1px solid #27272a;
-  border-radius: 13px;
-  outline: none;
-  background: #18181b;
-  color: #f4f4f5;
-  font-family: inherit;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.site-feedback-textarea:focus {
-  border-color: #52525b;
-}
-
-.site-feedback-textarea::placeholder {
-  color: #52525b;
-}
-
-.site-feedback-confirm {
-  border: 1px solid #27272a;
-  background: #18181b;
-}
-
-.site-feedback-confirm-title {
-  color: #e4e4e7;
-}
-
-.site-feedback-confirm-description {
-  color: #71717a;
-}
-
-.site-feedback-counter {
-  color: #71717a;
 }
 
 .site-menu-error {
@@ -921,37 +886,6 @@ html[data-theme="light"] .site-menu-form input::placeholder {
   color: #a1a1aa;
 }
 
-html[data-theme="light"] .site-feedback-textarea {
-  border-color: #d4d4d8;
-  background: #f8f8fa;
-  color: #18181b;
-}
-
-html[data-theme="light"] .site-feedback-textarea:focus {
-  border-color: #a1a1aa;
-}
-
-html[data-theme="light"] .site-feedback-textarea::placeholder {
-  color: #a1a1aa;
-}
-
-html[data-theme="light"] .site-feedback-confirm {
-  border-color: #e4e4e7;
-  background: #f8f8fa;
-}
-
-html[data-theme="light"] .site-feedback-confirm-title {
-  color: #18181b !important;
-}
-
-html[data-theme="light"] .site-feedback-confirm-description {
-  color: #71717a !important;
-}
-
-html[data-theme="light"] .site-feedback-counter {
-  color: #71717a !important;
-}
-
 html[data-theme="light"] .site-menu-login-button {
   border-color: #18181b;
   background: #18181b;
@@ -964,6 +898,70 @@ html[data-theme="light"] .site-menu-login-button:hover {
 
 html[data-theme="light"] .site-guide-body p {
   color: #52525b;
+}
+
+
+
+/* 의견 보내기 - 테마 대응 */
+.site-feedback-textarea {
+  border: 1px solid #27272a !important;
+  background: #18181b !important;
+  color: #f4f4f5 !important;
+}
+
+.site-feedback-textarea::placeholder {
+  color: #71717a;
+}
+
+.site-feedback-textarea:focus,
+.site-feedback-textarea:focus-visible {
+  border-color: #27272a !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.site-feedback-confirm {
+  border: 1px solid #27272a;
+  background: #18181b;
+}
+
+.site-feedback-confirm-title {
+  color: #f4f4f5;
+}
+
+.site-feedback-confirm-text {
+  color: #71717a;
+}
+
+html[data-theme="light"] .site-feedback-textarea {
+  border-color: #d4d4d8 !important;
+  background: #ffffff !important;
+  color: #18181b !important;
+  caret-color: #18181b !important;
+}
+
+html[data-theme="light"] .site-feedback-textarea::placeholder {
+  color: #a1a1aa !important;
+}
+
+html[data-theme="light"] .site-feedback-textarea:focus,
+html[data-theme="light"] .site-feedback-textarea:focus-visible {
+  border-color: #d4d4d8 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .site-feedback-confirm {
+  border-color: #e4e4e7;
+  background: #f8f8fa;
+}
+
+html[data-theme="light"] .site-feedback-confirm-title {
+  color: #18181b !important;
+}
+
+html[data-theme="light"] .site-feedback-confirm-text {
+  color: #71717a !important;
 }
 
 @media (max-width: 640px) {
@@ -982,4 +980,58 @@ html[data-theme="light"] .site-guide-body p {
     right: 10px;
     width: calc(100vw - 20px);
   }
+}
+
+/* 의견 작성창 포커스 외곽선 제거 */
+.site-feedback-textarea,
+.site-feedback-textarea:focus,
+.site-feedback-textarea:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .site-feedback-textarea {
+  border-color: #e4e4e7 !important;
+}
+
+html[data-theme="light"] .site-feedback-textarea:focus,
+html[data-theme="light"] .site-feedback-textarea:focus-visible {
+  border-color: #e4e4e7 !important;
+}
+
+/* FEEDBACK 설명: PC에서는 한 줄, 모바일에서는 자연스럽게 줄바꿈 */
+@media (min-width: 769px) {
+  .site-feedback-description {
+    white-space: nowrap;
+  }
+}
+
+
+/* FEEDBACK 입력창 테마 최종 적용 */
+.site-feedback-textarea {
+  border: 1px solid #27272a !important;
+  background: #18181b !important;
+  color: #f4f4f5 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+.site-feedback-textarea:focus,
+.site-feedback-textarea:focus-visible {
+  border-color: #27272a !important;
+  background: #18181b !important;
+  color: #f4f4f5 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] .site-feedback-textarea,
+html[data-theme="light"] .site-feedback-textarea:focus,
+html[data-theme="light"] .site-feedback-textarea:focus-visible {
+  border-color: #e4e4e7 !important;
+  background: #ffffff !important;
+  color: #18181b !important;
+  caret-color: #18181b !important;
+  outline: none !important;
+  box-shadow: none !important;
 }

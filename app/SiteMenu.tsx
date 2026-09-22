@@ -592,7 +592,7 @@ export default function SiteMenu({
         >
           <div
             className="site-menu-modal-card"
-            style={{ width: "min(760px, calc(100vw - 20px))" }}
+            style={{ width: "min(700px, calc(100vw - 24px))" }}
           >
             <div className="site-menu-modal-header">
               <div>
@@ -712,7 +712,7 @@ export default function SiteMenu({
         >
           <div
             className="site-menu-modal-card"
-            style={{ width: "min(760px, calc(100vw - 20px))" }}
+            style={{ width: "min(700px, calc(100vw - 24px))" }}
           >
             <div className="site-menu-modal-header">
               <div>
@@ -730,15 +730,14 @@ export default function SiteMenu({
               </button>
             </div>
 
-            <div className="site-guide-body" style={{ fontSize: "14px", lineHeight: 1.7 }}>
+            <div className="site-guide-body">
               {!guide2Loading && guide2Pages.length > 0 && (
                 <div
                   style={{
                     display: "flex",
                     flexWrap: "wrap",
-                    gap: "6px",
-                    marginBottom: "14px",
-                    width: "100%",
+                    gap: "8px",
+                    marginBottom: "16px",
                   }}
                 >
                   {guide2Pages.map((page, index) => (
@@ -749,8 +748,7 @@ export default function SiteMenu({
                       disabled={editingGuide2}
                       style={{
                         minHeight: "38px",
-                        flex: "1 1 auto",
-                        padding: "8px 11px",
+                        padding: "8px 13px",
                         borderRadius: "10px",
                         border: index === guide2Page ? "1px solid #71717a" : "1px solid #27272a",
                         background: index === guide2Page ? "#27272a" : "transparent",
@@ -864,10 +862,10 @@ export default function SiteMenu({
                 <p className="site-menu-eyebrow">FEEDBACK</p>
                 <h2 id="site-feedback-title">의견 보내기</h2>
                 <p
-                  className="site-menu-description site-menu-description-modal"
+                  className="site-menu-description site-menu-description-modal site-feedback-description"
                   style={{ fontSize: "12px", lineHeight: 1.5 }}
                 >
-                   별도의 답변은 드리지 않으며, 의견은 최대한 빠르게 반영하겠습니다.
+                  별도의 답변은 드리지 않으며, 의견은 최대한 빠르게 반영하겠습니다.
                 </p>
               </div>
 
@@ -899,6 +897,7 @@ export default function SiteMenu({
                   <label>
                     <span>의견 작성</span>
                     <textarea
+                      className="site-feedback-textarea"
                       value={feedbackText}
                       onChange={(event) => setFeedbackText(event.target.value)}
                       onMouseDown={(event) => event.stopPropagation()}
