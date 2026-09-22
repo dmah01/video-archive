@@ -204,7 +204,7 @@ export default function SiteMenu({
             <aside className="site-menu-panel" aria-label="사이트 메뉴">
               <div className="site-menu-header">
                 <div>
-                  <p className="site-menu-eyebrow">MUNU</p>
+                  <p className="site-menu-eyebrow">MENU</p>
                   <h2>메뉴</h2>
                 </div>
             

@@ -361,8 +361,8 @@
                   aria-label="멤버 선택 조건"
                 >
                   {([
-                    ["all", "모두 선택"],
-                    ["only", "선택한 멤버"],
+                    ["all", "멤버 포함"],
+                    ["only", "멤버만"],
                   ] as const).map(([value, label]) => (
                     <button
                       key={value}
