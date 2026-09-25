@@ -171,7 +171,7 @@ export default function SiteMenu({
       }
     } catch {
       const pages = [
-        { title: "분류 기준", content: rawContent },
+        { title: "분류 기준 및 유의사항", content: rawContent },
         { title: "멤버 검색 및 분류", content: "" },
         { title: "장르 검색 및 분류", content: "" },
         { title: "타입 분류", content: "" },
@@ -379,7 +379,7 @@ export default function SiteMenu({
                       closeMenu();
                     }}
                   >
-                    <span>처음으로 돌아가기</span>
+                    <span>맨 위로</span>
                     <span>↑</span>
                   </button>
                 </section>
@@ -396,7 +396,7 @@ export default function SiteMenu({
                         closeMenu();
                       }}
                     >
-                      <span>이용 안내</span>
+                      <span>기본 안내</span>
                       <span>›</span>
                     </button>
 
@@ -597,7 +597,7 @@ export default function SiteMenu({
             <div className="site-menu-modal-header">
               <div>
                 <p className="site-menu-eyebrow">GUIDE</p>
-                <h2 id="site-guide-title">이용 안내</h2>
+                <h2 id="site-guide-title">기본 안내</h2>
               </div>
               <button
                 type="button"
