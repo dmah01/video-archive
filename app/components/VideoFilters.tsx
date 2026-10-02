@@ -658,7 +658,7 @@
                                 type="search"
                                 value={seriesSearch}
                                 onChange={(e) => setSeriesSearch(e.target.value)}
-                                placeholder="시리즈 이름을 입력하세요..."
+                                placeholder="시리즈 이름 검색"
                                 autoComplete="off"
                                 className="h-10 w-full min-w-0 rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-xs text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600"
                               />
