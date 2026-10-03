@@ -488,7 +488,7 @@ export default function SiteMenu({
                       >
                         <span>
                           {importing
-                            ? "가져오는 중..."
+                            ? "가져오는 중"
                             : "YouTube 영상 불러오기"}
                         </span>
                         <span>↻</span>
@@ -573,7 +573,7 @@ export default function SiteMenu({
                 onClick={() => void handleLogin()}
                 disabled={loginLoading || !email.trim() || !password}
               >
-                {loginLoading ? "확인 중..." : "로그인"}
+                {loginLoading ? "확인 중" : "로그인"}
               </button>
             </div>
           </div>
@@ -611,7 +611,7 @@ export default function SiteMenu({
 
             <div className="site-guide-body">
               {guideLoading ? (
-                <p>불러오는 중...</p>
+                <p>불러오는 중</p>
               ) : editingGuide && isAdmin ? (
                 <>
                   <textarea
@@ -664,7 +664,7 @@ export default function SiteMenu({
                         justifyContent: "center",
                       }}
                     >
-                      {guideSaving ? "저장 중..." : "저장"}
+                      {guideSaving ? "저장 중" : "저장"}
                     </button>
                   </div>
                 </>
@@ -763,7 +763,7 @@ export default function SiteMenu({
                 </div>
               )}
               {guide2Loading ? (
-                <p>불러오는 중...</p>
+                <p>불러오는 중</p>
               ) : editingGuide2 && isAdmin ? (
                 <>
                   <textarea
@@ -807,7 +807,7 @@ export default function SiteMenu({
                       disabled={guide2Saving}
                       className="site-menu-login-button"
                     >
-                      {guide2Saving ? "저장 중..." : "저장"}
+                      {guide2Saving ? "저장 중" : "저장"}
                     </button>
                   </div>
                 </>
@@ -968,7 +968,7 @@ export default function SiteMenu({
                           onClick={() => void submitFeedback()}
                           disabled={feedbackLoading}
                         >
-                          {feedbackLoading ? "보내는 중..." : "보내기"}
+                          {feedbackLoading ? "보내는 중" : "보내기"}
                         </button>
                       </div>
                     </div>

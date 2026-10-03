@@ -719,7 +719,7 @@
 
                     {relatedLoading ? (
                       <div className="py-10 text-center text-xs text-zinc-600">
-                        불러오는 중...
+                        불러오는 중
                       </div>
                     ) : (
                       <>
@@ -868,7 +868,7 @@
                   className="theme-action-button flex-1 rounded-xl px-5 py-2.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {saving
-                    ? "처리 중..."
+                    ? "처리 중"
                     : "변경사항 저장"}
                 </button>
               </div>

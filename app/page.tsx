@@ -888,7 +888,7 @@
                       disabled={importing || !youtubeUrl.trim()}
                       className="theme-action-button shrink-0 rounded-2xl px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {importing ? "추가 중..." : "추가"}
+                      {importing ? "추가 중" : "추가"}
                     </button>
                   </div>
                 </div>
@@ -953,7 +953,7 @@
             {loading && (
               <div className="rounded-3xl border border-zinc-800 bg-zinc-900/50 py-24 text-center">
                 <p className="text-sm text-zinc-500">
-                  영상을 불러오는 중...
+                  영상을 불러오는 중
                 </p>
               </div>
             )}

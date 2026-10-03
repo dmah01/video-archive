@@ -404,7 +404,7 @@
 
                           <div className="min-h-0 overflow-y-auto p-3 sm:p-4">
                             {relatedLoading && (
-                              <p className="py-10 text-center text-xs text-zinc-600">연계 영상을 불러오는 중...</p>
+                              <p className="py-10 text-center text-xs text-zinc-600">연계 영상을 불러오는 중</p>
                             )}
                             {!relatedLoading && relatedError && (
                               <p className="py-10 text-center text-xs text-red-300">{relatedError}</p>
