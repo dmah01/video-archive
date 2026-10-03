@@ -796,7 +796,7 @@
                   <h1
                     className="archive-title text-3xl font-bold tracking-tight sm:text-4xl"
                   >
-                    잠뜰TV Archive
+                    잠뜰 TV Archive
                   </h1>
 
 
@@ -1212,7 +1212,7 @@
           <footer className="site-footer border-t border-zinc-900 bg-zinc-950">
             <div className="mx-auto max-w-7xl px-5 py-8 text-center sm:px-6">
               <p className="text-xs text-zinc-600">
-                SLEEPGROUND TV ARCHIVE | 잠뜰TV Archive
+                SLEEPGROUND TV ARCHIVE | 잠뜰 TV Archive
               </p>
               <p className="mt-2 text-xs text-zinc-700">
                 Made by @from_foum 

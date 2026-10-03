@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "잠뜰TV Archive",
-  description: "잠뜰TV 영상 아카이브",
+  title: "잠뜰 TV Archive",
+  description: "잠뜰 TV 영상 아카이브",
 };
 
 export default function RootLayout({
