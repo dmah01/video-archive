@@ -614,7 +614,13 @@ const paginatedVideoIds = useMemo(
   const requestRevision = relatedCountsRevision.current;
 
   async function loadRelatedCounts() {
-    const { data, error } = await supabase
+  console.log(
+    "[loadRelatedCounts 실행]",
+    paginatedVideoIds,
+    new Date().toISOString()
+  );
+
+  const { data, error } = await supabase
       .from("video_relations")
       .select("video_id, related_video_id")
       .or(
