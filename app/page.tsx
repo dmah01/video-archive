@@ -528,12 +528,21 @@ export default function Home() {
 
   const totalPages = Math.ceil(filteredVideos.length / VIDEOS_PER_PAGE);
 
-  const startIndex = (currentPage - 1) * VIDEOS_PER_PAGE;
+const startIndex = (currentPage - 1) * VIDEOS_PER_PAGE;
 
-  const paginatedVideos = filteredVideos.slice(
-    startIndex,
-    startIndex + VIDEOS_PER_PAGE
-  );
+const paginatedVideos = useMemo(
+  () =>
+    filteredVideos.slice(
+      startIndex,
+      startIndex + VIDEOS_PER_PAGE
+    ),
+  [filteredVideos, startIndex]
+);
+
+const paginatedVideoIds = useMemo(
+  () => paginatedVideos.map((video) => video.id).join(","),
+  [paginatedVideos]
+);
 
   useEffect(() => {
     if (pendingVideoCardId === null) return;
@@ -595,57 +604,60 @@ export default function Home() {
   // 카드 연계 영상 개수
   // =============================
   useEffect(() => {
-    const pageIds = paginatedVideos.map((video) => video.id);
-    if (pageIds.length === 0) return;
+  const pageIds = paginatedVideoIds
+    ? paginatedVideoIds.split(",").map(Number)
+    : [];
 
-    let cancelled = false;
-    const requestRevision = relatedCountsRevision.current;
+  if (pageIds.length === 0) return;
 
-    async function loadRelatedCounts() {
-      const { data, error } = await supabase
-        .from("video_relations")
-        .select("video_id, related_video_id")
-        .or(
-          `video_id.in.(${pageIds.join(",")}),related_video_id.in.(${pageIds.join(",")})`
-        );
+  let cancelled = false;
+  const requestRevision = relatedCountsRevision.current;
 
-      if (
-        cancelled ||
-        error ||
-        requestRevision !== relatedCountsRevision.current
-      ) {
-        return;
-      }
+  async function loadRelatedCounts() {
+    const { data, error } = await supabase
+      .from("video_relations")
+      .select("video_id, related_video_id")
+      .or(
+        `video_id.in.(${pageIds.join(",")}),related_video_id.in.(${pageIds.join(",")})`
+      );
 
-      const counts: Record<number, number> = {};
-
-      (data ?? []).forEach((relation) => {
-        const a = Number(relation.video_id);
-        const b = Number(relation.related_video_id);
-
-        if (pageIds.includes(a)) {
-          counts[a] = (counts[a] ?? 0) + 1;
-        }
-
-        if (pageIds.includes(b)) {
-          counts[b] = (counts[b] ?? 0) + 1;
-        }
-      });
-
-      setRelatedCounts((current) => ({
-        ...current,
-        ...Object.fromEntries(
-          pageIds.map((id) => [id, counts[id] ?? 0])
-        ),
-      }));
+    if (
+      cancelled ||
+      error ||
+      requestRevision !== relatedCountsRevision.current
+    ) {
+      return;
     }
 
-    void loadRelatedCounts();
+    const counts: Record<number, number> = {};
 
-    return () => {
-      cancelled = true;
-    };
-  }, [paginatedVideos]);
+    (data ?? []).forEach((relation) => {
+      const a = Number(relation.video_id);
+      const b = Number(relation.related_video_id);
+
+      if (pageIds.includes(a)) {
+        counts[a] = (counts[a] ?? 0) + 1;
+      }
+
+      if (pageIds.includes(b)) {
+        counts[b] = (counts[b] ?? 0) + 1;
+      }
+    });
+
+    setRelatedCounts((current) => ({
+      ...current,
+      ...Object.fromEntries(
+        pageIds.map((id) => [id, counts[id] ?? 0])
+      ),
+    }));
+  }
+
+  void loadRelatedCounts();
+
+  return () => {
+    cancelled = true;
+  };
+}, [paginatedVideoIds]);
 
   // =============================
   // 화면
