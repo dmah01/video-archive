@@ -63,6 +63,7 @@ export function useVideos() {
 
     const peopleRelations: Array<{ video: number; person: number }> = [];
     const genreRelations: Array<{ video: number; genre: number }> = [];
+    const relationCounts: Record<number, number> = {};
 
     for (let i = 0; i < videoIds.length; i += RELATION_CHUNK_SIZE) {
       const chunk = videoIds.slice(i, i + RELATION_CHUNK_SIZE);
@@ -70,9 +71,14 @@ export function useVideos() {
       const [
         { data: chunkPeople, error: peopleError },
         { data: chunkGenres, error: genreError },
+        { data: chunkRelations, error: relationError },
       ] = await Promise.all([
         supabase.from("video_people").select("video, person").in("video", chunk),
         supabase.from("video_genres").select("video, genre").in("video", chunk),
+        supabase
+          .from("video_relation_counts")
+          .select("video_id, related_count")
+          .in("video_id", chunk),
       ]);
 
       if (peopleError) {
@@ -95,6 +101,18 @@ export function useVideos() {
         genreRelations.push(
           ...((chunkGenres ?? []) as Array<{ video: number; genre: number }>)
         );
+      }
+
+      if (relationError) {
+        console.error(
+          `관련 영상 개수 불러오기 오류 (chunk ${i}~${i + chunk.length - 1}):`,
+          relationError
+        );
+      } else {
+        for (const relation of chunkRelations ?? []) {
+          relationCounts[Number(relation.video_id)] =
+            Number(relation.related_count) || 0;
+        }
       }
     }
 
@@ -125,6 +143,7 @@ export function useVideos() {
         ...video,
         peopleIds: peopleMap.get(video.id) ?? [],
         genreIds: genreMap.get(video.id) ?? [],
+        relatedCount: relationCounts[video.id] ?? 0,
         typeIds: Array.isArray(video.type_ids)
           ? video.type_ids
           : video.type_id != null

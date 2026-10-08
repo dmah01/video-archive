@@ -29,7 +29,6 @@ export default function Home() {
 
   const [relatedCounts, setRelatedCounts] =
     useState<Record<number, number>>({});
-  const relatedCountsRevision = useRef(0);
 
   // =============================
   // 필터
@@ -254,8 +253,6 @@ export default function Home() {
 
   async function saveVideoRelations() {
     if (!isAdmin || !editingVideo) return;
-
-    relatedCountsRevision.current += 1;
 
     if (typeof window !== "undefined") {
       videoEditorScrollYRef.current =
@@ -528,21 +525,12 @@ export default function Home() {
 
   const totalPages = Math.ceil(filteredVideos.length / VIDEOS_PER_PAGE);
 
-const startIndex = (currentPage - 1) * VIDEOS_PER_PAGE;
+  const startIndex = (currentPage - 1) * VIDEOS_PER_PAGE;
 
-const paginatedVideos = useMemo(
-  () =>
-    filteredVideos.slice(
-      startIndex,
-      startIndex + VIDEOS_PER_PAGE
-    ),
-  [filteredVideos, startIndex]
-);
-
-const paginatedVideoIds = useMemo(
-  () => paginatedVideos.map((video) => video.id).join(","),
-  [paginatedVideos]
-);
+  const paginatedVideos = filteredVideos.slice(
+    startIndex,
+    startIndex + VIDEOS_PER_PAGE
+  );
 
   useEffect(() => {
     if (pendingVideoCardId === null) return;
@@ -603,61 +591,18 @@ const paginatedVideoIds = useMemo(
   // =============================
   // 카드 연계 영상 개수
   // =============================
+  // 관련 영상 개수는 useVideos()에서 함께 불러온 값을 사용합니다.
+  // 페이지 이동마다 video_relations를 다시 조회하지 않습니다.
   useEffect(() => {
-  const pageIds = paginatedVideoIds
-    ? paginatedVideoIds.split(",").map(Number)
-    : [];
-
-  if (pageIds.length === 0) return;
-
-  let cancelled = false;
-  const requestRevision = relatedCountsRevision.current;
-
-  async function loadRelatedCounts() {
-    const { data, error } = await supabase
-      .from("video_relations")
-      .select("video_id, related_video_id")
-      .or(
-        `video_id.in.(${pageIds.join(",")}),related_video_id.in.(${pageIds.join(",")})`
-      );
-
-    if (
-      cancelled ||
-      error ||
-      requestRevision !== relatedCountsRevision.current
-    ) {
-      return;
-    }
-
-    const counts: Record<number, number> = {};
-
-    (data ?? []).forEach((relation) => {
-      const a = Number(relation.video_id);
-      const b = Number(relation.related_video_id);
-
-      if (pageIds.includes(a)) {
-        counts[a] = (counts[a] ?? 0) + 1;
-      }
-
-      if (pageIds.includes(b)) {
-        counts[b] = (counts[b] ?? 0) + 1;
-      }
-    });
-
-    setRelatedCounts((current) => ({
-      ...current,
-      ...Object.fromEntries(
-        pageIds.map((id) => [id, counts[id] ?? 0])
-      ),
-    }));
-  }
-
-  void loadRelatedCounts();
-
-  return () => {
-    cancelled = true;
-  };
-}, [paginatedVideoIds]);
+    setRelatedCounts(
+      Object.fromEntries(
+        videos.map((video) => [
+          video.id,
+          (video as Video & { relatedCount?: number }).relatedCount ?? 0,
+        ])
+      )
+    );
+  }, [videos]);
 
   // =============================
   // 화면
