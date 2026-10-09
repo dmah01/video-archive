@@ -196,7 +196,7 @@ export async function GET(request: Request) {
       .map((item: any) => ({
         youtube_video_id: item.contentDetails.videoId,
         title: item.snippet.title,
-        description: item.snippet.description,
+        
         thumbnail_url:
           item.snippet.thumbnails.high?.url ??
           item.snippet.thumbnails.medium?.url ??
@@ -427,7 +427,7 @@ export async function POST(request: Request) {
     const video = {
       youtube_video_id: videoId,
       title: snippet.title,
-      description: snippet.description ?? "",
+      
       thumbnail_url:
         snippet.thumbnails?.high?.url ??
         snippet.thumbnails?.medium?.url ??
