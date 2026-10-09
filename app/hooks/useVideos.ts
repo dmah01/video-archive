@@ -141,7 +141,7 @@ export function useVideos() {
 
   const loadSeries = useCallback(async () => {
     const { data, error } = await supabase.from("series").select("id,name").order("name");
-    if (error) console.error("시리즈 불러오기 오류:", error);
+    if (error) console.error("시리즈 불러오기 오류:", error.message || JSON.stringify(error));
     else setSeries(data ?? []);
   }, []);
 
