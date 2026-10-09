@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import type { Video } from "@/app/lib/archive-types";
 import { useVideos } from "./hooks/useVideos";
@@ -15,6 +15,7 @@ export default function Home() {
   const {
     videos,
     setVideos,
+    fetchVideoPage,
     people,
     genres,
     types,
@@ -29,6 +30,8 @@ export default function Home() {
 
   const [relatedCounts, setRelatedCounts] =
     useState<Record<number, number>>({});
+  const [filteredTotalCount, setFilteredTotalCount] = useState(0);
+  const [pageLoading, setPageLoading] = useState(false);
 
   // =============================
   // 필터
@@ -58,7 +61,6 @@ export default function Home() {
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [showYouTubeAdd, setShowYouTubeAdd] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const skipFilterPageResetRef = useRef(false);
 
   async function handleAddYouTubeVideo() {
     const url = youtubeUrl.trim();
@@ -118,11 +120,6 @@ export default function Home() {
   // =============================
 
   useEffect(() => {
-    if (skipFilterPageResetRef.current) {
-      skipFilterPageResetRef.current = false;
-      return;
-    }
-
     setCurrentPage(1);
   }, [
     search,
@@ -220,31 +217,73 @@ export default function Home() {
     setEditorRelatedVideos([]);
   }
 
-  function navigateToVideoCard(videoId: number) {
-    const currentIndex = filteredVideos.findIndex(
-      (item) => item.id === videoId
-    );
+  async function navigateToVideoCard(videoId: number) {
+    if (videos.some((item) => item.id === videoId)) {
+      setPendingVideoCardId(videoId);
+      closeVideoEditor();
+      return;
+    }
 
-    setPendingVideoCardId(videoId);
+    const activeFilters = {
+      search,
+      startDate,
+      endDate,
+      peopleIds: selectedPeople,
+      peopleMode: peopleFilterMode,
+      genreIds: selectedGenres,
+      genreMode: genreFilterMode,
+      typeIds: selectedTypes,
+      seriesIds: selectedSeries,
+      sort: sort === "최신순" ? "newest" as const : "oldest" as const,
+      pageSize: VIDEOS_PER_PAGE,
+    };
 
-    if (currentIndex !== -1) {
-      setCurrentPage(Math.floor(currentIndex / VIDEOS_PER_PAGE) + 1);
-    } else {
-      const allIndex = videos.findIndex(
-        (item) => item.id === videoId
-      );
+    async function findVideoPage(
+      filters: typeof activeFilters
+    ): Promise<number | null> {
+      const firstPage = await fetchVideoPage({ ...filters, page: 1 });
+      if (firstPage.items.some((item) => item.id === videoId)) return 1;
 
-      if (allIndex === -1) {
+      const pageCount = Math.ceil(firstPage.totalCount / VIDEOS_PER_PAGE);
+      for (let page = 2; page <= pageCount; page += 1) {
+        const result = await fetchVideoPage({ ...filters, page });
+        if (result.items.some((item) => item.id === videoId)) return page;
+      }
+      return null;
+    }
+
+    try {
+      let targetPage = await findVideoPage(activeFilters);
+
+      if (targetPage === null) {
+        resetFilters();
+        targetPage = await findVideoPage({
+          search: "",
+          startDate: "",
+          endDate: "",
+          peopleIds: [],
+          peopleMode: "all",
+          genreIds: [],
+          genreMode: "all",
+          typeIds: [],
+          seriesIds: [],
+          sort: "newest",
+          pageSize: VIDEOS_PER_PAGE,
+        });
+      }
+
+      if (targetPage === null) {
         setPendingVideoCardId(null);
         return;
       }
 
-      skipFilterPageResetRef.current = true;
-      resetFilters();
-      setCurrentPage(Math.floor(allIndex / VIDEOS_PER_PAGE) + 1);
+      setPendingVideoCardId(videoId);
+      setCurrentPage(targetPage);
+      closeVideoEditor();
+    } catch (error) {
+      console.error("이동할 영상 조회 오류:", error);
+      setPendingVideoCardId(null);
     }
-
-    closeVideoEditor();
   }
 
   // =============================
@@ -421,92 +460,55 @@ export default function Home() {
   }
 
   // =============================
-  // 필터링
+  // 서버 필터링 및 페이지네이션
   // =============================
 
-  const filteredVideos = useMemo(() => {
-    let result = videos.filter((video) => {
-      // 제목
-      const matchesSearch = video.title
-        .toLowerCase()
-        .includes(search.toLowerCase());
+  useEffect(() => {
+    let active = true;
 
-      // 날짜 기간 비교
-      const videoDate = video.published_at.slice(0, 10);
-      const matchesDate =
-        (!startDate || videoDate >= startDate) &&
-        (!endDate || videoDate <= endDate);
+    async function loadPage() {
+      setPageLoading(true);
+      try {
+        const result = await fetchVideoPage({
+          search,
+          startDate,
+          endDate,
+          peopleIds: selectedPeople,
+          peopleMode: peopleFilterMode,
+          genreIds: selectedGenres,
+          genreMode: genreFilterMode,
+          typeIds: selectedTypes,
+          seriesIds: selectedSeries,
+          sort: sort === "최신순" ? "newest" : "oldest",
+          page: currentPage,
+          pageSize: VIDEOS_PER_PAGE,
+        });
 
-      // 멤버
-      const videoPeopleIds = video.peopleIds ?? [];
-      const matchesPerson =
-        selectedPeople.length === 0 ||
-        (peopleFilterMode === "all"
-          ? selectedPeople.every((personId) => videoPeopleIds.includes(personId))
-          : peopleFilterMode === "only"
-            ? videoPeopleIds.length === selectedPeople.length &&
-              selectedPeople.every((personId) => videoPeopleIds.includes(personId))
-            : selectedPeople.some((personId) => videoPeopleIds.includes(personId)));
+        if (!active) return;
+        setVideos(result.items);
+        setFilteredTotalCount(result.totalCount);
 
-      // 장르
-      const videoGenreIds = Array.isArray(video.genreIds)
-        ? video.genreIds
-        : [];
-
-      const matchesGenre =
-        selectedGenres.length === 0 ||
-        (genreFilterMode === "only"
-          ? videoGenreIds.length === selectedGenres.length &&
-            selectedGenres.every((genreId) => videoGenreIds.includes(genreId))
-          : selectedGenres.some((genreId) => videoGenreIds.includes(genreId)));
-
-      // 타입
-      const videoTypeIds = Array.isArray(video.typeIds)
-        ? video.typeIds
-        : video.typeId != null
-          ? [video.typeId]
-          : [];
-
-      const matchesType =
-        selectedTypes.length === 0 ||
-        selectedTypes.some((typeId) => videoTypeIds.includes(typeId));
-
-      // 시리즈
-      const videoWithSeriesIds = video as Video & { seriesIds?: number[] };
-      const videoSeriesIds = Array.isArray(videoWithSeriesIds.seriesIds)
-        ? videoWithSeriesIds.seriesIds
-        : video.seriesId != null
-          ? [video.seriesId]
-          : [];
-      const matchesSeries =
-        selectedSeries.length === 0 ||
-        selectedSeries.some((seriesId) => videoSeriesIds.includes(seriesId));
-
-      return (
-        matchesSearch &&
-        matchesDate &&
-        matchesPerson &&
-        matchesGenre &&
-        matchesType &&
-        matchesSeries
-      );
-    });
-
-    // =============================
-    // 정렬
-    // =============================
-
-    result = [...result].sort((a, b) => {
-      if (sort === "최신순") {
-        return b.published_at.localeCompare(a.published_at);
+        const nextTotalPages = Math.ceil(result.totalCount / VIDEOS_PER_PAGE);
+        if (currentPage > Math.max(1, nextTotalPages)) {
+          setCurrentPage(Math.max(1, nextTotalPages));
+        }
+      } catch (error) {
+        if (!active) return;
+        console.error("영상 페이지 조회 오류:", error);
+        setVideos([]);
+        setFilteredTotalCount(0);
+      } finally {
+        if (active) setPageLoading(false);
       }
+    }
 
-      return a.published_at.localeCompare(b.published_at);
-    });
-
-    return result;
+    void loadPage();
+    return () => {
+      active = false;
+    };
   }, [
-    videos,
+    fetchVideoPage,
+    setVideos,
     search,
     startDate,
     endDate,
@@ -517,42 +519,12 @@ export default function Home() {
     selectedTypes,
     selectedSeries,
     sort,
+    currentPage,
+    importing,
   ]);
 
-  // =============================
-  // 페이지네이션
-  // =============================
-
-  const totalPages = Math.ceil(filteredVideos.length / VIDEOS_PER_PAGE);
-
-  const startIndex = (currentPage - 1) * VIDEOS_PER_PAGE;
-
-  const paginatedVideos = filteredVideos.slice(
-    startIndex,
-    startIndex + VIDEOS_PER_PAGE
-  );
-
-  useEffect(() => {
-    if (pendingVideoCardId === null) return;
-
-    const currentIndex = filteredVideos.findIndex(
-      (item) => item.id === pendingVideoCardId
-    );
-
-    if (currentIndex !== -1) {
-      setCurrentPage(Math.floor(currentIndex / VIDEOS_PER_PAGE) + 1);
-      return;
-    }
-
-    const existsInVideos = videos.some(
-      (item) => item.id === pendingVideoCardId
-    );
-
-    if (existsInVideos) {
-      skipFilterPageResetRef.current = true;
-      resetFilters();
-    }
-  }, [pendingVideoCardId, filteredVideos, videos]);
+  const totalPages = Math.ceil(filteredTotalCount / VIDEOS_PER_PAGE);
+  const paginatedVideos = videos;
 
   useEffect(() => {
     if (pendingVideoCardId === null) return;
@@ -759,7 +731,7 @@ export default function Home() {
           <div className="mb-2 flex items-center justify-between gap-2 border-b border-zinc-900/80 px-2 pb-1 sm:mb-2.5 sm:px-3 sm:pb-1.5 lg:px-4">
             <div className="min-w-0">
               <span className="text-xs font-medium tracking-tight text-zinc-500">
-                {filteredVideos.length.toLocaleString()}개
+                {filteredTotalCount.toLocaleString()}개
               </span>
             </div>
 
@@ -775,7 +747,7 @@ export default function Home() {
           </div>
 
           {/* 로딩 */}
-          {loading && (
+          {(loading || pageLoading) && (
             <div className="rounded-3xl border border-zinc-800 bg-zinc-900/50 py-24 text-center">
               <p className="text-sm text-zinc-500">
                 영상을 불러오는 중
@@ -784,7 +756,7 @@ export default function Home() {
           )}
 
           {/* 영상 없음 */}
-          {!loading && filteredVideos.length === 0 && (
+          {!loading && !pageLoading && filteredTotalCount === 0 && (
             <div className="rounded-3xl border border-dashed border-zinc-800 bg-zinc-900/30 py-24 text-center">
               <p className="text-sm text-zinc-500">
                 해당 조건의 영상이 없습니다.
@@ -801,7 +773,7 @@ export default function Home() {
           )}
 
           {/* 영상 목록 */}
-          {!loading && filteredVideos.length > 0 && (
+          {!loading && !pageLoading && videos.length > 0 && (
             <>
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {paginatedVideos.map((video) => (

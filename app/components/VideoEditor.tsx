@@ -167,6 +167,7 @@
       const [seriesSearch, setSeriesSearch] = useState("");
       const [relatedSearch, setRelatedSearch] = useState("");
       const [relatedLoading, setRelatedLoading] = useState(false);
+      const [relatedSearchResults, setRelatedSearchResults] = useState<Video[]>([]);
 
       /*
        * 다른 영상을 열 때마다
@@ -177,8 +178,60 @@
           setActiveMenu("people");
           setSeriesSearch("");
           setRelatedSearch("");
+          setRelatedSearchResults([]);
         }
       }, [video]);
+
+      // 서버에서 검색해 현재 페이지에 없는 영상도 연계할 수 있게 합니다.
+      useEffect(() => {
+        const search = relatedSearch.trim();
+        let cancelled = false;
+
+        if (!video || !search) {
+          setRelatedSearchResults([]);
+          setRelatedLoading(false);
+          return;
+        }
+
+        setRelatedLoading(true);
+        const timeoutId = window.setTimeout(async () => {
+          try {
+            const { data, error } = await supabase.rpc("get_filtered_videos", {
+              p_search: search,
+              p_start_date: null,
+              p_end_date: null,
+              p_people_ids: [],
+              p_people_mode: "all",
+              p_genre_ids: [],
+              p_genre_mode: "all",
+              p_type_ids: [],
+              p_series_ids: [],
+              p_sort: "newest",
+              p_page: 1,
+              p_page_size: 12,
+            });
+
+            if (error) throw error;
+
+            const result = data as { items?: Video[] } | null;
+            if (!cancelled) {
+              setRelatedSearchResults(
+                (result?.items ?? []).filter((item) => Number(item.id) !== video.id),
+              );
+            }
+          } catch (error) {
+            console.error("연계 영상 검색 오류:", error);
+            if (!cancelled) setRelatedSearchResults([]);
+          } finally {
+            if (!cancelled) setRelatedLoading(false);
+          }
+        }, 250);
+
+        return () => {
+          cancelled = true;
+          window.clearTimeout(timeoutId);
+        };
+      }, [relatedSearch, video]);
 
       useEffect(() => {
         const content = document.querySelector<HTMLElement>(
@@ -761,57 +814,35 @@
 
                         {relatedSearch.trim() ? (
                           <div className="space-y-1.5">
-                            {videos
-                              .filter((item) => item.id !== video.id)
-                              .filter((item) =>
-                                item.title
-                                  .toLocaleLowerCase("ko-KR")
-                                  .includes(
-                                    relatedSearch
-                                      .trim()
-                                      .toLocaleLowerCase("ko-KR")
-                                  )
-                              )
-                              .slice(0, 12)
-                              .map((item) => {
-                                const selected =
-                                  safeSelectedRelatedVideos.includes(item.id);
+                            {relatedSearchResults.map((item) => {
+                              const selected =
+                                safeSelectedRelatedVideos.includes(Number(item.id));
 
-                                return (
-                                  <button
-                                    key={item.id}
-                                    type="button"
-                                    onClick={() => toggleRelatedVideo(item.id)}
-                                    className={`flex w-full items-center gap-3 rounded-xl border p-2 text-left transition ${
-                                      selected
-                                        ? "border-sky-400/30 bg-sky-400/10"
-                                        : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700"
-                                    }`}
-                                  >
-                                    <img
-                                      src={item.thumbnail_url}
-                                      alt=""
-                                      loading="lazy"
-                                      className="h-10 w-[72px] shrink-0 rounded-lg object-cover"
-                                    />
-                                    <span className="min-w-0 flex-1 truncate text-[11px] text-zinc-300">
-                                      {item.title}
-                                    </span>
-                                  </button>
-                                );
-                              })}
+                              return (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  onClick={() => toggleRelatedVideo(Number(item.id))}
+                                  className={`flex w-full items-center gap-3 rounded-xl border p-2 text-left transition ${
+                                    selected
+                                      ? "border-sky-400/30 bg-sky-400/10"
+                                      : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700"
+                                  }`}
+                                >
+                                  <img
+                                    src={item.thumbnail_url}
+                                    alt=""
+                                    loading="lazy"
+                                    className="h-10 w-[72px] shrink-0 rounded-lg object-cover"
+                                  />
+                                  <span className="min-w-0 flex-1 truncate text-[11px] text-zinc-300">
+                                    {item.title}
+                                  </span>
+                                </button>
+                              );
+                            })}
 
-                            {videos
-                              .filter((item) => item.id !== video.id)
-                              .filter((item) =>
-                                item.title
-                                  .toLocaleLowerCase("ko-KR")
-                                  .includes(
-                                    relatedSearch
-                                      .trim()
-                                      .toLocaleLowerCase("ko-KR")
-                                  )
-                              ).length === 0 && (
+                            {!relatedLoading && relatedSearchResults.length === 0 && (
                               <p className="py-8 text-center text-xs text-zinc-600">
                                 검색 결과가 없습니다.
                               </p>
