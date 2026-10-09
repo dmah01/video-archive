@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/app/lib/supabase";
 import type { Category, Person, Video } from "@/app/lib/archive-types";
 
@@ -16,6 +16,135 @@ export function useVideos() {
   const [importing, setImporting] = useState(false);
   const [importMessage, setImportMessage] = useState("");
 
+  const loadVideos = useCallback(async () => {
+    setLoading(true);
+
+    try {
+      const allVideos: Video[] = [];
+      let from = 0;
+
+      // 1. 영상 목록 페이징 수집
+      while (true) {
+        const { data, error } = await supabase
+          .from("videos")
+          .select(VIDEO_COLUMNS)
+          .order("published_at", { ascending: false })
+          .range(from, from + VIDEO_PAGE_SIZE - 1);
+
+        if (error) {
+          console.error("영상 불러오기 오류:", error);
+          setLoading(false);
+          return;
+        }
+
+        const currentVideos = (data ?? []) as Video[];
+        allVideos.push(...currentVideos);
+
+        if (currentVideos.length < VIDEO_PAGE_SIZE) break;
+        from += VIDEO_PAGE_SIZE;
+      }
+
+      if (allVideos.length === 0) {
+        setVideos([]);
+        setLoading(false);
+        return;
+      }
+
+      // 2. 청크(Chunk) 반복 호출 제거: 전체 관계 데이터를 단 1회의 병렬 요청으로 일괄 수집
+      const [
+        { data: peopleData, error: peopleError },
+        { data: genreData, error: genreError },
+        { data: relationData, error: relationError },
+      ] = await Promise.all([
+        supabase.from("video_people").select("video, person"),
+        supabase.from("video_genres").select("video, genre"),
+        supabase.from("video_relation_counts").select("video_id, related_count"),
+      ]);
+
+      if (peopleError) console.error("멤버 연결 불러오기 오류:", peopleError);
+      if (genreError) console.error("장르 연결 불러오기 오류:", genreError);
+      if (relationError) console.error("관련 영상 개수 불러오기 오류:", relationError);
+
+      // 3. 데이터를 빠른 조회용 Map으로 변환
+      const peopleMap = new Map<number, number[]>();
+      for (const relation of peopleData ?? []) {
+        const videoId = Number(relation.video);
+        const personId = Number(relation.person);
+        if (!Number.isFinite(videoId) || !Number.isFinite(personId)) continue;
+
+        const ids = peopleMap.get(videoId) ?? [];
+        if (!ids.includes(personId)) ids.push(personId);
+        peopleMap.set(videoId, ids);
+      }
+
+      const genreMap = new Map<number, number[]>();
+      for (const relation of genreData ?? []) {
+        const videoId = Number(relation.video);
+        const genreId = Number(relation.genre);
+        if (!Number.isFinite(videoId) || !Number.isFinite(genreId)) continue;
+
+        const ids = genreMap.get(videoId) ?? [];
+        if (!ids.includes(genreId)) ids.push(genreId);
+        genreMap.set(videoId, ids);
+      }
+
+      const relationCounts: Record<number, number> = {};
+      for (const relation of relationData ?? []) {
+        relationCounts[Number(relation.video_id)] = Number(relation.related_count) || 0;
+      }
+
+      // 4. 최종 데이터 조합
+      setVideos(
+        allVideos.map((video) => ({
+          ...video,
+          peopleIds: peopleMap.get(video.id) ?? [],
+          genreIds: genreMap.get(video.id) ?? [],
+          relatedCount: relationCounts[video.id] ?? 0,
+          typeIds: Array.isArray(video.type_ids)
+            ? video.type_ids
+            : video.type_id != null
+              ? [video.type_id]
+              : [],
+          typeId: video.type_id ?? null,
+          seriesId: video.series_id ?? null,
+          seriesIds: Array.isArray(video.series_ids)
+            ? video.series_ids
+            : video.series_id != null
+              ? [video.series_id]
+              : [],
+        }))
+      );
+    } catch (err) {
+      console.error("loadVideos 시스템 오류:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadPeople = useCallback(async () => {
+    const { data, error } = await supabase.from("people").select("id,name").order("name");
+    if (error) console.error("멤버 불러오기 오류:", error);
+    else setPeople(data ?? []);
+  }, []);
+
+  const loadGenres = useCallback(async () => {
+    const { data, error } = await supabase.from("genres").select("id,name").order("name");
+    if (error) console.error("장르 불러오기 오류:", error);
+    else setGenres(data ?? []);
+  }, []);
+
+  const loadTypes = useCallback(async () => {
+    const { data, error } = await supabase.from("types").select("id,name").order("name");
+    if (error) console.error("타입 불러오기 오류:", error);
+    else setTypes(data ?? []);
+  }, []);
+
+  const loadSeries = useCallback(async () => {
+    const { data, error } = await supabase.from("series").select("id,name").order("name");
+    if (error) console.error("시리즈 불러오기 오류:", error);
+    else setSeries(data ?? []);
+  }, []);
+
   useEffect(() => {
     void Promise.all([
       loadVideos(),
@@ -24,180 +153,7 @@ export function useVideos() {
       loadTypes(),
       loadSeries(),
     ]);
-  }, []);
-
-  async function loadVideos() {
-    setLoading(true);
-
-    const allVideos: Video[] = [];
-    let from = 0;
-
-    while (true) {
-      const { data, error } = await supabase
-        .from("videos")
-        .select(VIDEO_COLUMNS)
-        .order("published_at", { ascending: false })
-        .range(from, from + VIDEO_PAGE_SIZE - 1);
-
-      if (error) {
-        console.error("영상 불러오기 오류:", error);
-        setLoading(false);
-        return;
-      }
-
-      const currentVideos = (data ?? []) as Video[];
-      allVideos.push(...currentVideos);
-
-      if (currentVideos.length < VIDEO_PAGE_SIZE) break;
-      from += VIDEO_PAGE_SIZE;
-    }
-
-    if (allVideos.length === 0) {
-      setVideos([]);
-      setLoading(false);
-      return;
-    }
-
-    const videoIds = allVideos.map((video) => video.id);
-    const RELATION_CHUNK_SIZE = 100;
-
-    const peopleRelations: Array<{ video: number; person: number }> = [];
-    const genreRelations: Array<{ video: number; genre: number }> = [];
-    const relationCounts: Record<number, number> = {};
-
-    for (let i = 0; i < videoIds.length; i += RELATION_CHUNK_SIZE) {
-      const chunk = videoIds.slice(i, i + RELATION_CHUNK_SIZE);
-
-      const [
-        { data: chunkPeople, error: peopleError },
-        { data: chunkGenres, error: genreError },
-        { data: chunkRelations, error: relationError },
-      ] = await Promise.all([
-        supabase.from("video_people").select("video, person").in("video", chunk),
-        supabase.from("video_genres").select("video, genre").in("video", chunk),
-        supabase
-          .from("video_relation_counts")
-          .select("video_id, related_count")
-          .in("video_id", chunk),
-      ]);
-
-      if (peopleError) {
-        console.error(
-          `멤버 연결 불러오기 오류 (chunk ${i}~${i + chunk.length - 1}):`,
-          peopleError
-        );
-      } else {
-        peopleRelations.push(
-          ...((chunkPeople ?? []) as Array<{ video: number; person: number }>)
-        );
-      }
-
-      if (genreError) {
-        console.error(
-          `장르 연결 불러오기 오류 (chunk ${i}~${i + chunk.length - 1}):`,
-          genreError
-        );
-      } else {
-        genreRelations.push(
-          ...((chunkGenres ?? []) as Array<{ video: number; genre: number }>)
-        );
-      }
-
-      if (relationError) {
-        console.error(
-          `관련 영상 개수 불러오기 오류 (chunk ${i}~${i + chunk.length - 1}):`,
-          relationError
-        );
-      } else {
-        for (const relation of chunkRelations ?? []) {
-          relationCounts[Number(relation.video_id)] =
-            Number(relation.related_count) || 0;
-        }
-      }
-    }
-
-    const peopleMap = new Map<number, number[]>();
-    for (const relation of peopleRelations) {
-      const videoId = Number(relation.video);
-      const personId = Number(relation.person);
-      if (!Number.isFinite(videoId) || !Number.isFinite(personId)) continue;
-
-      const ids = peopleMap.get(videoId) ?? [];
-      if (!ids.includes(personId)) ids.push(personId);
-      peopleMap.set(videoId, ids);
-    }
-
-    const genreMap = new Map<number, number[]>();
-    for (const relation of genreRelations) {
-      const videoId = Number(relation.video);
-      const genreId = Number(relation.genre);
-      if (!Number.isFinite(videoId) || !Number.isFinite(genreId)) continue;
-
-      const ids = genreMap.get(videoId) ?? [];
-      if (!ids.includes(genreId)) ids.push(genreId);
-      genreMap.set(videoId, ids);
-    }
-
-    setVideos(
-      allVideos.map((video) => ({
-        ...video,
-        peopleIds: peopleMap.get(video.id) ?? [],
-        genreIds: genreMap.get(video.id) ?? [],
-        relatedCount: relationCounts[video.id] ?? 0,
-        typeIds: Array.isArray(video.type_ids)
-          ? video.type_ids
-          : video.type_id != null
-            ? [video.type_id]
-            : [],
-        typeId: video.type_id ?? null,
-        seriesId: video.series_id ?? null,
-        seriesIds: Array.isArray(video.series_ids)
-          ? video.series_ids
-          : video.series_id != null
-            ? [video.series_id]
-            : [],
-      }))
-    );
-
-    setLoading(false);
-  }
-
-  async function loadPeople() {
-    const { data, error } = await supabase.from("people").select("id,name").order("name");
-    if (error) {
-      console.error("멤버 불러오기 오류:", error);
-      return;
-    }
-    setPeople(data ?? []);
-  }
-
-  async function loadGenres() {
-    const { data, error } = await supabase.from("genres").select("id,name").order("name");
-    if (error) {
-      console.error("장르 불러오기 오류:", error);
-      return;
-    }
-    setGenres(data ?? []);
-  }
-
-  async function loadTypes() {
-    const { data, error } = await supabase.from("types").select("id,name").order("name");
-    if (error) {
-      console.error("타입 불러오기 오류:", error);
-      return;
-    }
-    setTypes(data ?? []);
-  }
-
-  async function loadSeries() {
-    const { data, error } = await supabase.from("series").select("id,name").order("name");
-    if (error) {
-      console.error("시리즈 불러오기 오류:", error);
-      return;
-    }
-    setSeries(data ?? []);
-  }
-
+  }, [loadVideos, loadPeople, loadGenres, loadTypes, loadSeries]);
 
   async function getAdminHeaders() {
     const { data } = await supabase.auth.getSession();
@@ -218,17 +174,11 @@ export function useVideos() {
 
     try {
       const headers = await getAdminHeaders();
-      const response = await fetch("/api/youtube", {
-        headers,
-      });
+      const response = await fetch("/api/youtube", { headers });
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.details ||
-            data.error ||
-            "영상 가져오기에 실패했습니다."
-        );
+        throw new Error(data.details || data.error || "영상 가져오기에 실패했습니다.");
       }
 
       setImportMessage(`${data.count}개의 영상을 가져왔습니다.`);
@@ -236,9 +186,7 @@ export function useVideos() {
     } catch (error) {
       console.error("영상 가져오기 오류:", error);
       setImportMessage(
-        error instanceof Error
-          ? error.message
-          : "영상 가져오기에 실패했습니다."
+        error instanceof Error ? error.message : "영상 가져오기에 실패했습니다."
       );
     } finally {
       setImporting(false);
@@ -263,11 +211,7 @@ export function useVideos() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.details ||
-            data.error ||
-            "영상 삭제에 실패했습니다."
-        );
+        throw new Error(data.details || data.error || "영상 삭제에 실패했습니다.");
       }
 
       setVideos((current) => current.filter((video) => video.id !== videoId));
@@ -276,9 +220,7 @@ export function useVideos() {
     } catch (error) {
       console.error("영상 삭제 오류:", error);
       const message =
-        error instanceof Error
-          ? error.message
-          : "영상 삭제에 실패했습니다.";
+        error instanceof Error ? error.message : "영상 삭제에 실패했습니다.";
       setImportMessage(message);
       throw error;
     } finally {
@@ -305,9 +247,7 @@ export function useVideos() {
 
       if (!response.ok) {
         throw new Error(
-          data.details ||
-            data.error ||
-            "YouTube 영상 추가에 실패했습니다."
+          data.details || data.error || "YouTube 영상 추가에 실패했습니다."
         );
       }
 
@@ -323,9 +263,7 @@ export function useVideos() {
       console.error("YouTube 영상 추가 오류:", error);
 
       const message =
-        error instanceof Error
-          ? error.message
-          : "YouTube 영상 추가에 실패했습니다.";
+        error instanceof Error ? error.message : "YouTube 영상 추가에 실패했습니다.";
 
       setImportMessage(message);
       throw error;
