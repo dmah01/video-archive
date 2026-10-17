@@ -17,7 +17,6 @@ export async function getPeople() {
   return data ?? [];
 }
 
-
 export async function getVideos() {
   const { data, error } = await supabase
     .from("videos")
