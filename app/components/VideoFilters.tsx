@@ -405,7 +405,7 @@ export default function VideoFilters({
                 <div
                   className={`filter-popup ${popupClass} sm:left-0 sm:top-[calc(100%+8px)] sm:!w-[400px]`}
                 >
-                  <div className="mb-1.5 flex items-center justify-between sm:mb-2">
+                  <div className="mb-1.5 flex h-6 min-w-0 items-center justify-between gap-1 sm:mb-2">
                     <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                       멤버 선택
                     </span>
@@ -413,7 +413,7 @@ export default function VideoFilters({
                       <button
                         type="button"
                         onClick={() => setDraftPeople([])}
-                        className="text-[10px] text-zinc-600 hover:text-zinc-300"
+                        className="flex h-5 shrink-0 items-center whitespace-nowrap rounded px-1 text-[9px] leading-none text-zinc-600 hover:text-zinc-300 sm:text-[10px]"
                       >
                         전체 해제
                       </button>
@@ -510,7 +510,7 @@ export default function VideoFilters({
 
               {openFilter === "genres" && (
                 <div className={`filter-popup ${popupClass} !max-h-none !overflow-visible sm:left-0 sm:top-[calc(100%+8px)] sm:!w-[680px] sm:!max-w-[calc(100vw-1rem)]`}>
-                  <div className="mb-1.5 flex items-center justify-between sm:mb-2">
+                  <div className="mb-1.5 flex h-6 min-w-0 items-center justify-between gap-1 sm:mb-2">
                     <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                       장르 선택
                     </span>
@@ -518,7 +518,7 @@ export default function VideoFilters({
                       <button
                         type="button"
                         onClick={() => setDraftGenres([])}
-                        className="text-[10px] text-zinc-600 hover:text-zinc-300"
+                        className="flex h-5 shrink-0 items-center whitespace-nowrap rounded px-1 text-[9px] leading-none text-zinc-600 hover:text-zinc-300 sm:text-[10px]"
                       >
                         전체 해제
                       </button>
@@ -613,7 +613,7 @@ export default function VideoFilters({
 
               {openFilter === "types" && (
                 <div className={`filter-popup ${popupClass} sm:left-0 sm:top-[calc(100%+8px)] sm:!w-[600px] sm:!max-w-[calc(100vw-1rem)]`}>
-                  <div className="mb-1.5 flex items-center justify-between sm:mb-2">
+                  <div className="mb-1.5 flex h-6 min-w-0 items-center justify-between gap-1 sm:mb-2">
                     <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                       타입 선택
                     </span>
@@ -621,7 +621,7 @@ export default function VideoFilters({
                       <button
                         type="button"
                         onClick={() => setDraftTypes([])}
-                        className="text-[10px] text-zinc-600 hover:text-zinc-300"
+                        className="flex h-5 shrink-0 items-center whitespace-nowrap rounded px-1 text-[9px] leading-none text-zinc-600 hover:text-zinc-300 sm:text-[10px]"
                       >
                         전체 해제
                       </button>
@@ -688,7 +688,7 @@ export default function VideoFilters({
                 <div
                   className={`${popupClass} !max-h-none !overflow-visible !w-[680px] !max-w-[calc(100vw-1rem)] sm:right-0 sm:top-[calc(100%+8px)]`}
                 >
-                  <div className="mb-2 flex items-center justify-between gap-3">
+                  <div className="mb-2 flex h-6 min-w-0 items-center justify-between gap-1">
                     <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                       시리즈 선택
                     </span>
@@ -697,7 +697,7 @@ export default function VideoFilters({
                       <button
                         type="button"
                         onClick={() => setDraftSeries([])}
-                        className="shrink-0 text-[10px] text-zinc-600 hover:text-zinc-300"
+                        className="flex h-5 shrink-0 items-center whitespace-nowrap rounded px-1 text-[9px] leading-none text-zinc-600 hover:text-zinc-300 sm:text-[10px]"
                       >
                         전체 해제
                       </button>
@@ -853,7 +853,7 @@ export default function VideoFilters({
                 <div
                   className={`filter-popup ${popupClass} sm:right-0 sm:top-[calc(100%+8px)] sm:!w-[320px] sm:max-w-[calc(100vw-1rem)]`}
                 >
-                  <div className="mb-2 flex items-center justify-between">
+                  <div className="mb-2 flex h-6 min-w-0 items-center justify-between gap-1">
                     <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                       날짜 선택
                     </span>
@@ -861,10 +861,13 @@ export default function VideoFilters({
                       <button
                         type="button"
                         onClick={() => {
+                          // 날짜를 오늘로 재설정하지 않고 날짜 필터를 완전히 해제합니다.
                           setDraftStartDate("");
                           setDraftEndDate("");
+                          setStartDate("");
+                          setEndDate("");
                         }}
-                        className="text-[10px] text-zinc-600 hover:text-zinc-300"
+                        className="flex h-5 shrink-0 items-center whitespace-nowrap rounded px-1 text-[9px] leading-none text-zinc-600 hover:text-zinc-300 sm:text-[10px]"
                       >
                         초기화
                       </button>
