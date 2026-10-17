@@ -861,11 +861,14 @@ export default function VideoFilters({
                       <button
                         type="button"
                         onClick={() => {
-                          // 날짜를 오늘로 재설정하지 않고 날짜 필터를 완전히 해제합니다.
+                          // 모바일 날짜 입력의 기본값(오늘)이 다시 적용되지 않도록
+                          // 임시값과 실제 필터를 모두 비우고 날짜 팝업을 닫습니다.
                           setDraftStartDate("");
                           setDraftEndDate("");
+                          setDateMode("range");
                           setStartDate("");
                           setEndDate("");
+                          setOpenFilter(null);
                         }}
                         className="flex h-5 shrink-0 items-center whitespace-nowrap rounded px-1 text-[9px] leading-none text-zinc-600 hover:text-zinc-300 sm:text-[10px]"
                       >
@@ -944,7 +947,18 @@ export default function VideoFilters({
                     <div className="space-y-2">
                       {/* 시작일 */}
                       <div>
-                        <p className="mb-1 text-[10px] text-zinc-500">시작일</p>
+                        <div className="mb-1 flex h-5 items-center justify-between gap-2">
+                          <p className="text-[10px] text-zinc-500">시작일</p>
+                          {draftStartDate && (
+                            <button
+                              type="button"
+                              onClick={() => setDraftStartDate("")}
+                              className="rounded px-1 text-[10px] text-zinc-500 hover:text-zinc-200"
+                            >
+                              시작일 초기화
+                            </button>
+                          )}
+                        </div>
                         <div className="relative h-9 w-full">
                           <div
                             className="pointer-events-none flex h-full w-full items-center justify-between rounded-lg border border-zinc-800 bg-white px-3 text-xs text-zinc-900 outline-none"
@@ -977,7 +991,18 @@ export default function VideoFilters({
 
                       {/* 종료일 */}
                       <div>
-                        <p className="mb-1 text-[10px] text-zinc-500">종료일</p>
+                        <div className="mb-1 flex h-5 items-center justify-between gap-2">
+                          <p className="text-[10px] text-zinc-500">종료일</p>
+                          {draftEndDate && (
+                            <button
+                              type="button"
+                              onClick={() => setDraftEndDate("")}
+                              className="rounded px-1 text-[10px] text-zinc-500 hover:text-zinc-200"
+                            >
+                              종료일 초기화
+                            </button>
+                          )}
+                        </div>
                         <div className="relative h-9 w-full">
                           <div
                             className="pointer-events-none flex h-full w-full items-center justify-between rounded-lg border border-zinc-800 bg-white px-3 text-xs text-zinc-900 outline-none"
