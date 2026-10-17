@@ -112,7 +112,7 @@ const sortPeople = <T extends { name: string }>(items: T[]) =>
   });
 
 const popupClass =
-  "fixed inset-x-2 bottom-2 z-[70] max-h-[45dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:max-h-[50vh] sm:w-[520px] sm:max-w-[calc(100vw-1rem)] sm:rounded-2xl sm:p-2.5";
+  "fixed inset-x-2 bottom-2 z-[70] max-h-[45dvh] overflow-y-auto rounded-xl pb-[env(safe-area-inset-bottom)] border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/50 lg:absolute lg:inset-x-auto lg:bottom-auto lg:max-h-[50vh] lg:w-[520px] lg:max-w-[calc(100vw-1rem)] lg:rounded-2xl lg:p-2.5";
 
 const formatDateText = (val: string) =>
   val.replace(/^(\d{4})-(\d{2})-(\d{2})$/, (_m, year, month, day) => `${year.slice(2)}.${month}.${day}.`);
@@ -403,7 +403,7 @@ export default function VideoFilters({
 
               {openFilter === "people" && (
                 <div
-                  className={`filter-popup ${popupClass} sm:left-0 sm:top-[calc(100%+8px)] sm:!w-[400px]`}
+                  className={`filter-popup ${popupClass} lg:left-0 lg:top-[calc(100%+8px)] lg:!w-[400px]`}
                 >
                   <div className="mb-1.5 flex h-6 min-w-0 items-center justify-between gap-1 sm:mb-2">
                     <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
@@ -509,7 +509,7 @@ export default function VideoFilters({
               </button>
 
               {openFilter === "genres" && (
-                <div className={`filter-popup ${popupClass} !max-h-none !overflow-visible sm:left-0 sm:top-[calc(100%+8px)] sm:!w-[680px] sm:!max-w-[calc(100vw-1rem)]`}>
+                <div className={`filter-popup ${popupClass} !max-h-none !overflow-visible lg:left-0 lg:top-[calc(100%+8px)] lg:!w-[680px] lg:!max-w-[calc(100vw-1rem)]`}>
                   <div className="mb-1.5 flex h-6 min-w-0 items-center justify-between gap-1 sm:mb-2">
                     <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                       장르 선택
@@ -612,7 +612,7 @@ export default function VideoFilters({
               </button>
 
               {openFilter === "types" && (
-                <div className={`filter-popup ${popupClass} sm:left-0 sm:top-[calc(100%+8px)] sm:!w-[600px] sm:!max-w-[calc(100vw-1rem)]`}>
+                <div className={`filter-popup ${popupClass} lg:left-0 lg:top-[calc(100%+8px)] lg:!w-[600px] lg:!max-w-[calc(100vw-1rem)]`}>
                   <div className="mb-1.5 flex h-6 min-w-0 items-center justify-between gap-1 sm:mb-2">
                     <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
                       타입 선택
@@ -686,7 +686,7 @@ export default function VideoFilters({
 
               {openFilter === "series" && (
                 <div
-                  className={`${popupClass} !max-h-none !overflow-visible !w-[680px] !max-w-[calc(100vw-1rem)] sm:right-0 sm:top-[calc(100%+8px)]`}
+                  className={`${popupClass} !max-h-none !overflow-visible lg:!w-[680px] lg:!max-w-[calc(100vw-1rem)] lg:right-0 lg:top-[calc(100%+8px)]`}
                 >
                   <div className="mb-2 flex h-6 min-w-0 items-center justify-between gap-1">
                     <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
@@ -851,7 +851,7 @@ export default function VideoFilters({
 
               {openFilter === "date" && (
                 <div
-                  className={`filter-popup ${popupClass} sm:right-0 sm:top-[calc(100%+8px)] sm:!w-[320px] sm:max-w-[calc(100vw-1rem)]`}
+                  className={`filter-popup ${popupClass} lg:right-0 lg:top-[calc(100%+8px)] lg:!w-[320px] lg:max-w-[calc(100vw-1rem)]`}
                 >
                   <div className="mb-2 flex h-6 min-w-0 items-center justify-between gap-1">
                     <span className="text-[11px] font-medium text-zinc-300 sm:text-xs">
